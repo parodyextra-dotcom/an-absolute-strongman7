@@ -879,6 +879,7 @@
                     break;
                 case 'exchange':
                     calcBody.innerHTML = getExchangeCalculator();
+                    initExchangeCalculator();
                     break;
                 case 'world-time':
                     calcBody.innerHTML = getWorldTimeCalculator();
@@ -3343,118 +3344,1416 @@
             `;
         }
 
+        let dividendList = [];
+        let dividendIdCounter = 0;
+
         function getDividendCalculator() {
             return `
-                <form class="calc-form" onsubmit="calculateDividend(event)">
-                    <div class="form-group">
-                        <label>투자 금액 (원)</label>
-                        <input type="number" id="investAmount" placeholder="10000000" required>
+                <style>
+                    .dividend-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .dividend-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .dividend-form-row {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .dividend-form-row-3 {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .dividend-result-section {
+                        display: none;
+                    }
+                    .dividend-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .dividend-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .dividend-summary-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .dividend-summary-card.pretax {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .dividend-summary-card.tax {
+                        background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+                    }
+                    .dividend-summary-card.aftertax {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    }
+                    .dividend-summary-card.monthly {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .dividend-summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .dividend-summary-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    .dividend-list-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .dividend-list-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 20px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #e2e8f0;
+                    }
+                    .dividend-list-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .dividend-list-title i {
+                        color: #667eea;
+                    }
+                    .dividend-clear-all-btn {
+                        background: #fc8181;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 10px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .dividend-clear-all-btn:hover {
+                        background: #f56565;
+                        transform: translateY(-2px);
+                    }
+                    .dividend-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 14px;
+                    }
+                    .dividend-table th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 12px 10px;
+                        text-align: center;
+                        font-weight: 600;
+                        white-space: nowrap;
+                    }
+                    .dividend-table th:first-child {
+                        border-radius: 10px 0 0 0;
+                    }
+                    .dividend-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                    }
+                    .dividend-table td {
+                        padding: 12px 10px;
+                        text-align: center;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .dividend-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .dividend-country-badge {
+                        display: inline-block;
+                        padding: 4px 10px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                    }
+                    .dividend-country-badge.korea {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }
+                    .dividend-country-badge.usa {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                        color: white;
+                    }
+                    .dividend-delete-btn {
+                        background: #fc8181;
+                        color: white;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 8px;
+                        font-size: 12px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .dividend-delete-btn:hover {
+                        background: #f56565;
+                        transform: scale(1.05);
+                    }
+                    .pretax-cell {
+                        color: #4facfe;
+                        font-weight: 600;
+                    }
+                    .aftertax-cell {
+                        color: #38a169;
+                        font-weight: 600;
+                    }
+                    .dividend-empty {
+                        text-align: center;
+                        padding: 40px;
+                        color: #a0aec0;
+                        font-size: 16px;
+                    }
+                    .dividend-chart-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .dividend-chart-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 30px;
+                        align-items: center;
+                    }
+                    .dividend-tips-container {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .dividend-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .dividend-tips-title i {
+                        color: #ffd700;
+                    }
+                    .dividend-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 25px;
+                    }
+                    .dividend-term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .dividend-term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .dividend-term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .dividend-top10-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .dividend-top10-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .dividend-top10-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .dividend-top10-list {
+                        background: rgba(255,255,255,0.05);
+                        border-radius: 12px;
+                        padding: 15px;
+                    }
+                    .dividend-top10-list-title {
+                        font-weight: 700;
+                        margin-bottom: 12px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid rgba(255,255,255,0.1);
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .dividend-top10-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 8px 0;
+                        border-bottom: 1px solid rgba(255,255,255,0.05);
+                        font-size: 13px;
+                    }
+                    .dividend-top10-item:last-child {
+                        border-bottom: none;
+                    }
+                    .dividend-top10-rank {
+                        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+                        color: #1a1a2e;
+                        width: 22px;
+                        height: 22px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: 700;
+                        font-size: 11px;
+                        margin-right: 10px;
+                    }
+                    .dividend-top10-name {
+                        flex: 1;
+                    }
+                    .dividend-top10-yield {
+                        font-weight: 700;
+                        color: #38ef7d;
+                    }
+                    .dividend-note {
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: rgba(255,215,0,0.1);
+                        border-radius: 10px;
+                        border-left: 4px solid #ffd700;
+                        font-size: 13px;
+                        line-height: 1.6;
+                    }
+                    .dividend-table-wrapper {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                        margin: 0 -10px;
+                        padding: 0 10px;
+                    }
+                    .dividend-table {
+                        min-width: 600px;
+                    }
+                    @media (max-width: 768px) {
+                        .dividend-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .dividend-form-row, .dividend-form-row-3 {
+                            grid-template-columns: 1fr;
+                        }
+                        .dividend-terms-grid, .dividend-top10-grid, .dividend-chart-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .dividend-summary-value {
+                            font-size: 15px;
+                        }
+                        .dividend-list-container {
+                            padding: 15px;
+                        }
+                        .dividend-table {
+                            font-size: 12px;
+                            min-width: 550px;
+                        }
+                        .dividend-table th, .dividend-table td {
+                            padding: 8px 5px;
+                        }
+                        .dividend-list-header {
+                            flex-direction: column;
+                            gap: 10px;
+                            align-items: flex-start;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .dividend-summary {
+                            grid-template-columns: 1fr;
+                        }
+                        .dividend-list-container {
+                            padding: 10px;
+                        }
+                        .dividend-table {
+                            font-size: 11px;
+                            min-width: 500px;
+                        }
+                        .dividend-table th, .dividend-table td {
+                            padding: 6px 4px;
+                        }
+                        .dividend-country-badge {
+                            padding: 3px 6px;
+                            font-size: 10px;
+                        }
+                        .dividend-delete-btn {
+                            padding: 4px 8px;
+                            font-size: 10px;
+                        }
+                    }
+                </style>
+                <div class="dividend-container">
+                    <div class="dividend-form-section">
+                        <form class="calc-form" onsubmit="calculateDividend(event)">
+                            <div class="dividend-form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-globe" style="color: #667eea; margin-right: 8px;"></i>투자 국가</label>
+                                    <select id="dividendCountry" onchange="updateDividendCurrency()">
+                                        <option value="korea">🇰🇷 한국</option>
+                                        <option value="usa">🇺🇸 미국</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-chart-pie" style="color: #667eea; margin-right: 8px;"></i>투자 유형</label>
+                                    <select id="dividendType">
+                                        <option value="etf">ETF</option>
+                                        <option value="stock">개별 주식</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-tag" style="color: #667eea; margin-right: 8px;"></i>종목명</label>
+                                <input type="text" id="dividendName" placeholder="예: SCHD, TIGER 배당성장" required>
+                            </div>
+                            <div class="dividend-form-row-3">
+                                <div class="form-group">
+                                    <label><i class="fas fa-layer-group" style="color: #667eea; margin-right: 8px;"></i>보유 주식수</label>
+                                    <input type="text" id="dividendShares" data-comma="true" placeholder="100" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-coins" style="color: #667eea; margin-right: 8px;"></i>1주당 배당금</label>
+                                    <input type="text" id="dividendPerShare" data-comma="true" placeholder="1,000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-won-sign" style="color: #667eea; margin-right: 8px;"></i>통화</label>
+                                    <select id="dividendCurrency">
+                                        <option value="KRW">원 (KRW)</option>
+                                        <option value="USD">달러 (USD)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-calculate">
+                                <i class="fas fa-plus-circle" style="margin-right: 8px;"></i>배당금 추가하기
+                            </button>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label>연 배당률 (%)</label>
-                        <input type="number" step="0.1" id="dividendRate" placeholder="5" required>
+                    
+                    <div class="dividend-result-section" id="dividendResultSection">
+                        <div class="dividend-summary" id="dividendSummary"></div>
+                        <div class="dividend-chart-container">
+                            <div class="dividend-list-title" style="margin-bottom: 20px;"><i class="fas fa-chart-pie"></i> 배당금 분석</div>
+                            <div class="dividend-chart-grid">
+                                <canvas id="dividendPieChart"></canvas>
+                                <canvas id="dividendBarChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="dividend-list-container">
+                            <div class="dividend-list-header">
+                                <div class="dividend-list-title"><i class="fas fa-list"></i> 배당금 목록</div>
+                                <button class="dividend-clear-all-btn" onclick="clearAllDividends()">
+                                    <i class="fas fa-trash"></i> 전체 삭제
+                                </button>
+                            </div>
+                            <div id="dividendTableContainer"></div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-calculate">계산하기</button>
-                </form>
-                <div class="result-box" id="dividendResult"></div>
+                    
+                    <div class="dividend-tips-container">
+                        <div class="dividend-tips-title"><i class="fas fa-book"></i> ETF/배당 투자 용어 사전</div>
+                        <div class="dividend-terms-grid">
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">💰 배당수익률 (Dividend Yield)</div>
+                                <div class="dividend-term-desc">주가 대비 연간 배당금의 비율. 배당수익률 = (연간 배당금 ÷ 현재 주가) × 100</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">📅 배당락일 (Ex-Dividend Date)</div>
+                                <div class="dividend-term-desc">이 날짜 이전에 주식을 보유해야 배당을 받을 수 있습니다. 배당락일 당일 매수 시 배당 불가.</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">📊 배당성향 (Payout Ratio)</div>
+                                <div class="dividend-term-desc">순이익 중 배당금으로 지급하는 비율. 너무 높으면 지속가능성이 낮을 수 있습니다.</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">👑 배당귀족 (Dividend Aristocrats)</div>
+                                <div class="dividend-term-desc">25년 이상 연속으로 배당을 인상한 기업. S&P 500 내 우량 배당주들입니다.</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">🔄 DRIP (배당 재투자)</div>
+                                <div class="dividend-term-desc">배당금으로 자동으로 같은 주식을 재매수하는 제도. 복리 효과를 극대화합니다.</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">💵 총보수 (Expense Ratio)</div>
+                                <div class="dividend-term-desc">ETF 운용에 드는 비용 비율. 낮을수록 투자자에게 유리합니다. (예: 0.03%~0.5%)</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">🇰🇷 한국 배당세 (15.4%)</div>
+                                <div class="dividend-term-desc">배당소득세 14% + 지방소득세 1.4%. 금융소득 2천만원 초과 시 종합과세.</div>
+                            </div>
+                            <div class="dividend-term-card">
+                                <div class="dividend-term-name">🇺🇸 미국 배당세 (15%)</div>
+                                <div class="dividend-term-desc">미국 원천징수세 15%. 한미 조세조약으로 국내 추가 과세 없음 (2천만원 이하).</div>
+                            </div>
+                        </div>
+                        
+                        <div class="dividend-top10-section">
+                            <div class="dividend-top10-title"><i class="fas fa-trophy" style="color: #ffd700;"></i> 최근 10년 고배당 ETF TOP 10</div>
+                            <div class="dividend-top10-grid">
+                                <div class="dividend-top10-list">
+                                    <div class="dividend-top10-list-title">🇺🇸 미국 ETF</div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">1</span>
+                                        <span class="dividend-top10-name">JEPI (JP모건 프리미엄)</span>
+                                        <span class="dividend-top10-yield">~9.5%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">2</span>
+                                        <span class="dividend-top10-name">QYLD (나스닥 커버드콜)</span>
+                                        <span class="dividend-top10-yield">~11.8%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">3</span>
+                                        <span class="dividend-top10-name">RYLD (러셀 커버드콜)</span>
+                                        <span class="dividend-top10-yield">~12.5%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">4</span>
+                                        <span class="dividend-top10-name">SCHD (슈왑 배당성장)</span>
+                                        <span class="dividend-top10-yield">~3.5%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">5</span>
+                                        <span class="dividend-top10-name">VYM (뱅가드 고배당)</span>
+                                        <span class="dividend-top10-yield">~3.0%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">6</span>
+                                        <span class="dividend-top10-name">HDV (iShares 고배당)</span>
+                                        <span class="dividend-top10-yield">~4.0%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">7</span>
+                                        <span class="dividend-top10-name">SPYD (S&P500 고배당)</span>
+                                        <span class="dividend-top10-yield">~4.5%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">8</span>
+                                        <span class="dividend-top10-name">DVY (iShares 배당)</span>
+                                        <span class="dividend-top10-yield">~3.8%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">9</span>
+                                        <span class="dividend-top10-name">DIVO (앰플리파이)</span>
+                                        <span class="dividend-top10-yield">~4.8%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">10</span>
+                                        <span class="dividend-top10-name">NOBL (배당귀족)</span>
+                                        <span class="dividend-top10-yield">~2.0%</span>
+                                    </div>
+                                </div>
+                                <div class="dividend-top10-list">
+                                    <div class="dividend-top10-list-title">🇰🇷 한국 ETF</div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">1</span>
+                                        <span class="dividend-top10-name">TIGER 미국배당다우존스</span>
+                                        <span class="dividend-top10-yield">~3.5%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">2</span>
+                                        <span class="dividend-top10-name">KODEX 고배당</span>
+                                        <span class="dividend-top10-yield">~5.0%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">3</span>
+                                        <span class="dividend-top10-name">ARIRANG 고배당주</span>
+                                        <span class="dividend-top10-yield">~4.8%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">4</span>
+                                        <span class="dividend-top10-name">TIGER 배당성장</span>
+                                        <span class="dividend-top10-yield">~3.2%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">5</span>
+                                        <span class="dividend-top10-name">KBSTAR 고배당</span>
+                                        <span class="dividend-top10-yield">~4.5%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">6</span>
+                                        <span class="dividend-top10-name">HANARO 고배당</span>
+                                        <span class="dividend-top10-yield">~4.3%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">7</span>
+                                        <span class="dividend-top10-name">KODEX 배당성장</span>
+                                        <span class="dividend-top10-yield">~2.8%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">8</span>
+                                        <span class="dividend-top10-name">TIGER 은행고배당플러스</span>
+                                        <span class="dividend-top10-yield">~6.0%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">9</span>
+                                        <span class="dividend-top10-name">SOL 미국배당다우존스</span>
+                                        <span class="dividend-top10-yield">~3.4%</span>
+                                    </div>
+                                    <div class="dividend-top10-item">
+                                        <span class="dividend-top10-rank">10</span>
+                                        <span class="dividend-top10-name">ACE 미국배당다우존스</span>
+                                        <span class="dividend-top10-yield">~3.3%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dividend-note">
+                                <strong>💡 배당 투자 팁:</strong> 배당수익률만 보지 말고 배당성장률도 함께 확인하세요. 
+                                SCHD처럼 배당수익률은 낮지만 10년간 배당을 꾸준히 인상한 ETF가 장기적으로 유리할 수 있습니다.
+                                또한, 고배당 커버드콜 ETF(QYLD, RYLD)는 배당은 높지만 주가 상승이 제한되므로 투자 목적에 맞게 선택하세요.
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `;
         }
 
+        function updateDividendCurrency() {
+            const country = document.getElementById('dividendCountry').value;
+            const currencySelect = document.getElementById('dividendCurrency');
+            if (country === 'korea') {
+                currencySelect.value = 'KRW';
+            } else {
+                currencySelect.value = 'USD';
+            }
+        }
+
+        let dividendPieChartInstance = null;
+        let dividendBarChartInstance = null;
+
         function calculateDividend(e) {
             e.preventDefault();
-            const amount = parseFloat(document.getElementById('investAmount').value);
-            const rate = parseFloat(document.getElementById('dividendRate').value) / 100;
+            const country = document.getElementById('dividendCountry').value;
+            const type = document.getElementById('dividendType').value;
+            const name = document.getElementById('dividendName').value;
+            const shares = parseNumberFromComma(document.getElementById('dividendShares').value);
+            const perShare = parseNumberFromComma(document.getElementById('dividendPerShare').value);
+            const currency = document.getElementById('dividendCurrency').value;
             
-            const yearlyDividend = amount * rate;
-            const monthlyDividend = yearlyDividend / 12;
-            const taxAmount = yearlyDividend * 0.154;
+            const yearlyDividend = shares * perShare;
+            const taxRate = country === 'korea' ? 0.154 : 0.15;
+            const taxAmount = yearlyDividend * taxRate;
             const netDividend = yearlyDividend - taxAmount;
+            const monthlyDividend = netDividend / 12;
             
-            const resultBox = document.getElementById('dividendResult');
-            resultBox.className = 'result-box active';
-            resultBox.innerHTML = `
-                <h3>배당금 계산 결과</h3>
-                <div class="result-item">
-                    <span class="result-label">연간 배당금 (세전)</span>
-                    <span class="result-value">${Math.round(yearlyDividend).toLocaleString()}원</span>
+            // Add to list
+            dividendIdCounter++;
+            dividendList.push({
+                id: dividendIdCounter,
+                country: country,
+                type: type,
+                name: name,
+                shares: shares,
+                perShare: perShare,
+                currency: currency,
+                yearlyPretax: yearlyDividend,
+                tax: taxAmount,
+                yearlyAftertax: netDividend,
+                monthly: monthlyDividend
+            });
+            
+            updateDividendUI();
+            
+            // Clear form
+            document.getElementById('dividendName').value = '';
+            document.getElementById('dividendShares').value = '';
+            document.getElementById('dividendPerShare').value = '';
+        }
+
+        function updateDividendUI() {
+            const resultSection = document.getElementById('dividendResultSection');
+            
+            if (dividendList.length === 0) {
+                resultSection.classList.remove('active');
+                return;
+            }
+            
+            resultSection.classList.add('active');
+            
+            // Calculate totals (convert USD to KRW for summary)
+            const exchangeRate = 1320;
+            let totalPretaxKRW = 0;
+            let totalTaxKRW = 0;
+            let totalAftertaxKRW = 0;
+            
+            dividendList.forEach(item => {
+                const rate = item.currency === 'USD' ? exchangeRate : 1;
+                totalPretaxKRW += item.yearlyPretax * rate;
+                totalTaxKRW += item.tax * rate;
+                totalAftertaxKRW += item.yearlyAftertax * rate;
+            });
+            
+            const totalMonthlyKRW = totalAftertaxKRW / 12;
+            
+            // Update summary
+            document.getElementById('dividendSummary').innerHTML = `
+                <div class="dividend-summary-card pretax">
+                    <div class="dividend-summary-label">연간 배당금 (세전)</div>
+                    <div class="dividend-summary-value">${Math.round(totalPretaxKRW).toLocaleString()}원</div>
                 </div>
-                <div class="result-item">
-                    <span class="result-label">월 배당금 (세전)</span>
-                    <span class="result-value">${Math.round(monthlyDividend).toLocaleString()}원</span>
+                <div class="dividend-summary-card tax">
+                    <div class="dividend-summary-label">배당소득세</div>
+                    <div class="dividend-summary-value">-${Math.round(totalTaxKRW).toLocaleString()}원</div>
                 </div>
-                <div class="result-item">
-                    <span class="result-label">배당소득세 (15.4%)</span>
-                    <span class="result-value">${Math.round(taxAmount).toLocaleString()}원</span>
+                <div class="dividend-summary-card aftertax">
+                    <div class="dividend-summary-label">연간 실수령액</div>
+                    <div class="dividend-summary-value">${Math.round(totalAftertaxKRW).toLocaleString()}원</div>
                 </div>
-                <div class="result-item">
-                    <span class="result-label">연간 실수령액</span>
-                    <span class="result-value">${Math.round(netDividend).toLocaleString()}원</span>
+                <div class="dividend-summary-card monthly">
+                    <div class="dividend-summary-label">월 평균 배당금</div>
+                    <div class="dividend-summary-value">${Math.round(totalMonthlyKRW).toLocaleString()}원</div>
                 </div>
             `;
+            
+            // Update table
+            let tableHTML = `
+                <div class="dividend-table-wrapper">
+                <table class="dividend-table">
+                    <thead>
+                        <tr>
+                            <th>국가</th>
+                            <th>종목명</th>
+                            <th>유형</th>
+                            <th>주식수</th>
+                            <th>1주당 배당</th>
+                            <th>세전 배당</th>
+                            <th>세후 배당</th>
+                            <th>삭제</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            dividendList.forEach(item => {
+                const currencySymbol = item.currency === 'USD' ? '$' : '';
+                const currencySuffix = item.currency === 'KRW' ? '원' : '';
+                tableHTML += `
+                    <tr>
+                        <td><span class="dividend-country-badge ${item.country}">${item.country === 'korea' ? '🇰🇷 한국' : '🇺🇸 미국'}</span></td>
+                        <td><strong>${item.name}</strong></td>
+                        <td>${item.type === 'etf' ? 'ETF' : '주식'}</td>
+                        <td>${item.shares.toLocaleString()}주</td>
+                        <td>${currencySymbol}${item.perShare.toLocaleString()}${currencySuffix}</td>
+                        <td class="pretax-cell">${currencySymbol}${Math.round(item.yearlyPretax).toLocaleString()}${currencySuffix}</td>
+                        <td class="aftertax-cell">${currencySymbol}${Math.round(item.yearlyAftertax).toLocaleString()}${currencySuffix}</td>
+                        <td><button class="dividend-delete-btn" onclick="deleteDividend(${item.id})"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table></div>';
+            document.getElementById('dividendTableContainer').innerHTML = tableHTML;
+            
+            // Update charts
+            updateDividendCharts();
+        }
+
+        function updateDividendCharts() {
+            const exchangeRate = 1320;
+            
+            // Prepare data for charts
+            const labels = dividendList.map(item => item.name);
+            const pretaxData = dividendList.map(item => {
+                const rate = item.currency === 'USD' ? exchangeRate : 1;
+                return Math.round(item.yearlyPretax * rate);
+            });
+            const aftertaxData = dividendList.map(item => {
+                const rate = item.currency === 'USD' ? exchangeRate : 1;
+                return Math.round(item.yearlyAftertax * rate);
+            });
+            
+            // Pie chart
+            const pieCtx = document.getElementById('dividendPieChart').getContext('2d');
+            
+            if (dividendPieChartInstance) {
+                dividendPieChartInstance.destroy();
+            }
+            
+            const colors = [
+                '#667eea', '#f093fb', '#4facfe', '#fa709a', '#30cfd0',
+                '#43e97b', '#ff9a9e', '#a1c4fd', '#ffecd2', '#d299c2'
+            ];
+            
+            dividendPieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: aftertaxData,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '종목별 배당 비중',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${value.toLocaleString()}원 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Bar chart
+            const barCtx = document.getElementById('dividendBarChart').getContext('2d');
+            
+            if (dividendBarChartInstance) {
+                dividendBarChartInstance.destroy();
+            }
+            
+            dividendBarChartInstance = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '세전 배당',
+                            data: pretaxData,
+                            backgroundColor: 'rgba(79, 172, 254, 0.7)',
+                            borderRadius: 5
+                        },
+                        {
+                            label: '세후 배당',
+                            data: aftertaxData,
+                            backgroundColor: 'rgba(56, 239, 125, 0.7)',
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '세전/세후 배당 비교',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString() + '원';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 10000) {
+                                        return (value / 10000).toFixed(0) + '만';
+                                    }
+                                    return value;
+                                }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function deleteDividend(id) {
+            dividendList = dividendList.filter(item => item.id !== id);
+            updateDividendUI();
+        }
+
+        function clearAllDividends() {
+            if (confirm('모든 배당금 기록을 삭제하시겠습니까?')) {
+                dividendList = [];
+                updateDividendUI();
+            }
         }
 
         function getExchangeCalculator() {
             return `
-                <form class="calc-form" onsubmit="calculateExchange(event)">
-                    <div class="form-group">
-                        <label>기준 통화</label>
-                        <select id="fromCurrency">
-                            <option value="KRW">한국 원 (KRW)</option>
-                            <option value="USD">미국 달러 (USD)</option>
-                            <option value="EUR">유럽 유로 (EUR)</option>
-                            <option value="JPY">일본 엔 (JPY)</option>
-                            <option value="CNY">중국 위안 (CNY)</option>
-                        </select>
+                <style>
+                    .exchange-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .exchange-header {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .exchange-header-title {
+                        font-size: 24px;
+                        font-weight: 700;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                    }
+                    .exchange-update-time {
+                        font-size: 14px;
+                        opacity: 0.9;
+                    }
+                    .exchange-loading {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        padding: 20px;
+                        color: #667eea;
+                        font-size: 16px;
+                    }
+                    .exchange-loading i {
+                        animation: spin 1s linear infinite;
+                    }
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                    .exchange-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 20px;
+                    }
+                    .currency-card {
+                        background: white;
+                        border-radius: 15px;
+                        padding: 20px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                        border: 2px solid transparent;
+                    }
+                    .currency-card:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    }
+                    .currency-card.active {
+                        border-color: #667eea;
+                        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                    }
+                    .currency-header {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        margin-bottom: 15px;
+                    }
+                    .currency-flag {
+                        font-size: 36px;
+                        line-height: 1;
+                    }
+                    .currency-info {
+                        flex: 1;
+                    }
+                    .currency-name {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #2d3748;
+                    }
+                    .currency-code {
+                        font-size: 14px;
+                        color: #718096;
+                    }
+                    .currency-input-wrapper {
+                        position: relative;
+                    }
+                    .currency-input {
+                        width: 100%;
+                        padding: 15px;
+                        padding-right: 60px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 10px;
+                        font-size: 20px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        transition: all 0.3s ease;
+                        text-align: right;
+                    }
+                    .currency-input:focus {
+                        outline: none;
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    }
+                    .currency-symbol {
+                        position: absolute;
+                        right: 15px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #718096;
+                    }
+                    .currency-rate {
+                        margin-top: 12px;
+                        padding-top: 12px;
+                        border-top: 1px solid #e2e8f0;
+                        font-size: 13px;
+                        color: #718096;
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .rate-value {
+                        font-weight: 600;
+                        color: #667eea;
+                    }
+                    .exchange-rate-table {
+                        background: white;
+                        border-radius: 15px;
+                        padding: 25px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    }
+                    .rate-table-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .rate-table-title i {
+                        color: #667eea;
+                    }
+                    .rate-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .rate-table th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 12px 15px;
+                        text-align: center;
+                        font-weight: 600;
+                        font-size: 14px;
+                    }
+                    .rate-table th:first-child {
+                        border-radius: 10px 0 0 0;
+                    }
+                    .rate-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                    }
+                    .rate-table td {
+                        padding: 12px 15px;
+                        text-align: center;
+                        border-bottom: 1px solid #e2e8f0;
+                        font-size: 14px;
+                    }
+                    .rate-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .rate-table .flag-cell {
+                        font-size: 24px;
+                    }
+                    .rate-table .rate-cell {
+                        font-weight: 600;
+                        color: #667eea;
+                    }
+                    .exchange-tips {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .exchange-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .exchange-tips-title i {
+                        color: #ffd700;
+                    }
+                    .exchange-tip-item {
+                        background: rgba(255,255,255,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #ffd700;
+                    }
+                    .exchange-tip-item:last-child {
+                        margin-bottom: 0;
+                    }
+                    .exchange-tip-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #ffd700;
+                    }
+                    .exchange-tip-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .refresh-btn {
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 14px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-top: 15px;
+                        transition: all 0.3s ease;
+                    }
+                    .refresh-btn:hover {
+                        background: rgba(255,255,255,0.3);
+                    }
+                    .api-error {
+                        background: #fed7d7;
+                        color: #c53030;
+                        padding: 15px;
+                        border-radius: 10px;
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }
+                    @media (max-width: 768px) {
+                        .exchange-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .currency-input {
+                            font-size: 16px;
+                            padding: 12px;
+                            padding-right: 50px;
+                        }
+                        .currency-flag {
+                            font-size: 28px;
+                        }
+                        .currency-name {
+                            font-size: 16px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .exchange-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .currency-card {
+                            padding: 15px;
+                        }
+                        .rate-table {
+                            font-size: 12px;
+                        }
+                        .rate-table th, .rate-table td {
+                            padding: 8px 5px;
+                        }
+                    }
+                </style>
+                <div class="exchange-container">
+                    <div class="exchange-header">
+                        <div class="exchange-header-title">
+                            <i class="fas fa-sync-alt"></i>
+                            실시간 환율 계산기
+                        </div>
+                        <div class="exchange-update-time" id="exchangeUpdateTime">환율 정보를 불러오는 중...</div>
+                        <button class="refresh-btn" onclick="refreshExchangeRates()">
+                            <i class="fas fa-redo"></i> 환율 새로고침
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>변환 통화</label>
-                        <select id="toCurrency">
-                            <option value="USD">미국 달러 (USD)</option>
-                            <option value="KRW">한국 원 (KRW)</option>
-                            <option value="EUR">유럽 유로 (EUR)</option>
-                            <option value="JPY">일본 엔 (JPY)</option>
-                            <option value="CNY">중국 위안 (CNY)</option>
-                        </select>
+                    
+                    <div id="exchangeError" class="api-error" style="display: none;"></div>
+                    
+                    <div class="exchange-grid" id="exchangeGrid">
+                        <div class="exchange-loading">
+                            <i class="fas fa-spinner"></i>
+                            환율 정보를 불러오는 중...
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>금액</label>
-                        <input type="number" step="0.01" id="exchangeAmount" placeholder="1000" required>
+                    
+                    <div class="exchange-rate-table">
+                        <div class="rate-table-title"><i class="fas fa-table"></i> 현재 환율표 (1 USD 기준)</div>
+                        <table class="rate-table" id="rateTable">
+                            <thead>
+                                <tr>
+                                    <th>국가</th>
+                                    <th>통화</th>
+                                    <th>환율</th>
+                                    <th>1단위당 원화</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rateTableBody">
+                                <tr><td colspan="4">로딩 중...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <button type="submit" class="btn-calculate">계산하기</button>
-                </form>
-                <div class="result-box" id="exchangeResult"></div>
+                    
+                    <div class="exchange-tips">
+                        <div class="exchange-tips-title"><i class="fas fa-lightbulb"></i> 환전 꿀팁</div>
+                        <div class="exchange-tip-item">
+                            <div class="exchange-tip-title">💱 은행 vs 환전소</div>
+                            <div class="exchange-tip-content">시중 은행보다 사설 환전소가 대체로 환율이 좋습니다. 명동, 강남 등 경쟁이 치열한 지역의 환전소를 이용하세요.</div>
+                        </div>
+                        <div class="exchange-tip-item">
+                            <div class="exchange-tip-title">📱 환율 우대 쿠폰</div>
+                            <div class="exchange-tip-content">은행 앱에서 환율 우대 쿠폰(최대 90%)을 발급받으면 수수료를 크게 절약할 수 있습니다.</div>
+                        </div>
+                        <div class="exchange-tip-item">
+                            <div class="exchange-tip-title">💳 해외 결제 카드</div>
+                            <div class="exchange-tip-content">트래블월렛, 트래블로그 등 수수료 없는 해외결제 카드를 활용하면 환전 없이 현지 결제가 가능합니다.</div>
+                        </div>
+                        <div class="exchange-tip-item">
+                            <div class="exchange-tip-title">📊 환율 타이밍</div>
+                            <div class="exchange-tip-content">급하지 않다면 환율 추이를 지켜보고 원화 강세일 때 환전하세요. 환율 알림 서비스를 활용하면 편리합니다.</div>
+                        </div>
+                        <div class="exchange-tip-item">
+                            <div class="exchange-tip-title">🏦 공항 환전 피하기</div>
+                            <div class="exchange-tip-content">공항 환전소는 환율이 가장 불리합니다. 출국 전 미리 환전하거나 현지 ATM을 이용하세요.</div>
+                        </div>
+                    </div>
+                </div>
             `;
         }
 
-        function calculateExchange(e) {
-            e.preventDefault();
-            const from = document.getElementById('fromCurrency').value;
-            const to = document.getElementById('toCurrency').value;
-            const amount = parseFloat(document.getElementById('exchangeAmount').value);
+        let exchangeRates = {};
+        let baseCurrency = 'USD';
+        
+        const currencyData = {
+            KRW: { flag: '🇰🇷', name: '대한민국', symbol: '₩', fullName: '원' },
+            USD: { flag: '🇺🇸', name: '미국', symbol: '$', fullName: '달러' },
+            JPY: { flag: '🇯🇵', name: '일본', symbol: '¥', fullName: '엔' },
+            GBP: { flag: '🇬🇧', name: '영국', symbol: '£', fullName: '파운드' },
+            CNY: { flag: '🇨🇳', name: '중국', symbol: '¥', fullName: '위안' },
+            EUR: { flag: '🇪🇺', name: '유럽', symbol: '€', fullName: '유로' }
+        };
+
+        async function fetchExchangeRates() {
+            try {
+                // Using exchangerate-api.com (free tier)
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                const data = await response.json();
+                
+                exchangeRates = {
+                    USD: 1,
+                    KRW: data.rates.KRW,
+                    JPY: data.rates.JPY,
+                    GBP: data.rates.GBP,
+                    CNY: data.rates.CNY,
+                    EUR: data.rates.EUR
+                };
+                
+                const updateTime = new Date().toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                document.getElementById('exchangeUpdateTime').textContent = `마지막 업데이트: ${updateTime}`;
+                document.getElementById('exchangeError').style.display = 'none';
+                
+                renderExchangeCards();
+                renderRateTable();
+                
+            } catch (error) {
+                console.error('환율 정보를 가져오는데 실패했습니다:', error);
+                document.getElementById('exchangeError').style.display = 'block';
+                document.getElementById('exchangeError').textContent = '환율 정보를 가져오는데 실패했습니다. 잠시 후 다시 시도해주세요.';
+                
+                // Use fallback rates
+                exchangeRates = {
+                    USD: 1,
+                    KRW: 1380,
+                    JPY: 157,
+                    GBP: 0.79,
+                    CNY: 7.24,
+                    EUR: 0.92
+                };
+                
+                document.getElementById('exchangeUpdateTime').textContent = '⚠️ 임시 환율 사용 중 (API 연결 실패)';
+                renderExchangeCards();
+                renderRateTable();
+            }
+        }
+
+        function renderExchangeCards() {
+            const grid = document.getElementById('exchangeGrid');
+            const currencies = ['KRW', 'USD', 'JPY', 'GBP', 'CNY', 'EUR'];
             
-            const rates = {
-                KRW: 1,
-                USD: 1320,
-                EUR: 1430,
-                JPY: 8.8,
-                CNY: 183
-            };
+            grid.innerHTML = currencies.map(code => {
+                const currency = currencyData[code];
+                const rateToKRW = exchangeRates.KRW / exchangeRates[code];
+                
+                return `
+                    <div class="currency-card" id="card-${code}">
+                        <div class="currency-header">
+                            <span class="currency-flag">${currency.flag}</span>
+                            <div class="currency-info">
+                                <div class="currency-name">${currency.name}</div>
+                                <div class="currency-code">${code} (${currency.fullName})</div>
+                            </div>
+                        </div>
+                        <div class="currency-input-wrapper">
+                            <input type="text" 
+                                   class="currency-input" 
+                                   id="input-${code}" 
+                                   placeholder="0"
+                                   oninput="handleCurrencyInput('${code}', this.value)"
+                                   onfocus="setActiveCurrency('${code}')">
+                            <span class="currency-symbol">${currency.symbol}</span>
+                        </div>
+                        <div class="currency-rate">
+                            <span>1 ${code} =</span>
+                            <span class="rate-value">${code === 'KRW' ? '1 KRW' : formatNumber(rateToKRW.toFixed(2)) + ' KRW'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRateTable() {
+            const tbody = document.getElementById('rateTableBody');
+            const currencies = ['KRW', 'JPY', 'GBP', 'CNY', 'EUR'];
             
-            const krwAmount = amount * rates[from];
-            const result = krwAmount / rates[to];
+            tbody.innerHTML = currencies.map(code => {
+                const currency = currencyData[code];
+                const rateFromUSD = exchangeRates[code];
+                const rateToKRW = exchangeRates.KRW / exchangeRates[code];
+                
+                return `
+                    <tr>
+                        <td class="flag-cell">${currency.flag} ${currency.name}</td>
+                        <td>${code}</td>
+                        <td class="rate-cell">${formatNumber(rateFromUSD.toFixed(code === 'KRW' || code === 'JPY' ? 2 : 4))}</td>
+                        <td class="rate-cell">${formatNumber(rateToKRW.toFixed(2))} 원</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function formatNumber(num) {
+            return parseFloat(num).toLocaleString('ko-KR', { maximumFractionDigits: 4 });
+        }
+
+        function handleCurrencyInput(fromCode, value) {
+            // Remove commas and parse
+            const numValue = parseFloat(value.replace(/,/g, '')) || 0;
             
-            const resultBox = document.getElementById('exchangeResult');
-            resultBox.className = 'result-box active';
-            resultBox.innerHTML = `
-                <h3>환율 계산 결과</h3>
-                <div class="result-item">
-                    <span class="result-label">${amount.toLocaleString()} ${from}</span>
-                    <span class="result-value">${result.toFixed(2)} ${to}</span>
-                </div>
-                <div class="result-item" style="font-size: 14px; opacity: 0.8; border: none;">
-                    <span>* 환율은 실시간 시세와 다를 수 있습니다</span>
-                </div>
-            `;
+            // Format input with commas
+            const input = document.getElementById(`input-${fromCode}`);
+            if (value && !isNaN(numValue)) {
+                const cursorPos = input.selectionStart;
+                const oldLength = input.value.length;
+                
+                // Only format if not currently typing decimal
+                if (!value.endsWith('.')) {
+                    const formatted = formatNumber(numValue);
+                    input.value = formatted;
+                    
+                    // Adjust cursor position
+                    const newLength = formatted.length;
+                    const diff = newLength - oldLength;
+                    input.setSelectionRange(cursorPos + diff, cursorPos + diff);
+                }
+            }
+            
+            // Convert to all other currencies
+            const currencies = ['KRW', 'USD', 'JPY', 'GBP', 'CNY', 'EUR'];
+            
+            currencies.forEach(toCode => {
+                if (toCode !== fromCode) {
+                    const convertedValue = convertCurrency(numValue, fromCode, toCode);
+                    const targetInput = document.getElementById(`input-${toCode}`);
+                    if (targetInput) {
+                        if (numValue === 0) {
+                            targetInput.value = '';
+                        } else {
+                            // Format based on currency
+                            if (toCode === 'KRW' || toCode === 'JPY') {
+                                targetInput.value = formatNumber(Math.round(convertedValue));
+                            } else {
+                                targetInput.value = formatNumber(convertedValue.toFixed(2));
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function convertCurrency(amount, fromCode, toCode) {
+            if (!exchangeRates[fromCode] || !exchangeRates[toCode]) return 0;
+            
+            // Convert to USD first, then to target currency
+            const usdAmount = amount / exchangeRates[fromCode];
+            return usdAmount * exchangeRates[toCode];
+        }
+
+        function setActiveCurrency(code) {
+            document.querySelectorAll('.currency-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(`card-${code}`).classList.add('active');
+        }
+
+        function refreshExchangeRates() {
+            document.getElementById('exchangeUpdateTime').textContent = '환율 정보를 새로고침하는 중...';
+            fetchExchangeRates();
+        }
+
+        function initExchangeCalculator() {
+            fetchExchangeRates();
         }
 
         function getWorldTimeCalculator() {
