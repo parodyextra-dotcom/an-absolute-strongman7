@@ -1,0 +1,3514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>절대강자계산기 - 모든 계산을 한 곳에서</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            font-size: 48px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px 60px;
+            margin-bottom: 40px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .calc-card {
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .calc-card:hover {
+            transform: scale(1.05);
+        }
+
+        .calc-card:hover .card-icon {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .card-icon i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .calc-card h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.4;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        #calculatorPage {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .calc-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .calc-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .calc-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .calc-content.basic-calc-content {
+            max-width: 100%;
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .calc-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 15px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            display: none;
+        }
+
+        .result-box.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-box h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 16px;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-value {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .basic-calculator-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .calculator-main {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            min-width: 0;
+        }
+
+        .calculator-display {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: right;
+            font-size: clamp(24px, 5vw, 42px);
+            font-weight: 300;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-break: break-all;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            overflow-wrap: break-word;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-btn {
+            padding: 20px 10px;
+            border: none;
+            border-radius: 12px;
+            font-size: clamp(16px, 3vw, 22px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2d3748;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            min-width: 0;
+        }
+
+        .calc-btn:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .calc-btn.operator {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 700;
+        }
+
+        .calc-btn.operator:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .calc-btn.clear {
+            background: #fc8181;
+            color: white;
+        }
+
+        .calc-btn.clear:hover {
+            background: #f56565;
+        }
+
+        .calc-btn.equals {
+            background: #48bb78;
+            color: white;
+            font-size: 28px;
+        }
+
+        .calc-btn.equals:hover {
+            background: #38a169;
+        }
+
+        .calc-btn.zero {
+            grid-column: span 2;
+        }
+
+        .calculator-history {
+            background: #f7fafc;
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 500px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .history-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .clear-history-btn {
+            background: #fc8181;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-history-btn:hover {
+            background: #f56565;
+            transform: translateY(-2px);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+        }
+
+        .history-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            transform: translateX(-5px);
+        }
+
+        .history-expression {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .history-result {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #a0aec0;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .basic-calculator-container {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            .calculator-history { 
+                max-height: 300px;
+                order: 2;
+            }
+            .calculator-main {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 32px; }
+            .calculator-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 30px 40px;
+            }
+            .card-icon { width: 70px; height: 70px; }
+            .card-icon i { font-size: 32px; }
+            .calc-card h3 { font-size: 15px; }
+            .calc-header {
+                padding: 15px 20px;
+                gap: 15px;
+            }
+            .calc-header h2 {
+                font-size: 22px;
+            }
+            .back-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 { font-size: 28px; }
+            .logo i { font-size: 36px; }
+            .calculator-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px 20px;
+            }
+            .card-icon { width: 60px; height: 60px; }
+            .card-icon i { font-size: 28px; }
+            .calc-card h3 { font-size: 13px; }
+            .calc-content { padding: 15px; }
+            .calculator-main {
+                padding: 15px;
+            }
+            .calculator-display {
+                padding: 15px;
+                min-height: 60px;
+                font-size: 24px;
+            }
+            .calc-btn {
+                padding: 15px 8px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+            .calculator-buttons {
+                gap: 8px;
+            }
+            .calculator-history {
+                padding: 15px;
+            }
+            .history-header h3 {
+                font-size: 16px;
+            }
+            .clear-history-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .history-result {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="mainPage">
+            <header class="header">
+                <div class="logo">
+                    <i class="fas fa-calculator"></i>
+                    <h1>절대강자계산기</h1>
+                </div>
+                <p class="subtitle">모든 계산을 한 곳에서 간편하게</p>
+            </header>
+
+            <div class="calculator-grid">
+                <div class="calc-card" data-calc="basic">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3>일반 계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="compound">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>적립식<br>복리계산</h3>
+                </div>
+
+                <div class="calc-card" data-calc="deposit">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <h3>예금·적금<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="loan">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3>대출<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="dividend">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3>배당금<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="vat">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h3>부가세<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="exchange">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <h3>환율<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="pyeong">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3>평수<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="commission">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <h3>복비<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="capital-gains">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>양도소득세<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="acquisition-tax">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3>부동산<br>취득세</h3>
+                </div>
+
+                <div class="calc-card" data-calc="car-tax">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3>자동차세<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="percentage">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <h3>퍼센트<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="unit-converter">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3>단위환산<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="lunar-solar">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <h3>양력음력<br>변환</h3>
+                </div>
+
+                <div class="calc-card" data-calc="age-calculator">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="fas fa-birthday-cake"></i>
+                    </div>
+                    <h3>만나이<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="unit-price">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3>단가<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="bmi">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <h3>비만도<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="dutch-pay">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>더치페이<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="world-time">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3>세계시간<br>변환</h3>
+                </div>
+
+                <div class="calc-card" data-calc="ovulation">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>배란일<br>계산기</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="calculatorPage">
+            <div class="calc-header">
+                <button class="back-btn" onclick="goBackToMain()">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>돌아가기</span>
+                </button>
+                <h2 id="calcTitle">계산기</h2>
+            </div>
+            <div class="calc-content" id="calcBody"></div>
+        </div>
+    </div>
+
+    <script>
+        let history = [];
+        let currentCalc = '';
+
+        // 숫자에 콤마 추가 함수
+        function formatNumberWithComma(num) {
+            if (num === '' || num === null || num === undefined) return '';
+            const parts = num.toString().replace(/,/g, '').split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+
+        // 콤마 제거하고 숫자로 변환
+        function parseNumberFromComma(str) {
+            if (str === '' || str === null || str === undefined) return 0;
+            return parseFloat(str.toString().replace(/,/g, '')) || 0;
+        }
+
+        // 입력 필드에 콤마 자동 적용
+        function applyCommaFormat(input) {
+            const cursorPos = input.selectionStart;
+            const oldLength = input.value.length;
+            const oldCommaCount = (input.value.match(/,/g) || []).length;
+            
+            // 숫자와 소수점만 허용
+            let value = input.value.replace(/[^\d.]/g, '');
+            
+            // 소수점이 여러 개면 첫 번째만 유지
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            input.value = formatNumberWithComma(value);
+            
+            // 커서 위치 조정
+            const newCommaCount = (input.value.match(/,/g) || []).length;
+            const newCursorPos = cursorPos + (newCommaCount - oldCommaCount);
+            input.setSelectionRange(newCursorPos, newCursorPos);
+        }
+
+        // 입력 필드에 이벤트 리스너 추가
+        function setupCommaInputs() {
+            document.querySelectorAll('input[data-comma="true"]').forEach(input => {
+                input.addEventListener('input', function() {
+                    applyCommaFormat(this);
+                });
+            });
+        }
+
+        document.querySelectorAll('.calc-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const calcType = card.dataset.calc;
+                openCalculator(calcType);
+            });
+        });
+
+        function openCalculator(type) {
+            currentCalc = type;
+            document.getElementById('mainPage').style.display = 'none';
+            document.getElementById('calculatorPage').style.display = 'block';
+            
+            const titles = {
+                'basic': '일반 계산기',
+                'compound': '적립식 복리계산',
+                'deposit': '예금·적금 계산기',
+                'loan': '대출 계산기',
+                'dividend': '배당금 계산기',
+                'vat': '부가세 계산기',
+                'exchange': '환율 계산기',
+                'pyeong': '평수 계산기',
+                'commission': '복비 계산기',
+                'capital-gains': '양도소득세 계산기',
+                'acquisition-tax': '부동산 취득세',
+                'car-tax': '자동차세 계산기',
+                'percentage': '퍼센트 계산기',
+                'unit-converter': '단위환산 계산기',
+                'lunar-solar': '양력음력 변환',
+                'age-calculator': '만나이 계산기',
+                'unit-price': '단가 계산기',
+                'bmi': '비만도 계산기',
+                'dutch-pay': '더치페이 계산기',
+                'world-time': '세계시간 변환',
+                'ovulation': '배란일 계산기'
+            };
+            
+            document.getElementById('calcTitle').textContent = titles[type];
+            loadCalculator(type);
+        }
+
+        function goBackToMain() {
+            document.getElementById('mainPage').style.display = 'block';
+            document.getElementById('calculatorPage').style.display = 'none';
+        }
+
+        function loadCalculator(type) {
+            const calcBody = document.getElementById('calcBody');
+            
+            // 일반 계산기일 때 특별한 스타일 적용
+            if (type === 'basic') {
+                calcBody.classList.add('basic-calc-content');
+            } else {
+                calcBody.classList.remove('basic-calc-content');
+            }
+            
+            switch(type) {
+                case 'basic':
+                    calcBody.innerHTML = getBasicCalculator();
+                    break;
+                case 'compound':
+                    calcBody.innerHTML = getCompoundCalculator();
+                    break;
+                case 'deposit':
+                    calcBody.innerHTML = getDepositCalculator();
+                    break;
+                case 'loan':
+                    calcBody.innerHTML = getLoanCalculator();
+                    break;
+                case 'vat':
+                    calcBody.innerHTML = getVatCalculator();
+                    break;
+                case 'percentage':
+                    calcBody.innerHTML = getPercentageCalculator();
+                    break;
+                case 'bmi':
+                    calcBody.innerHTML = getBMICalculator();
+                    break;
+                case 'dutch-pay':
+                    calcBody.innerHTML = getDutchPayCalculator();
+                    break;
+                case 'pyeong':
+                    calcBody.innerHTML = getPyeongCalculator();
+                    break;
+                case 'age-calculator':
+                    calcBody.innerHTML = getAgeCalculator();
+                    break;
+                case 'unit-price':
+                    calcBody.innerHTML = getUnitPriceCalculator();
+                    break;
+                case 'dividend':
+                    calcBody.innerHTML = getDividendCalculator();
+                    break;
+                case 'exchange':
+                    calcBody.innerHTML = getExchangeCalculator();
+                    break;
+                case 'world-time':
+                    calcBody.innerHTML = getWorldTimeCalculator();
+                    initWorldTime();
+                    break;
+                default:
+                    calcBody.innerHTML = `<p style="text-align: center; color: #718096;">이 계산기는 준비 중입니다.</p>`;
+            }
+            
+            // 콤마 입력 필드 설정
+            setTimeout(() => setupCommaInputs(), 100);
+        }
+
+        function getBasicCalculator() {
+            return `
+                <div class="basic-calculator-container">
+                    <div class="calculator-main">
+                        <div class="calculator-display" id="display">0</div>
+                        <div class="calculator-buttons">
+                            <button class="calc-btn clear" onclick="clearDisplay()">C</button>
+                            <button class="calc-btn operator" onclick="appendOperator('/')">/</button>
+                            <button class="calc-btn operator" onclick="appendOperator('*')">×</button>
+                            <button class="calc-btn operator" onclick="deleteChar()">⌫</button>
+                            
+                            <button class="calc-btn" onclick="appendNumber('7')">7</button>
+                            <button class="calc-btn" onclick="appendNumber('8')">8</button>
+                            <button class="calc-btn" onclick="appendNumber('9')">9</button>
+                            <button class="calc-btn operator" onclick="appendOperator('-')">-</button>
+                            
+                            <button class="calc-btn" onclick="appendNumber('4')">4</button>
+                            <button class="calc-btn" onclick="appendNumber('5')">5</button>
+                            <button class="calc-btn" onclick="appendNumber('6')">6</button>
+                            <button class="calc-btn operator" onclick="appendOperator('+')">+</button>
+                            
+                            <button class="calc-btn" onclick="appendNumber('1')">1</button>
+                            <button class="calc-btn" onclick="appendNumber('2')">2</button>
+                            <button class="calc-btn" onclick="appendNumber('3')">3</button>
+                            <button class="calc-btn equals" onclick="calculate()" style="grid-row: span 2;">=</button>
+                            
+                            <button class="calc-btn zero" onclick="appendNumber('0')">0</button>
+                            <button class="calc-btn" onclick="appendNumber('.')">.</button>
+                        </div>
+                    </div>
+                    <div class="calculator-history">
+                        <div class="history-header">
+                            <h3>계산 기록</h3>
+                            <button class="clear-history-btn" onclick="clearHistory()">
+                                <i class="fas fa-trash"></i> 전체 삭제
+                            </button>
+                        </div>
+                        <div class="history-list" id="historyList">
+                            <div class="history-empty">계산 기록이 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let currentInput = '0';
+        let expression = '';
+
+        function appendNumber(num) {
+            if (currentInput === '0' && num !== '.') {
+                currentInput = num;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (currentInput !== '') {
+                expression = currentInput + ' ' + (op === '*' ? '×' : op) + ' ';
+                currentInput = '';
+            }
+            updateDisplay();
+        }
+
+        function deleteChar() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            expression = '';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('display').textContent = expression + currentInput;
+        }
+
+        function calculate() {
+            try {
+                const fullExpression = expression + currentInput;
+                const result = eval(fullExpression.replace(/×/g, '*').replace(/÷/g, '/'));
+                
+                history.unshift({
+                    expression: fullExpression,
+                    result: result
+                });
+                
+                updateHistory();
+                currentInput = result.toString();
+                expression = '';
+                updateDisplay();
+            } catch (e) {
+                currentInput = 'Error';
+                updateDisplay();
+            }
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            if (!historyList) return;
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">계산 기록이 없습니다</div>';
+            } else {
+                historyList.innerHTML = history.map((item, index) => `
+                    <div class="history-item" onclick="useHistoryResult(${index})">
+                        <div class="history-expression">${item.expression}</div>
+                        <div class="history-result">= ${item.result}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function useHistoryResult(index) {
+            currentInput = history[index].result.toString();
+            expression = '';
+            updateDisplay();
+        }
+
+        function clearHistory() {
+            history = [];
+            updateHistory();
+        }
+
+        function getCompoundCalculator() {
+            return `
+                <style>
+                    .compound-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .compound-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .compound-result-section {
+                        display: none;
+                    }
+                    .compound-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .compound-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .summary-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .summary-card.profit {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    }
+                    .summary-card.rate {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .summary-card.total {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .summary-value {
+                        font-size: 20px;
+                        font-weight: 700;
+                    }
+                    .chart-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .chart-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .chart-title i {
+                        color: #667eea;
+                    }
+                    .yearly-table-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                        overflow-x: auto;
+                    }
+                    .yearly-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 14px;
+                    }
+                    .yearly-table th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 12px 15px;
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                    .yearly-table th:first-child {
+                        text-align: center;
+                        border-radius: 10px 0 0 0;
+                    }
+                    .yearly-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                    }
+                    .yearly-table td {
+                        padding: 12px 15px;
+                        text-align: right;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .yearly-table td:first-child {
+                        text-align: center;
+                        font-weight: 600;
+                        color: #667eea;
+                    }
+                    .yearly-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .yearly-table tr:last-child td:first-child {
+                        border-radius: 0 0 0 10px;
+                    }
+                    .yearly-table tr:last-child td:last-child {
+                        border-radius: 0 0 10px 0;
+                    }
+                    .profit-cell {
+                        color: #38a169;
+                        font-weight: 600;
+                    }
+                    .etf-tips-container {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .etf-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .etf-tips-title i {
+                        color: #ffd700;
+                    }
+                    .etf-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                    }
+                    .etf-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                        transition: all 0.3s ease;
+                    }
+                    .etf-card:hover {
+                        background: rgba(255,255,255,0.15);
+                        transform: translateY(-3px);
+                    }
+                    .etf-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    }
+                    .etf-name {
+                        font-weight: 700;
+                        font-size: 16px;
+                    }
+                    .etf-return {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        font-weight: 700;
+                        font-size: 14px;
+                    }
+                    .etf-desc {
+                        font-size: 13px;
+                        opacity: 0.8;
+                        line-height: 1.5;
+                    }
+                    .etf-note {
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: rgba(255,215,0,0.1);
+                        border-radius: 10px;
+                        border-left: 4px solid #ffd700;
+                        font-size: 13px;
+                        line-height: 1.6;
+                    }
+                    @media (max-width: 768px) {
+                        .compound-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .etf-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .summary-value {
+                            font-size: 16px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .compound-summary {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                <div class="compound-container">
+                    <div class="compound-form-section">
+                        <form class="calc-form" onsubmit="calculateCompound(event)">
+                            <div class="form-group">
+                                <label><i class="fas fa-wallet" style="color: #667eea; margin-right: 8px;"></i>초기 투자금 (원)</label>
+                                <input type="text" id="initialAmount" data-comma="true" placeholder="1,000,000" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-plus" style="color: #667eea; margin-right: 8px;"></i>월 적립금 (원)</label>
+                                <input type="text" id="monthlyAmount" data-comma="true" placeholder="100,000" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-percentage" style="color: #667eea; margin-right: 8px;"></i>연 수익률 (%)</label>
+                                <input type="text" id="interestRate" placeholder="7" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-clock" style="color: #667eea; margin-right: 8px;"></i>투자 기간 (년)</label>
+                                <input type="text" id="years" placeholder="10" required>
+                            </div>
+                            <button type="submit" class="btn-calculate">
+                                <i class="fas fa-calculator" style="margin-right: 8px;"></i>복리 계산하기
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="compound-result-section" id="compoundResultSection">
+                        <div class="compound-summary" id="compoundSummary"></div>
+                        <div class="chart-container">
+                            <div class="chart-title"><i class="fas fa-chart-area"></i> 자산 성장 그래프</div>
+                            <canvas id="compoundChart"></canvas>
+                        </div>
+                        <div class="yearly-table-container">
+                            <div class="chart-title"><i class="fas fa-table"></i> 연도별 상세 내역</div>
+                            <table class="yearly-table" id="yearlyTable"></table>
+                        </div>
+                        <div class="etf-tips-container">
+                            <div class="etf-tips-title"><i class="fas fa-lightbulb"></i> 미국 우량 ETF 최근 10년 수익률 참고</div>
+                            <div class="etf-grid">
+                                <div class="etf-card">
+                                    <div class="etf-header">
+                                        <span class="etf-name">VOO</span>
+                                        <span class="etf-return">+212%</span>
+                                    </div>
+                                    <div class="etf-desc">Vanguard S&P 500 ETF<br>미국 대형주 500개 추종, 연평균 약 12%</div>
+                                </div>
+                                <div class="etf-card">
+                                    <div class="etf-header">
+                                        <span class="etf-name">QQQ</span>
+                                        <span class="etf-return">+396%</span>
+                                    </div>
+                                    <div class="etf-desc">Invesco NASDAQ 100 ETF<br>기술주 중심, 연평균 약 17%</div>
+                                </div>
+                                <div class="etf-card">
+                                    <div class="etf-header">
+                                        <span class="etf-name">SPY</span>
+                                        <span class="etf-return">+208%</span>
+                                    </div>
+                                    <div class="etf-desc">SPDR S&P 500 ETF<br>세계 최대 규모 ETF, 연평균 약 12%</div>
+                                </div>
+                                <div class="etf-card">
+                                    <div class="etf-header">
+                                        <span class="etf-name">VTI</span>
+                                        <span class="etf-return">+196%</span>
+                                    </div>
+                                    <div class="etf-desc">Vanguard Total Stock Market<br>미국 전체 시장, 연평균 약 11%</div>
+                                </div>
+                                <div class="etf-card">
+                                    <div class="etf-header">
+                                        <span class="etf-name">SCHD</span>
+                                        <span class="etf-return">+176%</span>
+                                    </div>
+                                    <div class="etf-desc">Schwab US Dividend Equity<br>배당성장주, 연평균 약 10.5%</div>
+                                </div>
+                                <div class="etf-card">
+                                    <div class="etf-header">
+                                        <span class="etf-name">VGT</span>
+                                        <span class="etf-return">+450%</span>
+                                    </div>
+                                    <div class="etf-desc">Vanguard Info Tech ETF<br>IT 섹터 집중, 연평균 약 18%</div>
+                                </div>
+                            </div>
+                            <div class="etf-note">
+                                <strong>💡 투자 팁:</strong> 과거 수익률이 미래 수익을 보장하지 않습니다. 
+                                장기 투자와 분산 투자가 중요하며, S&P 500 지수의 역사적 평균 수익률은 연 약 10%입니다.
+                                복리 효과를 극대화하려면 최소 10년 이상의 장기 투자를 권장합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let compoundChartInstance = null;
+
+        function calculateCompound(e) {
+            e.preventDefault();
+            const initial = parseNumberFromComma(document.getElementById('initialAmount').value);
+            const monthly = parseNumberFromComma(document.getElementById('monthlyAmount').value);
+            const rate = parseFloat(document.getElementById('interestRate').value) / 100;
+            const years = parseInt(document.getElementById('years').value);
+            
+            const monthlyRate = rate / 12;
+            const months = years * 12;
+            
+            // 연도별 데이터 계산
+            let yearlyData = [];
+            let total = initial;
+            let totalInvested = initial;
+            
+            for (let year = 1; year <= years; year++) {
+                let yearStart = total;
+                let yearInvested = 0;
+                
+                for (let month = 0; month < 12; month++) {
+                    total = total * (1 + monthlyRate) + monthly;
+                    totalInvested += monthly;
+                    yearInvested += monthly;
+                }
+                
+                yearlyData.push({
+                    year: year,
+                    invested: totalInvested,
+                    total: Math.round(total),
+                    profit: Math.round(total - totalInvested),
+                    yearlyContribution: initial + yearInvested * year / year
+                });
+            }
+            
+            const finalTotal = total;
+            const finalInvested = totalInvested;
+            const profit = finalTotal - finalInvested;
+            const profitRate = (profit / finalInvested) * 100;
+            
+            // 결과 섹션 표시
+            const resultSection = document.getElementById('compoundResultSection');
+            resultSection.classList.add('active');
+            
+            // 요약 카드 업데이트
+            document.getElementById('compoundSummary').innerHTML = `
+                <div class="summary-card">
+                    <div class="summary-label">총 투자금액</div>
+                    <div class="summary-value">${Math.round(finalInvested).toLocaleString()}원</div>
+                </div>
+                <div class="summary-card total">
+                    <div class="summary-label">최종 자산</div>
+                    <div class="summary-value">${Math.round(finalTotal).toLocaleString()}원</div>
+                </div>
+                <div class="summary-card profit">
+                    <div class="summary-label">총 수익금</div>
+                    <div class="summary-value">+${Math.round(profit).toLocaleString()}원</div>
+                </div>
+                <div class="summary-card rate">
+                    <div class="summary-label">총 수익률</div>
+                    <div class="summary-value">+${profitRate.toFixed(1)}%</div>
+                </div>
+            `;
+            
+            // 차트 생성
+            const ctx = document.getElementById('compoundChart').getContext('2d');
+            
+            if (compoundChartInstance) {
+                compoundChartInstance.destroy();
+            }
+            
+            compoundChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: yearlyData.map(d => d.year + '년'),
+                    datasets: [
+                        {
+                            label: '총 자산',
+                            data: yearlyData.map(d => d.total),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        },
+                        {
+                            label: '투자 원금',
+                            data: yearlyData.map(d => d.invested),
+                            borderColor: '#a0aec0',
+                            backgroundColor: 'rgba(160, 174, 192, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointBackgroundColor: '#a0aec0',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 13,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 15,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString() + '원';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 100000000) {
+                                        return (value / 100000000).toFixed(1) + '억';
+                                    } else if (value >= 10000) {
+                                        return (value / 10000).toFixed(0) + '만';
+                                    }
+                                    return value;
+                                },
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 연도별 테이블 생성
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th>연차</th>
+                        <th>투자 원금</th>
+                        <th>총 자산</th>
+                        <th>누적 수익</th>
+                        <th>수익률</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            yearlyData.forEach(data => {
+                const yearProfitRate = ((data.total - data.invested) / data.invested * 100).toFixed(1);
+                tableHTML += `
+                    <tr>
+                        <td>${data.year}년차</td>
+                        <td>${data.invested.toLocaleString()}원</td>
+                        <td>${data.total.toLocaleString()}원</td>
+                        <td class="profit-cell">+${data.profit.toLocaleString()}원</td>
+                        <td class="profit-cell">+${yearProfitRate}%</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody>';
+            document.getElementById('yearlyTable').innerHTML = tableHTML;
+            
+            // 결과 섹션으로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function getDepositCalculator() {
+            return `
+                <style>
+                    .deposit-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .deposit-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .form-row {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .deposit-result-section {
+                        display: none;
+                    }
+                    .deposit-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .deposit-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .deposit-summary-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .deposit-summary-card.interest {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    }
+                    .deposit-summary-card.tax {
+                        background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+                    }
+                    .deposit-summary-card.total {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .deposit-summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .deposit-summary-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    .deposit-chart-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .deposit-chart-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .deposit-chart-title i {
+                        color: #667eea;
+                    }
+                    .deposit-table-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                        overflow-x: auto;
+                    }
+                    .deposit-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 14px;
+                    }
+                    .deposit-table th {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                        color: white;
+                        padding: 12px 15px;
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                    .deposit-table th:first-child {
+                        text-align: center;
+                        border-radius: 10px 0 0 0;
+                    }
+                    .deposit-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                    }
+                    .deposit-table td {
+                        padding: 12px 15px;
+                        text-align: right;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .deposit-table td:first-child {
+                        text-align: center;
+                        font-weight: 600;
+                        color: #4facfe;
+                    }
+                    .deposit-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .interest-cell {
+                        color: #38a169;
+                        font-weight: 600;
+                    }
+                    .deposit-tips-container {
+                        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .deposit-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .deposit-tips-title i {
+                        color: #ffd700;
+                    }
+                    .terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 25px;
+                    }
+                    .term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .tips-section {
+                        margin-top: 20px;
+                        padding-top: 20px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .tips-section-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .tip-item {
+                        background: rgba(255,255,255,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #38ef7d;
+                    }
+                    .tip-item:last-child {
+                        margin-bottom: 0;
+                    }
+                    .tip-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                    }
+                    .tip-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .comparison-box {
+                        background: rgba(255,215,0,0.1);
+                        border: 2px solid #ffd700;
+                        border-radius: 12px;
+                        padding: 20px;
+                        margin-top: 20px;
+                    }
+                    .comparison-title {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 12px;
+                        color: #ffd700;
+                    }
+                    .comparison-table {
+                        width: 100%;
+                        font-size: 13px;
+                    }
+                    .comparison-table td {
+                        padding: 8px 0;
+                        border-bottom: 1px solid rgba(255,255,255,0.1);
+                    }
+                    .comparison-table td:last-child {
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                    @media (max-width: 768px) {
+                        .deposit-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .terms-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .form-row {
+                            grid-template-columns: 1fr;
+                        }
+                        .deposit-summary-value {
+                            font-size: 15px;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .deposit-summary {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                <div class="deposit-container">
+                    <div class="deposit-form-section">
+                        <form class="calc-form" onsubmit="calculateDeposit(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-piggy-bank" style="color: #4facfe; margin-right: 8px;"></i>저축 방식</label>
+                                    <select id="depositType" onchange="updateDepositLabel()">
+                                        <option value="savings">적금 (매월 납입)</option>
+                                        <option value="deposit">예금 (일시 납입)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-percentage" style="color: #4facfe; margin-right: 8px;"></i>이자 계산 방식</label>
+                                    <select id="interestType">
+                                        <option value="simple">단리</option>
+                                        <option value="compound">복리 (월복리)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label id="depositAmountLabel"><i class="fas fa-won-sign" style="color: #4facfe; margin-right: 8px;"></i>월 납입액 (원)</label>
+                                    <input type="text" id="depositAmount" data-comma="true" placeholder="500,000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-chart-line" style="color: #4facfe; margin-right: 8px;"></i>연 이자율 (%)</label>
+                                    <input type="text" id="depositRate" placeholder="4.5" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar-alt" style="color: #4facfe; margin-right: 8px;"></i>가입 기간 (개월)</label>
+                                    <input type="text" id="depositPeriod" placeholder="12" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-landmark" style="color: #4facfe; margin-right: 8px;"></i>세금 유형</label>
+                                    <select id="taxType">
+                                        <option value="normal">일반과세 (15.4%)</option>
+                                        <option value="preferential">세금우대 (9.5%)</option>
+                                        <option value="exempt">비과세 (0%)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-calculate">
+                                <i class="fas fa-calculator" style="margin-right: 8px;"></i>예적금 계산하기
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="deposit-result-section" id="depositResultSection">
+                        <div class="deposit-summary" id="depositSummary"></div>
+                        <div class="deposit-chart-container">
+                            <div class="deposit-chart-title"><i class="fas fa-chart-pie"></i> 원금 vs 이자 구성</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center;">
+                                <canvas id="depositPieChart"></canvas>
+                                <canvas id="depositBarChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="deposit-table-container">
+                            <div class="deposit-chart-title"><i class="fas fa-table"></i> 월별 상세 내역</div>
+                            <table class="deposit-table" id="depositTable"></table>
+                        </div>
+                        <div class="deposit-tips-container">
+                            <div class="deposit-tips-title"><i class="fas fa-book"></i> 예적금 용어 사전</div>
+                            <div class="terms-grid">
+                                <div class="term-card">
+                                    <div class="term-name">📊 단리 (Simple Interest)</div>
+                                    <div class="term-desc">원금에 대해서만 이자를 계산하는 방식. 이자가 원금에 합산되지 않아 이자 계산이 간단합니다.</div>
+                                </div>
+                                <div class="term-card">
+                                    <div class="term-name">📈 복리 (Compound Interest)</div>
+                                    <div class="term-desc">원금과 이자를 합한 금액에 이자를 계산하는 방식. 기간이 길수록 단리보다 유리합니다.</div>
+                                </div>
+                                <div class="term-card">
+                                    <div class="term-name">💰 일반과세 (15.4%)</div>
+                                    <div class="term-desc">이자소득세 14% + 지방소득세 1.4%가 부과됩니다. 일반적인 예적금에 적용됩니다.</div>
+                                </div>
+                                <div class="term-card">
+                                    <div class="term-name">🎁 비과세 (0%)</div>
+                                    <div class="term-desc">세금이 면제되는 상품. 청년희망적금, 주택청약저축 등 특정 조건에서 가능합니다.</div>
+                                </div>
+                                <div class="term-card">
+                                    <div class="term-name">⭐ 세금우대 (9.5%)</div>
+                                    <div class="term-desc">농특세 1.4% + 이자소득세 9.5%만 부과. 조합 및 새마을금고에서 1인당 3천만원 한도로 가능합니다.</div>
+                                </div>
+                                <div class="term-card">
+                                    <div class="term-name">🏦 예금자보호</div>
+                                    <div class="term-desc">금융기관 파산 시 1인당 5천만원까지 보호. 여러 은행에 분산 예치하면 보호 한도가 늘어납니다.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="tips-section">
+                                <div class="tips-section-title"><i class="fas fa-lightbulb" style="color: #ffd700;"></i> 유리한 예적금 가입 팁</div>
+                                <div class="tip-item">
+                                    <div class="tip-title">1. 우대금리 조건 확인하기</div>
+                                    <div class="tip-content">급여이체, 카드결제, 자동이체 등 우대금리 조건을 충족하면 최대 1~2%p 추가 금리를 받을 수 있습니다.</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-title">2. 인터넷/모바일 전용 상품 활용</div>
+                                    <div class="tip-content">영업점 방문 없이 가입하는 비대면 상품은 보통 0.1~0.3%p 금리가 높습니다.</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-title">3. 새마을금고, 신협 등 제2금융권 활용</div>
+                                    <div class="tip-content">시중은행보다 0.5~1%p 높은 금리를 제공하며, 세금우대 혜택도 받을 수 있습니다.</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-title">4. 특판 적금 노리기</div>
+                                    <div class="tip-content">은행 기념일, 연말연시 등에 출시되는 특판 상품은 일반 상품보다 금리가 높습니다.</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-title">5. 장기 예금은 복리 선택</div>
+                                    <div class="tip-content">1년 이상 장기 예치 시 복리 상품을 선택하면 단리보다 더 많은 이자를 받을 수 있습니다.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="comparison-box">
+                                <div class="comparison-title">💡 세금 유형별 실수령액 비교 (이자 100만원 기준)</div>
+                                <table class="comparison-table">
+                                    <tr>
+                                        <td>일반과세 (15.4%)</td>
+                                        <td>세금 154,000원 → 실수령 846,000원</td>
+                                    </tr>
+                                    <tr>
+                                        <td>세금우대 (9.5%)</td>
+                                        <td>세금 95,000원 → 실수령 905,000원</td>
+                                    </tr>
+                                    <tr>
+                                        <td>비과세 (0%)</td>
+                                        <td>세금 0원 → 실수령 1,000,000원</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateDepositLabel() {
+            const type = document.getElementById('depositType').value;
+            const label = document.getElementById('depositAmountLabel');
+            if (type === 'savings') {
+                label.innerHTML = '<i class="fas fa-won-sign" style="color: #4facfe; margin-right: 8px;"></i>월 납입액 (원)';
+            } else {
+                label.innerHTML = '<i class="fas fa-won-sign" style="color: #4facfe; margin-right: 8px;"></i>예금액 (원)';
+            }
+        }
+
+        let depositPieChartInstance = null;
+        let depositBarChartInstance = null;
+
+        function calculateDeposit(e) {
+            e.preventDefault();
+            const depositType = document.getElementById('depositType').value;
+            const interestType = document.getElementById('interestType').value;
+            const amount = parseNumberFromComma(document.getElementById('depositAmount').value);
+            const rate = parseFloat(document.getElementById('depositRate').value) / 100;
+            const months = parseInt(document.getElementById('depositPeriod').value);
+            const taxType = document.getElementById('taxType').value;
+            
+            // 세율 설정
+            const taxRates = {
+                normal: 0.154,
+                preferential: 0.095,
+                exempt: 0
+            };
+            const taxRate = taxRates[taxType];
+            
+            let monthlyData = [];
+            let totalPrincipal = 0;
+            let totalInterest = 0;
+            let balance = 0;
+            
+            if (depositType === 'savings') {
+                // 적금 계산
+                if (interestType === 'simple') {
+                    // 단리 적금
+                    for (let month = 1; month <= months; month++) {
+                        totalPrincipal = amount * month;
+                        // 각 납입금의 이자 = 납입금 × 연이율 × (잔여개월수/12)
+                        let accInterest = 0;
+                        for (let i = 1; i <= month; i++) {
+                            accInterest += amount * rate * (months - i + 1) / 12;
+                        }
+                        const monthInterest = month === 1 ? accInterest : accInterest - monthlyData[month-2].accumulatedInterest;
+                        balance = totalPrincipal + accInterest;
+                        
+                        monthlyData.push({
+                            month: month,
+                            deposit: amount,
+                            principal: totalPrincipal,
+                            monthInterest: monthInterest,
+                            accumulatedInterest: accInterest,
+                            balance: balance
+                        });
+                    }
+                    totalInterest = monthlyData[months-1].accumulatedInterest;
+                } else {
+                    // 복리 적금 (월복리)
+                    const monthlyRate = rate / 12;
+                    for (let month = 1; month <= months; month++) {
+                        balance = balance * (1 + monthlyRate) + amount;
+                        totalPrincipal = amount * month;
+                        const accInterest = balance - totalPrincipal;
+                        const monthInterest = month === 1 ? accInterest : accInterest - monthlyData[month-2].accumulatedInterest;
+                        
+                        monthlyData.push({
+                            month: month,
+                            deposit: amount,
+                            principal: totalPrincipal,
+                            monthInterest: monthInterest,
+                            accumulatedInterest: accInterest,
+                            balance: balance
+                        });
+                    }
+                    totalInterest = balance - totalPrincipal;
+                }
+            } else {
+                // 예금 계산
+                totalPrincipal = amount;
+                if (interestType === 'simple') {
+                    // 단리 예금
+                    for (let month = 1; month <= months; month++) {
+                        const accInterest = amount * rate * month / 12;
+                        const monthInterest = amount * rate / 12;
+                        balance = amount + accInterest;
+                        
+                        monthlyData.push({
+                            month: month,
+                            deposit: month === 1 ? amount : 0,
+                            principal: amount,
+                            monthInterest: monthInterest,
+                            accumulatedInterest: accInterest,
+                            balance: balance
+                        });
+                    }
+                    totalInterest = monthlyData[months-1].accumulatedInterest;
+                } else {
+                    // 복리 예금 (월복리)
+                    const monthlyRate = rate / 12;
+                    balance = amount;
+                    for (let month = 1; month <= months; month++) {
+                        const prevBalance = balance;
+                        balance = balance * (1 + monthlyRate);
+                        const monthInterest = balance - prevBalance;
+                        const accInterest = balance - amount;
+                        
+                        monthlyData.push({
+                            month: month,
+                            deposit: month === 1 ? amount : 0,
+                            principal: amount,
+                            monthInterest: monthInterest,
+                            accumulatedInterest: accInterest,
+                            balance: balance
+                        });
+                    }
+                    totalInterest = balance - amount;
+                }
+            }
+            
+            // 세금 계산
+            const taxAmount = totalInterest * taxRate;
+            const netInterest = totalInterest - taxAmount;
+            const totalAmount = totalPrincipal + netInterest;
+            
+            // 결과 섹션 표시
+            const resultSection = document.getElementById('depositResultSection');
+            resultSection.classList.add('active');
+            
+            // 요약 카드 업데이트
+            document.getElementById('depositSummary').innerHTML = `
+                <div class="deposit-summary-card">
+                    <div class="deposit-summary-label">총 원금</div>
+                    <div class="deposit-summary-value">${Math.round(totalPrincipal).toLocaleString()}원</div>
+                </div>
+                <div class="deposit-summary-card interest">
+                    <div class="deposit-summary-label">세전 이자</div>
+                    <div class="deposit-summary-value">+${Math.round(totalInterest).toLocaleString()}원</div>
+                </div>
+                <div class="deposit-summary-card tax">
+                    <div class="deposit-summary-label">세금 (${(taxRate*100).toFixed(1)}%)</div>
+                    <div class="deposit-summary-value">-${Math.round(taxAmount).toLocaleString()}원</div>
+                </div>
+                <div class="deposit-summary-card total">
+                    <div class="deposit-summary-label">만기 수령액</div>
+                    <div class="deposit-summary-value">${Math.round(totalAmount).toLocaleString()}원</div>
+                </div>
+            `;
+            
+            // 파이 차트 생성
+            const pieCtx = document.getElementById('depositPieChart').getContext('2d');
+            
+            if (depositPieChartInstance) {
+                depositPieChartInstance.destroy();
+            }
+            
+            depositPieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['원금', '세후 이자', '세금'],
+                    datasets: [{
+                        data: [totalPrincipal, netInterest, taxAmount],
+                        backgroundColor: ['#667eea', '#38ef7d', '#fc8181'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${Math.round(value).toLocaleString()}원 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 바 차트 생성 (월별 잔액 추이)
+            const barCtx = document.getElementById('depositBarChart').getContext('2d');
+            
+            if (depositBarChartInstance) {
+                depositBarChartInstance.destroy();
+            }
+            
+            // 월별 데이터 샘플링 (너무 많으면 일부만 표시)
+            let chartData = monthlyData;
+            if (months > 12) {
+                const interval = Math.ceil(months / 12);
+                chartData = monthlyData.filter((_, idx) => idx % interval === 0 || idx === months - 1);
+            }
+            
+            depositBarChartInstance = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(d => d.month + '개월'),
+                    datasets: [
+                        {
+                            label: '원금',
+                            data: chartData.map(d => d.principal),
+                            backgroundColor: '#667eea',
+                            borderRadius: 5
+                        },
+                        {
+                            label: '이자',
+                            data: chartData.map(d => d.accumulatedInterest),
+                            backgroundColor: '#38ef7d',
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + Math.round(context.raw).toLocaleString() + '원';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 100000000) {
+                                        return (value / 100000000).toFixed(1) + '억';
+                                    } else if (value >= 10000) {
+                                        return (value / 10000).toFixed(0) + '만';
+                                    }
+                                    return value;
+                                }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        }
+                    }
+                }
+            });
+            
+            // 월별 테이블 생성
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th>회차</th>
+                        <th>납입액</th>
+                        <th>누적 원금</th>
+                        <th>월 이자</th>
+                        <th>누적 이자</th>
+                        <th>잔액</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            // 테이블도 샘플링 (너무 길면)
+            let tableData = monthlyData;
+            if (months > 24) {
+                const interval = Math.ceil(months / 24);
+                tableData = monthlyData.filter((_, idx) => idx % interval === 0 || idx === months - 1);
+            }
+            
+            tableData.forEach(data => {
+                tableHTML += `
+                    <tr>
+                        <td>${data.month}개월</td>
+                        <td>${data.deposit.toLocaleString()}원</td>
+                        <td>${Math.round(data.principal).toLocaleString()}원</td>
+                        <td class="interest-cell">+${Math.round(data.monthInterest).toLocaleString()}원</td>
+                        <td class="interest-cell">+${Math.round(data.accumulatedInterest).toLocaleString()}원</td>
+                        <td>${Math.round(data.balance).toLocaleString()}원</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody>';
+            document.getElementById('depositTable').innerHTML = tableHTML;
+            
+            // 결과 섹션으로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function getLoanCalculator() {
+            return `
+                <style>
+                    .loan-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .loan-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .loan-form-row {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .loan-result-section {
+                        display: none;
+                    }
+                    .loan-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .loan-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .loan-summary-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .loan-summary-card.interest {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .loan-summary-card.monthly {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .loan-summary-card.total {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                    }
+                    .loan-summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .loan-summary-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    .loan-chart-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .loan-chart-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .loan-chart-title i {
+                        color: #667eea;
+                    }
+                    .loan-charts-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 30px;
+                        align-items: center;
+                    }
+                    .loan-table-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                        overflow-x: auto;
+                    }
+                    .loan-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 14px;
+                    }
+                    .loan-table th {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                        color: white;
+                        padding: 12px 10px;
+                        text-align: right;
+                        font-weight: 600;
+                        white-space: nowrap;
+                    }
+                    .loan-table th:first-child {
+                        text-align: center;
+                        border-radius: 10px 0 0 0;
+                    }
+                    .loan-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                    }
+                    .loan-table td {
+                        padding: 10px;
+                        text-align: right;
+                        border-bottom: 1px solid #e2e8f0;
+                        white-space: nowrap;
+                    }
+                    .loan-table td:first-child {
+                        text-align: center;
+                        font-weight: 600;
+                        color: #fa709a;
+                    }
+                    .loan-table tr:hover {
+                        background: #fef5f7;
+                    }
+                    .principal-cell {
+                        color: #667eea;
+                        font-weight: 600;
+                    }
+                    .interest-cell {
+                        color: #f56565;
+                        font-weight: 600;
+                    }
+                    .loan-table-note {
+                        margin-top: 15px;
+                        padding: 15px;
+                        background: #fef5f7;
+                        border-radius: 10px;
+                        font-size: 13px;
+                        color: #718096;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .loan-tips-container {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .loan-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .loan-tips-title i {
+                        color: #ffd700;
+                    }
+                    .loan-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 25px;
+                    }
+                    .loan-term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .loan-term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .loan-term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .loan-regulations {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .loan-reg-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #ff6b6b;
+                    }
+                    .loan-reg-item {
+                        background: rgba(255,107,107,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #ff6b6b;
+                    }
+                    .loan-reg-item:last-child {
+                        margin-bottom: 0;
+                    }
+                    .loan-reg-name {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #ff6b6b;
+                    }
+                    .loan-reg-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .loan-tips-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .loan-tips-section-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #38ef7d;
+                    }
+                    .loan-tip-item {
+                        background: rgba(56,239,125,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #38ef7d;
+                    }
+                    .loan-tip-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #38ef7d;
+                    }
+                    .loan-tip-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .loan-comparison-box {
+                        background: rgba(255,215,0,0.1);
+                        border: 2px solid #ffd700;
+                        border-radius: 12px;
+                        padding: 20px;
+                        margin-top: 20px;
+                    }
+                    .loan-comparison-title {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 12px;
+                        color: #ffd700;
+                    }
+                    .loan-comparison-table {
+                        width: 100%;
+                        font-size: 13px;
+                    }
+                    .loan-comparison-table th {
+                        text-align: left;
+                        padding: 8px;
+                        border-bottom: 1px solid rgba(255,255,255,0.2);
+                        color: #ffd700;
+                    }
+                    .loan-comparison-table td {
+                        padding: 8px;
+                        border-bottom: 1px solid rgba(255,255,255,0.1);
+                    }
+                    @media (max-width: 768px) {
+                        .loan-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .loan-terms-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .loan-form-row {
+                            grid-template-columns: 1fr;
+                        }
+                        .loan-summary-value {
+                            font-size: 15px;
+                        }
+                        .loan-charts-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .loan-summary {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                <div class="loan-container">
+                    <div class="loan-form-section">
+                        <form class="calc-form" onsubmit="calculateLoan(event)">
+                            <div class="loan-form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-landmark" style="color: #fa709a; margin-right: 8px;"></i>대출 종류</label>
+                                    <select id="loanCategory" onchange="updateLoanOptions()">
+                                        <option value="general">일반 신용대출</option>
+                                        <option value="mortgage">주택담보대출</option>
+                                        <option value="jeonse">전세자금대출</option>
+                                        <option value="business">사업자대출</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-sync-alt" style="color: #fa709a; margin-right: 8px;"></i>상환 방식</label>
+                                    <select id="loanType">
+                                        <option value="equal">원리금균등상환</option>
+                                        <option value="principal">원금균등상환</option>
+                                        <option value="bullet">만기일시상환</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="loan-form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-won-sign" style="color: #fa709a; margin-right: 8px;"></i>대출 원금 (원)</label>
+                                    <input type="text" id="loanAmount" data-comma="true" placeholder="100,000,000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-percentage" style="color: #fa709a; margin-right: 8px;"></i>연 이자율 (%)</label>
+                                    <input type="text" id="loanRate" placeholder="4.5" required>
+                                </div>
+                            </div>
+                            <div class="loan-form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar-alt" style="color: #fa709a; margin-right: 8px;"></i>대출 기간 (년)</label>
+                                    <select id="loanYears">
+                                        <option value="1">1년</option>
+                                        <option value="3">3년</option>
+                                        <option value="5">5년</option>
+                                        <option value="10" selected>10년</option>
+                                        <option value="15">15년</option>
+                                        <option value="20">20년</option>
+                                        <option value="30">30년</option>
+                                        <option value="40">40년</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-hourglass-half" style="color: #fa709a; margin-right: 8px;"></i>거치 기간 (년)</label>
+                                    <select id="gracePeriod">
+                                        <option value="0" selected>없음</option>
+                                        <option value="1">1년</option>
+                                        <option value="2">2년</option>
+                                        <option value="3">3년</option>
+                                        <option value="5">5년</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-calculate">
+                                <i class="fas fa-calculator" style="margin-right: 8px;"></i>대출 계산하기
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="loan-result-section" id="loanResultSection">
+                        <div class="loan-summary" id="loanSummary"></div>
+                        <div class="loan-chart-container">
+                            <div class="loan-chart-title"><i class="fas fa-chart-pie"></i> 원금 vs 이자 분석</div>
+                            <div class="loan-charts-grid">
+                                <canvas id="loanPieChart"></canvas>
+                                <canvas id="loanLineChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="loan-table-container">
+                            <div class="loan-chart-title"><i class="fas fa-table"></i> 상환 스케줄</div>
+                            <table class="loan-table" id="loanTable"></table>
+                            <div class="loan-table-note">
+                                <i class="fas fa-info-circle" style="color: #fa709a;"></i>
+                                <span id="loanTableNote">전체 상환 스케줄 중 주요 회차를 표시합니다.</span>
+                            </div>
+                        </div>
+                        <div class="loan-tips-container">
+                            <div class="loan-tips-title"><i class="fas fa-book"></i> 대출 용어 사전</div>
+                            <div class="loan-terms-grid">
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">💰 원리금균등상환</div>
+                                    <div class="loan-term-desc">매월 동일한 금액(원금+이자)을 상환하는 방식. 초기에는 이자 비중이 높고, 후기에는 원금 비중이 높아집니다.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">📊 원금균등상환</div>
+                                    <div class="loan-term-desc">매월 동일한 원금을 상환하는 방식. 초기 상환 부담이 크지만 총 이자 부담이 적습니다.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">🎯 만기일시상환</div>
+                                    <div class="loan-term-desc">대출 기간 동안 이자만 납부하고, 만기에 원금을 일시 상환하는 방식. 월 부담은 적지만 총 이자가 많습니다.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">⏳ 거치 기간</div>
+                                    <div class="loan-term-desc">원금 상환 없이 이자만 납부하는 기간. 거치 기간 후 본격적인 원금+이자 상환이 시작됩니다.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">🏠 LTV (담보인정비율)</div>
+                                    <div class="loan-term-desc">주택 가격 대비 대출 가능 금액의 비율. 예: LTV 70%면 5억 주택에 최대 3.5억 대출 가능.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">💵 DTI (총부채상환비율)</div>
+                                    <div class="loan-term-desc">연 소득 대비 연간 대출 원리금 상환액 비율. 소득 대비 상환 능력을 평가하는 지표입니다.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">📋 DSR (총부채원리금상환비율)</div>
+                                    <div class="loan-term-desc">모든 대출의 원리금 상환액을 연 소득으로 나눈 비율. 전체 부채 상환 능력을 평가합니다.</div>
+                                </div>
+                                <div class="loan-term-card">
+                                    <div class="loan-term-name">🔄 중도상환수수료</div>
+                                    <div class="loan-term-desc">대출 만기 전 조기 상환 시 부과되는 수수료. 보통 3년 이내 상환 시 1~1.5% 부과됩니다.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="loan-regulations">
+                                <div class="loan-reg-title"><i class="fas fa-gavel"></i> 주요 대출 규제</div>
+                                <div class="loan-reg-item">
+                                    <div class="loan-reg-name">📌 LTV 규제 (2024년 기준)</div>
+                                    <div class="loan-reg-content">
+                                        • 투기과열지구: 무주택자 50%, 1주택자 30%<br>
+                                        • 조정대상지역: 무주택자 60%, 1주택자 50%<br>
+                                        • 비규제지역: 무주택자 70%, 1주택자 60%<br>
+                                        • 생애최초 주택구입자 우대: LTV 80% (6억 이하, 연소득 9천만원 이하)
+                                    </div>
+                                </div>
+                                <div class="loan-reg-item">
+                                    <div class="loan-reg-name">📌 DSR 규제</div>
+                                    <div class="loan-reg-content">
+                                        • 1억원 초과 대출: DSR 40% 적용<br>
+                                        • 총 대출 2억원 초과: 스트레스 DSR 적용<br>
+                                        • 은행권 주담대: DSR 40% (무주택자 일부 우대)
+                                    </div>
+                                </div>
+                                <div class="loan-reg-item">
+                                    <div class="loan-reg-name">📌 전세대출 규제</div>
+                                    <div class="loan-reg-content">
+                                        • 보증금의 최대 80%까지 대출 가능<br>
+                                        • 고가 전세(수도권 5억, 지방 3억 초과) 규제 적용<br>
+                                        • 다주택자 전세대출 제한
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="loan-tips-section">
+                                <div class="loan-tips-section-title"><i class="fas fa-lightbulb"></i> 유리한 대출 팁</div>
+                                <div class="loan-tip-item">
+                                    <div class="loan-tip-title">1. 금리 비교는 필수!</div>
+                                    <div class="loan-tip-content">은행별로 금리 차이가 크므로 최소 3~5개 은행 비교. 금융감독원 금융상품한눈에, 카카오뱅크/토스 등 비교 서비스 활용.</div>
+                                </div>
+                                <div class="loan-tip-item">
+                                    <div class="loan-tip-title">2. 우대금리 조건 확인</div>
+                                    <div class="loan-tip-content">급여이체, 카드실적, 적금가입 등으로 0.1~0.5%p 우대 가능. 주거래 은행을 정해두면 유리합니다.</div>
+                                </div>
+                                <div class="loan-tip-item">
+                                    <div class="loan-tip-title">3. 고정금리 vs 변동금리</div>
+                                    <div class="loan-tip-content">금리 상승기에는 고정금리, 하락기에는 변동금리가 유리. 혼합형(5년 고정 후 변동)도 고려해보세요.</div>
+                                </div>
+                                <div class="loan-tip-item">
+                                    <div class="loan-tip-title">4. 중도상환 계획 세우기</div>
+                                    <div class="loan-tip-content">여유자금 생기면 중도상환으로 이자 절약. 중도상환수수료 면제 시점(보통 3년) 확인 필수!</div>
+                                </div>
+                                <div class="loan-tip-item">
+                                    <div class="loan-tip-title">5. 정책금융상품 우선 확인</div>
+                                    <div class="loan-tip-content">디딤돌대출, 보금자리론, 버팀목전세대출 등 저금리 정책상품 자격요건 먼저 확인하세요.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="loan-comparison-box">
+                                <div class="loan-comparison-title">💡 상환 방식별 비교 (1억, 연 5%, 10년 기준)</div>
+                                <table class="loan-comparison-table">
+                                    <tr>
+                                        <th>상환 방식</th>
+                                        <th>월 상환액</th>
+                                        <th>총 이자</th>
+                                    </tr>
+                                    <tr>
+                                        <td>원리금균등</td>
+                                        <td>약 106만원 (고정)</td>
+                                        <td>약 2,728만원</td>
+                                    </tr>
+                                    <tr>
+                                        <td>원금균등</td>
+                                        <td>초기 125만→후기 84만원</td>
+                                        <td>약 2,542만원</td>
+                                    </tr>
+                                    <tr>
+                                        <td>만기일시</td>
+                                        <td>약 42만원 (이자만)</td>
+                                        <td>약 5,000만원</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateLoanOptions() {
+            const category = document.getElementById('loanCategory').value;
+            const yearsSelect = document.getElementById('loanYears');
+            const graceSelect = document.getElementById('gracePeriod');
+            
+            // 대출 종류에 따라 기본값 조정
+            if (category === 'mortgage') {
+                yearsSelect.value = '30';
+            } else if (category === 'jeonse') {
+                yearsSelect.value = '2';
+            } else if (category === 'business') {
+                yearsSelect.value = '5';
+            } else {
+                yearsSelect.value = '5';
+            }
+        }
+
+        let loanPieChartInstance = null;
+        let loanLineChartInstance = null;
+
+        function calculateLoan(e) {
+            e.preventDefault();
+            const category = document.getElementById('loanCategory').value;
+            const type = document.getElementById('loanType').value;
+            const principal = parseNumberFromComma(document.getElementById('loanAmount').value);
+            const annualRate = parseFloat(document.getElementById('loanRate').value) / 100;
+            const monthlyRate = annualRate / 12;
+            const years = parseInt(document.getElementById('loanYears').value);
+            const graceYears = parseInt(document.getElementById('gracePeriod').value);
+            const totalMonths = years * 12;
+            const graceMonths = graceYears * 12;
+            const repaymentMonths = totalMonths - graceMonths;
+            
+            let scheduleData = [];
+            let totalInterest = 0;
+            let totalPayment = 0;
+            let remainingPrincipal = principal;
+            let monthlyPayment = 0;
+            let firstMonthPayment = 0;
+            let lastMonthPayment = 0;
+            
+            // 거치기간 중 이자
+            const graceInterest = principal * monthlyRate;
+            
+            for (let month = 1; month <= totalMonths; month++) {
+                let principalPayment = 0;
+                let interestPayment = 0;
+                let payment = 0;
+                
+                if (month <= graceMonths) {
+                    // 거치 기간: 이자만 납부
+                    interestPayment = remainingPrincipal * monthlyRate;
+                    payment = interestPayment;
+                } else {
+                    // 상환 기간
+                    const repaymentMonth = month - graceMonths;
+                    
+                    if (type === 'bullet') {
+                        // 만기일시상환
+                        interestPayment = remainingPrincipal * monthlyRate;
+                        if (month === totalMonths) {
+                            principalPayment = principal;
+                        }
+                        payment = interestPayment + principalPayment;
+                    } else if (type === 'equal') {
+                        // 원리금균등상환
+                        payment = principal * monthlyRate * Math.pow(1 + monthlyRate, repaymentMonths) / (Math.pow(1 + monthlyRate, repaymentMonths) - 1);
+                        interestPayment = remainingPrincipal * monthlyRate;
+                        principalPayment = payment - interestPayment;
+                    } else {
+                        // 원금균등상환
+                        principalPayment = principal / repaymentMonths;
+                        interestPayment = remainingPrincipal * monthlyRate;
+                        payment = principalPayment + interestPayment;
+                    }
+                }
+                
+                remainingPrincipal -= principalPayment;
+                if (remainingPrincipal < 0) remainingPrincipal = 0;
+                
+                totalInterest += interestPayment;
+                totalPayment += payment;
+                
+                if (month === 1) firstMonthPayment = payment;
+                if (month === totalMonths) lastMonthPayment = payment;
+                
+                scheduleData.push({
+                    month: month,
+                    payment: Math.round(payment),
+                    principal: Math.round(principalPayment),
+                    interest: Math.round(interestPayment),
+                    remaining: Math.round(remainingPrincipal)
+                });
+            }
+            
+            // 월 상환액 (대표값)
+            if (type === 'equal') {
+                monthlyPayment = principal * monthlyRate * Math.pow(1 + monthlyRate, repaymentMonths) / (Math.pow(1 + monthlyRate, repaymentMonths) - 1);
+            } else if (type === 'principal') {
+                monthlyPayment = (firstMonthPayment + lastMonthPayment) / 2; // 평균
+            } else {
+                monthlyPayment = principal * monthlyRate; // 이자만
+            }
+            
+            // 결과 섹션 표시
+            const resultSection = document.getElementById('loanResultSection');
+            resultSection.classList.add('active');
+            
+            // 카테고리 한글명
+            const categoryNames = {
+                general: '일반 신용대출',
+                mortgage: '주택담보대출',
+                jeonse: '전세자금대출',
+                business: '사업자대출'
+            };
+            
+            const typeNames = {
+                equal: '원리금균등',
+                principal: '원금균등',
+                bullet: '만기일시'
+            };
+            
+            // 요약 카드 업데이트
+            document.getElementById('loanSummary').innerHTML = `
+                <div class="loan-summary-card">
+                    <div class="loan-summary-label">대출 원금</div>
+                    <div class="loan-summary-value">${principal.toLocaleString()}원</div>
+                </div>
+                <div class="loan-summary-card monthly">
+                    <div class="loan-summary-label">${type === 'equal' ? '월 상환액' : (type === 'principal' ? '첫달 상환액' : '월 이자')}</div>
+                    <div class="loan-summary-value">${Math.round(firstMonthPayment).toLocaleString()}원</div>
+                </div>
+                <div class="loan-summary-card interest">
+                    <div class="loan-summary-label">총 이자</div>
+                    <div class="loan-summary-value">${Math.round(totalInterest).toLocaleString()}원</div>
+                </div>
+                <div class="loan-summary-card total">
+                    <div class="loan-summary-label">총 상환액</div>
+                    <div class="loan-summary-value">${Math.round(totalPayment).toLocaleString()}원</div>
+                </div>
+            `;
+            
+            // 파이 차트 생성
+            const pieCtx = document.getElementById('loanPieChart').getContext('2d');
+            
+            if (loanPieChartInstance) {
+                loanPieChartInstance.destroy();
+            }
+            
+            loanPieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['원금', '이자'],
+                    datasets: [{
+                        data: [principal, totalInterest],
+                        backgroundColor: ['#667eea', '#f56565'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${Math.round(value).toLocaleString()}원 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 라인 차트 생성 (잔액 추이)
+            const lineCtx = document.getElementById('loanLineChart').getContext('2d');
+            
+            if (loanLineChartInstance) {
+                loanLineChartInstance.destroy();
+            }
+            
+            // 차트용 데이터 샘플링
+            let chartData = scheduleData;
+            if (totalMonths > 60) {
+                const interval = Math.ceil(totalMonths / 30);
+                chartData = scheduleData.filter((_, idx) => idx % interval === 0 || idx === totalMonths - 1);
+            }
+            
+            loanLineChartInstance = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: chartData.map(d => d.month + '개월'),
+                    datasets: [
+                        {
+                            label: '남은 원금',
+                            data: chartData.map(d => d.remaining),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString() + '원';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 100000000) {
+                                        return (value / 100000000).toFixed(1) + '억';
+                                    } else if (value >= 10000) {
+                                        return (value / 10000).toFixed(0) + '만';
+                                    }
+                                    return value;
+                                }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+            
+            // 상환 스케줄 테이블 생성
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th>회차</th>
+                        <th>상환금</th>
+                        <th>원금</th>
+                        <th>이자</th>
+                        <th>잔금</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            // 테이블용 샘플링 (12개월 간격 또는 적절히)
+            let tableData = [];
+            if (totalMonths <= 24) {
+                tableData = scheduleData;
+            } else {
+                const interval = Math.ceil(totalMonths / 24);
+                tableData = scheduleData.filter((d, idx) => 
+                    idx === 0 || 
+                    idx === graceMonths - 1 ||
+                    idx === graceMonths ||
+                    (idx + 1) % 12 === 0 || 
+                    idx === totalMonths - 1
+                );
+            }
+            
+            tableData.forEach(data => {
+                const isGrace = data.month <= graceMonths && graceMonths > 0;
+                tableHTML += `
+                    <tr style="${isGrace ? 'background: #fef5f7;' : ''}">
+                        <td>${data.month}회${isGrace ? ' (거치)' : ''}</td>
+                        <td>${data.payment.toLocaleString()}원</td>
+                        <td class="principal-cell">${data.principal.toLocaleString()}원</td>
+                        <td class="interest-cell">${data.interest.toLocaleString()}원</td>
+                        <td>${data.remaining.toLocaleString()}원</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody>';
+            document.getElementById('loanTable').innerHTML = tableHTML;
+            
+            // 테이블 노트 업데이트
+            let noteText = `${categoryNames[category]} | ${typeNames[type]}상환 | ${years}년`;
+            if (graceYears > 0) noteText += ` (거치 ${graceYears}년 포함)`;
+            document.getElementById('loanTableNote').textContent = noteText;
+            
+            // 결과 섹션으로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function getVatCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateVat(event)">
+                    <div class="form-group">
+                        <label>계산 방식</label>
+                        <select id="vatType">
+                            <option value="add">부가세 포함 (공급가액 → 총액)</option>
+                            <option value="remove">부가세 제외 (총액 → 공급가액)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="vatAmountLabel">공급가액 (원)</label>
+                        <input type="text" id="vatAmount" data-comma="true" placeholder="100,000" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="vatResult"></div>
+            `;
+        }
+
+        function calculateVat(e) {
+            e.preventDefault();
+            const type = document.getElementById('vatType').value;
+            const amount = parseNumberFromComma(document.getElementById('vatAmount').value);
+            
+            let supply, vat, total;
+            
+            if (type === 'add') {
+                supply = amount;
+                vat = Math.round(amount * 0.1);
+                total = supply + vat;
+            } else {
+                total = amount;
+                supply = Math.round(amount / 1.1);
+                vat = total - supply;
+            }
+            
+            const resultBox = document.getElementById('vatResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>부가세 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">공급가액</span>
+                    <span class="result-value">${supply.toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">부가세 (10%)</span>
+                    <span class="result-value">${vat.toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">총액</span>
+                    <span class="result-value">${total.toLocaleString()}원</span>
+                </div>
+            `;
+        }
+
+        function getPercentageCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculatePercentage(event)">
+                    <div class="form-group">
+                        <label>전체 값</label>
+                        <input type="number" id="percentTotal" placeholder="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>퍼센트 (%)</label>
+                        <input type="number" step="0.1" id="percentValue" placeholder="15" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="percentResult"></div>
+            `;
+        }
+
+        function calculatePercentage(e) {
+            e.preventDefault();
+            const total = parseFloat(document.getElementById('percentTotal').value);
+            const percent = parseFloat(document.getElementById('percentValue').value);
+            
+            const result = total * (percent / 100);
+            
+            const resultBox = document.getElementById('percentResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>퍼센트 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">${total.toLocaleString()}의 ${percent}%</span>
+                    <span class="result-value">${result.toLocaleString()}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">남은 값</span>
+                    <span class="result-value">${(total - result).toLocaleString()}</span>
+                </div>
+            `;
+        }
+
+        function getBMICalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateBMI(event)">
+                    <div class="form-group">
+                        <label>신장 (cm)</label>
+                        <input type="number" step="0.1" id="height" placeholder="170" required>
+                    </div>
+                    <div class="form-group">
+                        <label>체중 (kg)</label>
+                        <input type="number" step="0.1" id="weight" placeholder="65" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="bmiResult"></div>
+            `;
+        }
+
+        function calculateBMI(e) {
+            e.preventDefault();
+            const height = parseFloat(document.getElementById('height').value) / 100;
+            const weight = parseFloat(document.getElementById('weight').value);
+            
+            const bmi = weight / (height * height);
+            let status = '';
+            
+            if (bmi < 18.5) status = '저체중';
+            else if (bmi < 23) status = '정상';
+            else if (bmi < 25) status = '과체중';
+            else if (bmi < 30) status = '비만';
+            else status = '고도비만';
+            
+            const resultBox = document.getElementById('bmiResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>BMI 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">BMI 지수</span>
+                    <span class="result-value">${bmi.toFixed(1)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">판정</span>
+                    <span class="result-value">${status}</span>
+                </div>
+                <div class="result-item" style="border: none; padding-top: 20px; font-size: 14px; opacity: 0.9;">
+                    <span>저체중: 18.5 미만 | 정상: 18.5-22.9 | 과체중: 23-24.9 | 비만: 25-29.9 | 고도비만: 30 이상</span>
+                </div>
+            `;
+        }
+
+        function getDutchPayCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateDutchPay(event)">
+                    <div class="form-group">
+                        <label>총 금액 (원)</label>
+                        <input type="number" id="totalAmount" placeholder="50000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>인원 수 (명)</label>
+                        <input type="number" id="peopleCount" placeholder="4" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="dutchResult"></div>
+            `;
+        }
+
+        function calculateDutchPay(e) {
+            e.preventDefault();
+            const total = parseFloat(document.getElementById('totalAmount').value);
+            const people = parseInt(document.getElementById('peopleCount').value);
+            
+            const perPerson = Math.ceil(total / people / 1000) * 1000;
+            const totalRounded = perPerson * people;
+            const difference = totalRounded - total;
+            
+            const resultBox = document.getElementById('dutchResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>더치페이 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">총 금액</span>
+                    <span class="result-value">${total.toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">인원</span>
+                    <span class="result-value">${people}명</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">1인당 금액</span>
+                    <span class="result-value">${perPerson.toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">총 정산 금액</span>
+                    <span class="result-value">${totalRounded.toLocaleString()}원</span>
+                </div>
+                ${difference > 0 ? `
+                <div class="result-item">
+                    <span class="result-label">거스름돈</span>
+                    <span class="result-value">${difference.toLocaleString()}원</span>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        function getPyeongCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculatePyeong(event)">
+                    <div class="form-group">
+                        <label>변환 방향</label>
+                        <select id="pyeongType">
+                            <option value="toSqm">평 → 제곱미터(㎡)</option>
+                            <option value="toPyeong">제곱미터(㎡) → 평</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="pyeongLabel">평수</label>
+                        <input type="number" step="0.1" id="pyeongValue" placeholder="30" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="pyeongResult"></div>
+            `;
+        }
+
+        function calculatePyeong(e) {
+            e.preventDefault();
+            const type = document.getElementById('pyeongType').value;
+            const value = parseFloat(document.getElementById('pyeongValue').value);
+            
+            let result, fromUnit, toUnit;
+            
+            if (type === 'toSqm') {
+                result = value * 3.3058;
+                fromUnit = '평';
+                toUnit = '㎡';
+            } else {
+                result = value / 3.3058;
+                fromUnit = '㎡';
+                toUnit = '평';
+            }
+            
+            const resultBox = document.getElementById('pyeongResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>평수 변환 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">${value.toLocaleString()} ${fromUnit}</span>
+                    <span class="result-value">${result.toFixed(2)} ${toUnit}</span>
+                </div>
+            `;
+        }
+
+        function getAgeCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateAge(event)">
+                    <div class="form-group">
+                        <label>생년월일</label>
+                        <input type="date" id="birthDate" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="ageResult"></div>
+            `;
+        }
+
+        function calculateAge(e) {
+            e.preventDefault();
+            const birthDate = new Date(document.getElementById('birthDate').value);
+            const today = new Date();
+            
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            const koreanAge = today.getFullYear() - birthDate.getFullYear() + 1;
+            
+            const resultBox = document.getElementById('ageResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>나이 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">만 나이</span>
+                    <span class="result-value">${age}세</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">한국 나이</span>
+                    <span class="result-value">${koreanAge}세</span>
+                </div>
+            `;
+        }
+
+        function getUnitPriceCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateUnitPrice(event)">
+                    <div class="form-group">
+                        <label>총 금액 (원)</label>
+                        <input type="number" id="unitTotalPrice" placeholder="10000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>수량</label>
+                        <input type="number" step="0.1" id="unitQuantity" placeholder="5" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="unitPriceResult"></div>
+            `;
+        }
+
+        function calculateUnitPrice(e) {
+            e.preventDefault();
+            const total = parseFloat(document.getElementById('unitTotalPrice').value);
+            const quantity = parseFloat(document.getElementById('unitQuantity').value);
+            
+            const unitPrice = total / quantity;
+            
+            const resultBox = document.getElementById('unitPriceResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>단가 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">총 금액</span>
+                    <span class="result-value">${total.toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">수량</span>
+                    <span class="result-value">${quantity}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">단가</span>
+                    <span class="result-value">${unitPrice.toLocaleString()}원</span>
+                </div>
+            `;
+        }
+
+        function getDividendCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateDividend(event)">
+                    <div class="form-group">
+                        <label>투자 금액 (원)</label>
+                        <input type="number" id="investAmount" placeholder="10000000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>연 배당률 (%)</label>
+                        <input type="number" step="0.1" id="dividendRate" placeholder="5" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="dividendResult"></div>
+            `;
+        }
+
+        function calculateDividend(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('investAmount').value);
+            const rate = parseFloat(document.getElementById('dividendRate').value) / 100;
+            
+            const yearlyDividend = amount * rate;
+            const monthlyDividend = yearlyDividend / 12;
+            const taxAmount = yearlyDividend * 0.154;
+            const netDividend = yearlyDividend - taxAmount;
+            
+            const resultBox = document.getElementById('dividendResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>배당금 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">연간 배당금 (세전)</span>
+                    <span class="result-value">${Math.round(yearlyDividend).toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">월 배당금 (세전)</span>
+                    <span class="result-value">${Math.round(monthlyDividend).toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">배당소득세 (15.4%)</span>
+                    <span class="result-value">${Math.round(taxAmount).toLocaleString()}원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">연간 실수령액</span>
+                    <span class="result-value">${Math.round(netDividend).toLocaleString()}원</span>
+                </div>
+            `;
+        }
+
+        function getExchangeCalculator() {
+            return `
+                <form class="calc-form" onsubmit="calculateExchange(event)">
+                    <div class="form-group">
+                        <label>기준 통화</label>
+                        <select id="fromCurrency">
+                            <option value="KRW">한국 원 (KRW)</option>
+                            <option value="USD">미국 달러 (USD)</option>
+                            <option value="EUR">유럽 유로 (EUR)</option>
+                            <option value="JPY">일본 엔 (JPY)</option>
+                            <option value="CNY">중국 위안 (CNY)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>변환 통화</label>
+                        <select id="toCurrency">
+                            <option value="USD">미국 달러 (USD)</option>
+                            <option value="KRW">한국 원 (KRW)</option>
+                            <option value="EUR">유럽 유로 (EUR)</option>
+                            <option value="JPY">일본 엔 (JPY)</option>
+                            <option value="CNY">중국 위안 (CNY)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>금액</label>
+                        <input type="number" step="0.01" id="exchangeAmount" placeholder="1000" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">계산하기</button>
+                </form>
+                <div class="result-box" id="exchangeResult"></div>
+            `;
+        }
+
+        function calculateExchange(e) {
+            e.preventDefault();
+            const from = document.getElementById('fromCurrency').value;
+            const to = document.getElementById('toCurrency').value;
+            const amount = parseFloat(document.getElementById('exchangeAmount').value);
+            
+            const rates = {
+                KRW: 1,
+                USD: 1320,
+                EUR: 1430,
+                JPY: 8.8,
+                CNY: 183
+            };
+            
+            const krwAmount = amount * rates[from];
+            const result = krwAmount / rates[to];
+            
+            const resultBox = document.getElementById('exchangeResult');
+            resultBox.className = 'result-box active';
+            resultBox.innerHTML = `
+                <h3>환율 계산 결과</h3>
+                <div class="result-item">
+                    <span class="result-label">${amount.toLocaleString()} ${from}</span>
+                    <span class="result-value">${result.toFixed(2)} ${to}</span>
+                </div>
+                <div class="result-item" style="font-size: 14px; opacity: 0.8; border: none;">
+                    <span>* 환율은 실시간 시세와 다를 수 있습니다</span>
+                </div>
+            `;
+        }
+
+        function getWorldTimeCalculator() {
+            return `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">🇰🇷 서울</div>
+                        <div id="timeSeoul" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">🇺🇸 뉴욕</div>
+                        <div id="timeNewYork" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">🇬🇧 런던</div>
+                        <div id="timeLondon" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">🇯🇵 도쿄</div>
+                        <div id="timeTokyo" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">🇨🇳 베이징</div>
+                        <div id="timeBeijing" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 20px; border-radius: 15px; color: #333; text-align: center;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">🇦🇺 시드니</div>
+                        <div id="timeSydney" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let worldTimeInterval;
+
+        function initWorldTime() {
+            updateWorldTime();
+            worldTimeInterval = setInterval(updateWorldTime, 1000);
+        }
+
+        function updateWorldTime() {
+            const now = new Date();
+            
+            const formatTime = (date) => {
+                return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            };
+            
+            document.getElementById('timeSeoul').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' })));
+            document.getElementById('timeNewYork').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })));
+            document.getElementById('timeLondon').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Europe/London' })));
+            document.getElementById('timeTokyo').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })));
+            document.getElementById('timeBeijing').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })));
+            document.getElementById('timeSydney').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' })));
+        }
+    </script>
+</body>
+</html>
