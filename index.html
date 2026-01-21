@@ -3213,50 +3213,481 @@
 
         function getPyeongCalculator() {
             return `
-                <form class="calc-form" onsubmit="calculatePyeong(event)">
-                    <div class="form-group">
-                        <label>변환 방향</label>
-                        <select id="pyeongType">
-                            <option value="toSqm">평 → 제곱미터(㎡)</option>
-                            <option value="toPyeong">제곱미터(㎡) → 평</option>
-                        </select>
+                <style>
+                    .pyeong-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .pyeong-converter-section {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 30px;
+                        border-radius: 20px;
+                        color: white;
+                    }
+                    .pyeong-converter-title {
+                        text-align: center;
+                        font-size: 24px;
+                        font-weight: 700;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                    }
+                    .pyeong-converter-subtitle {
+                        text-align: center;
+                        font-size: 14px;
+                        opacity: 0.9;
+                        margin-bottom: 30px;
+                    }
+                    .pyeong-converter-grid {
+                        display: grid;
+                        grid-template-columns: 1fr auto 1fr;
+                        gap: 20px;
+                        align-items: center;
+                    }
+                    .pyeong-input-card {
+                        background: rgba(255,255,255,0.15);
+                        backdrop-filter: blur(10px);
+                        padding: 25px;
+                        border-radius: 15px;
+                        text-align: center;
+                    }
+                    .pyeong-input-label {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                    }
+                    .pyeong-input-wrapper {
+                        position: relative;
+                    }
+                    .pyeong-input {
+                        width: 100%;
+                        padding: 20px;
+                        padding-right: 50px;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 28px;
+                        font-weight: 700;
+                        text-align: center;
+                        background: white;
+                        color: #2d3748;
+                        transition: all 0.3s ease;
+                    }
+                    .pyeong-input:focus {
+                        outline: none;
+                        box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
+                    }
+                    .pyeong-input-unit {
+                        position: absolute;
+                        right: 15px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #718096;
+                    }
+                    .pyeong-arrow {
+                        font-size: 32px;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .pyeong-quick-buttons {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 10px;
+                        justify-content: center;
+                        margin-top: 25px;
+                    }
+                    .pyeong-quick-btn {
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        padding: 10px 18px;
+                        border-radius: 25px;
+                        color: white;
+                        font-size: 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .pyeong-quick-btn:hover {
+                        background: rgba(255,255,255,0.3);
+                        transform: translateY(-2px);
+                    }
+                    .pyeong-reference-section {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    }
+                    .pyeong-reference-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .pyeong-reference-title i {
+                        color: #667eea;
+                    }
+                    .pyeong-reference-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                    }
+                    .pyeong-reference-card {
+                        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+                        padding: 15px;
+                        border-radius: 12px;
+                        text-align: center;
+                        border: 2px solid transparent;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    }
+                    .pyeong-reference-card:hover {
+                        border-color: #667eea;
+                        transform: translateY(-3px);
+                        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+                    }
+                    .pyeong-reference-pyeong {
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #667eea;
+                        margin-bottom: 5px;
+                    }
+                    .pyeong-reference-sqm {
+                        font-size: 14px;
+                        color: #718096;
+                    }
+                    .pyeong-reference-desc {
+                        font-size: 12px;
+                        color: #a0aec0;
+                        margin-top: 5px;
+                    }
+                    .pyeong-terms-section {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .pyeong-terms-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .pyeong-terms-title i {
+                        color: #ffd700;
+                    }
+                    .pyeong-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                    }
+                    .pyeong-term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .pyeong-term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .pyeong-term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .pyeong-property-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .pyeong-property-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #38ef7d;
+                    }
+                    .pyeong-property-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 12px;
+                    }
+                    .pyeong-property-card {
+                        background: rgba(56,239,125,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        border-left: 4px solid #38ef7d;
+                    }
+                    .pyeong-property-name {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #38ef7d;
+                        font-size: 14px;
+                    }
+                    .pyeong-property-content {
+                        font-size: 12px;
+                        opacity: 0.9;
+                        line-height: 1.4;
+                    }
+                    .pyeong-note {
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: rgba(255,215,0,0.1);
+                        border-radius: 10px;
+                        border-left: 4px solid #ffd700;
+                        font-size: 13px;
+                        line-height: 1.6;
+                    }
+                    @media (max-width: 768px) {
+                        .pyeong-converter-grid {
+                            grid-template-columns: 1fr;
+                            gap: 15px;
+                        }
+                        .pyeong-arrow {
+                            transform: rotate(90deg);
+                        }
+                        .pyeong-input {
+                            font-size: 24px;
+                            padding: 15px;
+                        }
+                        .pyeong-reference-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .pyeong-terms-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .pyeong-property-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .pyeong-converter-section {
+                            padding: 20px;
+                        }
+                        .pyeong-input {
+                            font-size: 20px;
+                        }
+                        .pyeong-quick-btn {
+                            padding: 8px 14px;
+                            font-size: 12px;
+                        }
+                    }
+                </style>
+                <div class="pyeong-container">
+                    <div class="pyeong-converter-section">
+                        <div class="pyeong-converter-title">
+                            <i class="fas fa-home"></i>
+                            실시간 평수 변환기
+                        </div>
+                        <div class="pyeong-converter-subtitle">1평 = 3.3058㎡ (약 3.3㎡)</div>
+                        
+                        <div class="pyeong-converter-grid">
+                            <div class="pyeong-input-card">
+                                <div class="pyeong-input-label">
+                                    <i class="fas fa-ruler-combined"></i> 평 (坪)
+                                </div>
+                                <div class="pyeong-input-wrapper">
+                                    <input type="text" class="pyeong-input" id="pyeongInput" placeholder="0" oninput="convertFromPyeong(this.value)">
+                                    <span class="pyeong-input-unit">평</span>
+                                </div>
+                            </div>
+                            
+                            <div class="pyeong-arrow">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            
+                            <div class="pyeong-input-card">
+                                <div class="pyeong-input-label">
+                                    <i class="fas fa-vector-square"></i> 제곱미터 (㎡)
+                                </div>
+                                <div class="pyeong-input-wrapper">
+                                    <input type="text" class="pyeong-input" id="sqmInput" placeholder="0" oninput="convertFromSqm(this.value)">
+                                    <span class="pyeong-input-unit">㎡</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pyeong-quick-buttons">
+                            <button type="button" class="pyeong-quick-btn" onclick="setQuickPyeong(10)">10평</button>
+                            <button type="button" class="pyeong-quick-btn" onclick="setQuickPyeong(18)">18평</button>
+                            <button type="button" class="pyeong-quick-btn" onclick="setQuickPyeong(24)">24평</button>
+                            <button type="button" class="pyeong-quick-btn" onclick="setQuickPyeong(32)">32평</button>
+                            <button type="button" class="pyeong-quick-btn" onclick="setQuickPyeong(42)">42평</button>
+                            <button type="button" class="pyeong-quick-btn" onclick="setQuickPyeong(59)">59평</button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label id="pyeongLabel">평수</label>
-                        <input type="number" step="0.1" id="pyeongValue" placeholder="30" required>
+                    
+                    <div class="pyeong-reference-section">
+                        <div class="pyeong-reference-title"><i class="fas fa-th"></i> 아파트 평수별 실면적 참고</div>
+                        <div class="pyeong-reference-grid">
+                            <div class="pyeong-reference-card" onclick="setQuickPyeong(18)">
+                                <div class="pyeong-reference-pyeong">18평</div>
+                                <div class="pyeong-reference-sqm">59.5㎡</div>
+                                <div class="pyeong-reference-desc">1~2인 가구</div>
+                            </div>
+                            <div class="pyeong-reference-card" onclick="setQuickPyeong(24)">
+                                <div class="pyeong-reference-pyeong">24평</div>
+                                <div class="pyeong-reference-sqm">79.3㎡</div>
+                                <div class="pyeong-reference-desc">2~3인 가구</div>
+                            </div>
+                            <div class="pyeong-reference-card" onclick="setQuickPyeong(32)">
+                                <div class="pyeong-reference-pyeong">32평</div>
+                                <div class="pyeong-reference-sqm">105.8㎡</div>
+                                <div class="pyeong-reference-desc">3~4인 가구</div>
+                            </div>
+                            <div class="pyeong-reference-card" onclick="setQuickPyeong(42)">
+                                <div class="pyeong-reference-pyeong">42평</div>
+                                <div class="pyeong-reference-sqm">138.8㎡</div>
+                                <div class="pyeong-reference-desc">4인 이상 가구</div>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-calculate">계산하기</button>
-                </form>
-                <div class="result-box" id="pyeongResult"></div>
+                    
+                    <div class="pyeong-terms-section">
+                        <div class="pyeong-terms-title"><i class="fas fa-book"></i> 부동산 건축 용어 사전</div>
+                        <div class="pyeong-terms-grid">
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">📐 전용면적</div>
+                                <div class="pyeong-term-desc">실제로 거주자가 독점적으로 사용하는 면적. 방, 거실, 주방, 화장실 등 실내 공간만 포함. 아파트 분양 시 가장 중요한 기준.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">🏢 공급면적</div>
+                                <div class="pyeong-term-desc">전용면적 + 주거공용면적(계단, 복도, 엘리베이터 등). 분양가 산정 기준이 되며 "분양면적"이라고도 함.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">📊 계약면적</div>
+                                <div class="pyeong-term-desc">공급면적 + 기타공용면적(관리사무소, 주차장, 놀이터 등). 실제 계약서에 명시되는 총 면적.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">🏠 대지면적</div>
+                                <div class="pyeong-term-desc">건물이 들어서는 땅의 수평 투영 면적. 토지대장에 기재된 면적으로 토지 가격 산정 기준.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">🏗️ 건축면적</div>
+                                <div class="pyeong-term-desc">건물의 바닥 면적(1층 바닥). 건폐율 계산의 기준이 되며, 외벽 중심선으로 측정.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">📏 연면적</div>
+                                <div class="pyeong-term-desc">모든 층의 바닥면적을 합한 총 면적. 지하층, 주차장 등 포함. 용적률 계산의 기준.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">📈 건폐율</div>
+                                <div class="pyeong-term-desc">대지면적 대비 건축면적의 비율. 예: 건폐율 60%면 100평 땅에 60평까지 건물 가능. 용도지역별 제한 있음.</div>
+                            </div>
+                            <div class="pyeong-term-card">
+                                <div class="pyeong-term-name">📊 용적률</div>
+                                <div class="pyeong-term-desc">대지면적 대비 연면적의 비율. 예: 용적률 200%면 100평 땅에 연면적 200평 건물 가능. 층수 결정에 영향.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="pyeong-property-section">
+                            <div class="pyeong-property-title"><i class="fas fa-building"></i> 부동산 유형별 특징</div>
+                            <div class="pyeong-property-grid">
+                                <div class="pyeong-property-card">
+                                    <div class="pyeong-property-name">🏢 아파트</div>
+                                    <div class="pyeong-property-content">5층 이상 공동주택. 전용률 약 75~82%. 관리비 발생, 주차/편의시설 공용.</div>
+                                </div>
+                                <div class="pyeong-property-card">
+                                    <div class="pyeong-property-name">🏬 오피스텔</div>
+                                    <div class="pyeong-property-content">업무+주거 겸용. 전용률 약 50~60%로 낮음. 전입신고 가능, 분양권 전매 자유.</div>
+                                </div>
+                                <div class="pyeong-property-card">
+                                    <div class="pyeong-property-name">🏘️ 빌라(연립/다세대)</div>
+                                    <div class="pyeong-property-content">4층 이하 공동주택. 전용률 약 80~90%로 높음. 관리비 저렴, 주차 공간 부족.</div>
+                                </div>
+                                <div class="pyeong-property-card">
+                                    <div class="pyeong-property-name">🏪 상가</div>
+                                    <div class="pyeong-property-content">상업용 부동산. 전용률 약 50~60%. 부가세 별도, 권리금 존재, 수익형 투자.</div>
+                                </div>
+                                <div class="pyeong-property-card">
+                                    <div class="pyeong-property-name">🏡 단독주택</div>
+                                    <div class="pyeong-property-content">1가구 1주택. 전용률 100%. 대지+건물 소유, 증축/리모델링 자유.</div>
+                                </div>
+                                <div class="pyeong-property-card">
+                                    <div class="pyeong-property-name">🌾 토지(땅)</div>
+                                    <div class="pyeong-property-content">지목별 용도 제한. 전/답/임야/대지 등. 용도지역에 따라 건축 가능 여부 결정.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pyeong-note">
+                            <strong>💡 알아두면 유용한 팁:</strong><br>
+                            • 2007년부터 부동산 면적은 ㎡(제곱미터)로 표기가 의무화되었습니다.<br>
+                            • 아파트 "24평형"은 실제 전용면적 59㎡(약 18평)인 경우가 많습니다.<br>
+                            • 분양 면적과 실제 전용면적의 차이를 꼭 확인하세요!<br>
+                            • 전용률 = (전용면적 ÷ 공급면적) × 100. 전용률이 높을수록 실사용 면적이 넓습니다.
+                        </div>
+                    </div>
+                </div>
             `;
+        }
+
+        function convertFromPyeong(value) {
+            const numValue = parseFloat(value.replace(/,/g, '')) || 0;
+            const sqm = numValue * 3.3058;
+            
+            const pyeongInput = document.getElementById('pyeongInput');
+            const sqmInput = document.getElementById('sqmInput');
+            
+            // Format pyeong input with comma
+            if (value && !isNaN(numValue)) {
+                pyeongInput.value = numValue.toLocaleString('ko-KR');
+            }
+            
+            // Update sqm input
+            if (numValue === 0) {
+                sqmInput.value = '';
+            } else {
+                sqmInput.value = sqm.toFixed(2);
+            }
+        }
+
+        function convertFromSqm(value) {
+            const numValue = parseFloat(value.replace(/,/g, '')) || 0;
+            const pyeong = numValue / 3.3058;
+            
+            const pyeongInput = document.getElementById('pyeongInput');
+            const sqmInput = document.getElementById('sqmInput');
+            
+            // Format sqm input
+            if (value && !isNaN(numValue)) {
+                sqmInput.value = numValue.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+            }
+            
+            // Update pyeong input
+            if (numValue === 0) {
+                pyeongInput.value = '';
+            } else {
+                pyeongInput.value = pyeong.toFixed(2);
+            }
+        }
+
+        function setQuickPyeong(pyeong) {
+            document.getElementById('pyeongInput').value = pyeong;
+            convertFromPyeong(pyeong.toString());
         }
 
         function calculatePyeong(e) {
             e.preventDefault();
-            const type = document.getElementById('pyeongType').value;
-            const value = parseFloat(document.getElementById('pyeongValue').value);
-            
-            let result, fromUnit, toUnit;
-            
-            if (type === 'toSqm') {
-                result = value * 3.3058;
-                fromUnit = '평';
-                toUnit = '㎡';
-            } else {
-                result = value / 3.3058;
-                fromUnit = '㎡';
-                toUnit = '평';
-            }
-            
-            const resultBox = document.getElementById('pyeongResult');
-            resultBox.className = 'result-box active';
-            resultBox.innerHTML = `
-                <h3>평수 변환 결과</h3>
-                <div class="result-item">
-                    <span class="result-label">${value.toLocaleString()} ${fromUnit}</span>
-                    <span class="result-value">${result.toFixed(2)} ${toUnit}</span>
-                </div>
-            `;
         }
 
         function getAgeCalculator() {
