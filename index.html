@@ -888,6 +888,15 @@
                     calcBody.innerHTML = getWorldTimeCalculator();
                     initWorldTime();
                     break;
+                case 'capital-gains':
+                    calcBody.innerHTML = getCapitalGainsTaxCalculator();
+                    break;
+                case 'acquisition-tax':
+                    calcBody.innerHTML = getAcquisitionTaxCalculator();
+                    break;
+                case 'car-tax':
+                    calcBody.innerHTML = getCarTaxCalculator();
+                    break;
                 default:
                     calcBody.innerHTML = `<p style="text-align: center; color: #718096;">이 계산기는 준비 중입니다.</p>`;
             }
@@ -943,34 +952,69 @@
 
         let currentInput = '0';
         let expression = '';
+        let rawCurrentInput = '0'; // 콤마 없는 원본 숫자
+
+        // 일반 계산기용 숫자 포맷팅 (콤마 추가)
+        function formatCalcNumber(numStr) {
+            if (numStr === '' || numStr === '-') return numStr;
+            
+            // 음수 처리
+            const isNegative = numStr.startsWith('-');
+            let cleanNum = isNegative ? numStr.slice(1) : numStr;
+            
+            // 소수점 분리
+            const parts = cleanNum.split('.');
+            
+            // 정수 부분에 콤마 추가
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            
+            const result = parts.join('.');
+            return isNegative ? '-' + result : result;
+        }
+
+        // 콤마 제거
+        function removeCalcCommas(str) {
+            return str.replace(/,/g, '');
+        }
 
         function appendNumber(num) {
-            if (currentInput === '0' && num !== '.') {
-                currentInput = num;
+            if (rawCurrentInput === '0' && num !== '.') {
+                rawCurrentInput = num;
+            } else if (num === '.' && rawCurrentInput.includes('.')) {
+                return; // 소수점 중복 방지
             } else {
-                currentInput += num;
+                rawCurrentInput += num;
             }
+            currentInput = formatCalcNumber(rawCurrentInput);
             updateDisplay();
         }
 
         function appendOperator(op) {
-            if (currentInput !== '') {
+            if (rawCurrentInput !== '' && rawCurrentInput !== '0') {
+                expression = formatCalcNumber(rawCurrentInput) + ' ' + (op === '*' ? '×' : op) + ' ';
+                rawCurrentInput = '';
+                currentInput = '';
+            } else if (currentInput !== '') {
                 expression = currentInput + ' ' + (op === '*' ? '×' : op) + ' ';
+                rawCurrentInput = '';
                 currentInput = '';
             }
             updateDisplay();
         }
 
         function deleteChar() {
-            if (currentInput.length > 1) {
-                currentInput = currentInput.slice(0, -1);
+            if (rawCurrentInput.length > 1) {
+                rawCurrentInput = rawCurrentInput.slice(0, -1);
+                currentInput = formatCalcNumber(rawCurrentInput);
             } else {
+                rawCurrentInput = '0';
                 currentInput = '0';
             }
             updateDisplay();
         }
 
         function clearDisplay() {
+            rawCurrentInput = '0';
             currentInput = '0';
             expression = '';
             updateDisplay();
@@ -982,19 +1026,28 @@
 
         function calculate() {
             try {
-                const fullExpression = expression + currentInput;
-                const result = eval(fullExpression.replace(/×/g, '*').replace(/÷/g, '/'));
+                // 표시용 수식 (콤마 포함)
+                const displayExpression = expression + currentInput;
+                
+                // 계산용 수식 (콤마 제거)
+                const calcExpression = removeCalcCommas(displayExpression).replace(/×/g, '*').replace(/÷/g, '/');
+                const result = eval(calcExpression);
+                
+                // 결과 포맷팅
+                const formattedResult = formatCalcNumber(result.toString());
                 
                 history.unshift({
-                    expression: fullExpression,
-                    result: result
+                    expression: displayExpression,
+                    result: formattedResult
                 });
                 
                 updateHistory();
-                currentInput = result.toString();
+                rawCurrentInput = result.toString();
+                currentInput = formattedResult;
                 expression = '';
                 updateDisplay();
             } catch (e) {
+                rawCurrentInput = '0';
                 currentInput = 'Error';
                 updateDisplay();
             }
@@ -1017,7 +1070,9 @@
         }
 
         function useHistoryResult(index) {
-            currentInput = history[index].result.toString();
+            const resultStr = history[index].result.toString();
+            rawCurrentInput = removeCalcCommas(resultStr);
+            currentInput = resultStr;
             expression = '';
             updateDisplay();
         }
@@ -5913,6 +5968,2824 @@
             document.getElementById('timeTokyo').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })));
             document.getElementById('timeBeijing').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })));
             document.getElementById('timeSydney').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' })));
+        }
+
+        function getCapitalGainsTaxCalculator() {
+            return `
+                <style>
+                    .cgt-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .cgt-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .cgt-form-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #e2e8f0;
+                    }
+                    .cgt-form-title i {
+                        color: #667eea;
+                    }
+                    .cgt-form-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .cgt-form-grid-3 {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .cgt-checkbox-group {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 15px;
+                        margin-top: 10px;
+                    }
+                    .cgt-checkbox-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        background: white;
+                        padding: 12px 16px;
+                        border-radius: 10px;
+                        border: 2px solid #e2e8f0;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .cgt-checkbox-item:hover {
+                        border-color: #667eea;
+                    }
+                    .cgt-checkbox-item.checked {
+                        border-color: #667eea;
+                        background: #ebf4ff;
+                    }
+                    .cgt-checkbox-item input {
+                        width: 18px;
+                        height: 18px;
+                        cursor: pointer;
+                    }
+                    .cgt-checkbox-item label {
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
+                    .cgt-info-box {
+                        background: linear-gradient(135deg, #ebf4ff 0%, #e0e7ff 100%);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-top: 15px;
+                        border-left: 4px solid #667eea;
+                    }
+                    .cgt-info-box p {
+                        font-size: 13px;
+                        color: #4c51bf;
+                        line-height: 1.6;
+                    }
+                    .cgt-result-section {
+                        display: none;
+                    }
+                    .cgt-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .cgt-result-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .cgt-summary-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .cgt-summary-card.profit {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    }
+                    .cgt-summary-card.deduction {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .cgt-summary-card.tax {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .cgt-summary-card.total {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                    }
+                    .cgt-summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .cgt-summary-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    .cgt-detail-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .cgt-detail-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .cgt-detail-title i {
+                        color: #667eea;
+                    }
+                    .cgt-detail-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .cgt-detail-table th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 12px 15px;
+                        text-align: left;
+                        font-weight: 600;
+                    }
+                    .cgt-detail-table th:first-child {
+                        border-radius: 10px 0 0 0;
+                    }
+                    .cgt-detail-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                        text-align: right;
+                    }
+                    .cgt-detail-table td {
+                        padding: 12px 15px;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .cgt-detail-table td:last-child {
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                    .cgt-detail-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .cgt-detail-table tr.highlight {
+                        background: #ebf4ff;
+                    }
+                    .cgt-detail-table tr.total-row {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }
+                    .cgt-detail-table tr.total-row td {
+                        border-bottom: none;
+                        font-weight: 700;
+                        font-size: 16px;
+                    }
+                    .cgt-rate-table-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                        overflow-x: auto;
+                    }
+                    .cgt-rate-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 13px;
+                    }
+                    .cgt-rate-table th {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                        color: white;
+                        padding: 10px;
+                        text-align: center;
+                        font-weight: 600;
+                    }
+                    .cgt-rate-table td {
+                        padding: 10px;
+                        text-align: center;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .cgt-rate-table tr.active-row {
+                        background: #fef5f7;
+                        font-weight: 600;
+                    }
+                    .cgt-tips-container {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .cgt-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .cgt-tips-title i {
+                        color: #ffd700;
+                    }
+                    .cgt-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 25px;
+                    }
+                    .cgt-term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .cgt-term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .cgt-term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .cgt-exemption-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .cgt-exemption-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #38ef7d;
+                    }
+                    .cgt-exemption-item {
+                        background: rgba(56,239,125,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #38ef7d;
+                    }
+                    .cgt-exemption-item-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #38ef7d;
+                    }
+                    .cgt-exemption-item-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .cgt-save-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .cgt-save-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #ffd700;
+                    }
+                    .cgt-save-item {
+                        background: rgba(255,215,0,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #ffd700;
+                    }
+                    .cgt-save-item-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #ffd700;
+                    }
+                    .cgt-save-item-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .cgt-warning-box {
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: rgba(252,129,129,0.1);
+                        border-radius: 10px;
+                        border-left: 4px solid #fc8181;
+                        font-size: 13px;
+                        line-height: 1.6;
+                    }
+                    .exemption-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+                        color: white;
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 10px;
+                    }
+                    @media (max-width: 768px) {
+                        .cgt-result-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .cgt-form-grid, .cgt-form-grid-3 {
+                            grid-template-columns: 1fr;
+                        }
+                        .cgt-terms-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .cgt-summary-value {
+                            font-size: 15px;
+                        }
+                        .cgt-checkbox-group {
+                            flex-direction: column;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .cgt-result-summary {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                <div class="cgt-container">
+                    <div class="cgt-form-section">
+                        <div class="cgt-form-title"><i class="fas fa-building"></i> 부동산 정보</div>
+                        <form class="calc-form" onsubmit="calculateCapitalGainsTax(event)">
+                            <div class="cgt-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-home" style="color: #667eea; margin-right: 8px;"></i>부동산 종류</label>
+                                    <select id="cgtPropertyType" onchange="updateCgtOptions()">
+                                        <option value="apartment">아파트</option>
+                                        <option value="officetel">오피스텔 (주거용)</option>
+                                        <option value="villa">빌라/연립/다세대</option>
+                                        <option value="house">단독주택/다가구</option>
+                                        <option value="officetel-commercial">오피스텔 (업무용)</option>
+                                        <option value="commercial">상가/점포</option>
+                                        <option value="land">토지/땅</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-map-marker-alt" style="color: #667eea; margin-right: 8px;"></i>지역 구분</label>
+                                    <select id="cgtRegion">
+                                        <option value="regulated">조정대상지역</option>
+                                        <option value="normal">비규제지역</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="cgt-form-title" style="margin-top: 25px;"><i class="fas fa-user"></i> 보유 현황</div>
+                            <div class="cgt-form-grid-3">
+                                <div class="form-group">
+                                    <label><i class="fas fa-home" style="color: #667eea; margin-right: 8px;"></i>보유 주택 수</label>
+                                    <select id="cgtHouseCount" onchange="updateCgtOptions()">
+                                        <option value="1">1주택</option>
+                                        <option value="2">2주택</option>
+                                        <option value="3">3주택 이상</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar" style="color: #667eea; margin-right: 8px;"></i>보유 기간</label>
+                                    <select id="cgtHoldingPeriod">
+                                        <option value="0.5">1년 미만</option>
+                                        <option value="1.5">1년 이상 2년 미만</option>
+                                        <option value="2">2년 이상 3년 미만</option>
+                                        <option value="3">3년 이상 4년 미만</option>
+                                        <option value="5">4년 이상 5년 미만</option>
+                                        <option value="7">5년 이상 10년 미만</option>
+                                        <option value="10">10년 이상 15년 미만</option>
+                                        <option value="15">15년 이상</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="cgtResidencePeriodGroup">
+                                    <label><i class="fas fa-house-user" style="color: #667eea; margin-right: 8px;"></i>실거주 기간</label>
+                                    <select id="cgtResidencePeriod">
+                                        <option value="0">거주 안함</option>
+                                        <option value="1">1년 이상 2년 미만</option>
+                                        <option value="2">2년 이상 3년 미만</option>
+                                        <option value="3">3년 이상 4년 미만</option>
+                                        <option value="5">5년 이상 10년 미만</option>
+                                        <option value="10">10년 이상</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="cgt-form-title" style="margin-top: 25px;"><i class="fas fa-won-sign"></i> 금액 정보</div>
+                            <div class="cgt-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-arrow-down" style="color: #667eea; margin-right: 8px;"></i>취득가액 (원)</label>
+                                    <input type="text" id="cgtAcquisitionPrice" data-comma="true" placeholder="500,000,000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-arrow-up" style="color: #667eea; margin-right: 8px;"></i>양도가액 (원)</label>
+                                    <input type="text" id="cgtSalePrice" data-comma="true" placeholder="800,000,000" required>
+                                </div>
+                            </div>
+                            <div class="cgt-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-file-invoice-dollar" style="color: #667eea; margin-right: 8px;"></i>취득 시 필요경비 (원)</label>
+                                    <input type="text" id="cgtAcquisitionCost" data-comma="true" placeholder="취득세, 법무사비용 등" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-tools" style="color: #667eea; margin-right: 8px;"></i>양도 시 필요경비 (원)</label>
+                                    <input type="text" id="cgtSaleCost" data-comma="true" placeholder="중개수수료, 인테리어 등" value="0">
+                                </div>
+                            </div>
+                            
+                            <div class="cgt-form-title" style="margin-top: 25px;"><i class="fas fa-gift"></i> 세금 특례 적용</div>
+                            <div class="cgt-checkbox-group">
+                                <div class="cgt-checkbox-item" id="exemptionCheck1" onclick="toggleCheckbox('cgtExemption1')">
+                                    <input type="checkbox" id="cgtExemption1">
+                                    <label>1세대 1주택 비과세</label>
+                                </div>
+                                <div class="cgt-checkbox-item" id="exemptionCheck2" onclick="toggleCheckbox('cgtExemption2')">
+                                    <input type="checkbox" id="cgtExemption2">
+                                    <label>일시적 2주택 (기존주택 3년 내 매도)</label>
+                                </div>
+                                <div class="cgt-checkbox-item" id="exemptionCheck3" onclick="toggleCheckbox('cgtExemption3')">
+                                    <input type="checkbox" id="cgtExemption3">
+                                    <label>상속주택 특례</label>
+                                </div>
+                                <div class="cgt-checkbox-item" id="exemptionCheck4" onclick="toggleCheckbox('cgtExemption4')">
+                                    <input type="checkbox" id="cgtExemption4">
+                                    <label>농어촌주택 특례</label>
+                                </div>
+                            </div>
+                            <div class="cgt-info-box">
+                                <p><strong>💡 1세대 1주택 비과세 요건:</strong> 2년 이상 보유 (조정대상지역: 2년 이상 거주 필수), 양도가액 12억원 이하 전액 비과세, 12억 초과분은 과세</p>
+                            </div>
+                            
+                            <button type="submit" class="btn-calculate" style="margin-top: 25px;">
+                                <i class="fas fa-calculator" style="margin-right: 8px;"></i>양도소득세 계산하기
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="cgt-result-section" id="cgtResultSection">
+                        <div class="cgt-result-summary" id="cgtResultSummary"></div>
+                        
+                        <div class="cgt-detail-container">
+                            <div class="cgt-detail-title"><i class="fas fa-list-alt"></i> 양도소득세 계산 상세</div>
+                            <table class="cgt-detail-table" id="cgtDetailTable"></table>
+                        </div>
+                        
+                        <div class="cgt-rate-table-container">
+                            <div class="cgt-detail-title"><i class="fas fa-percentage"></i> 양도소득세 세율표 (2024년 기준)</div>
+                            <table class="cgt-rate-table" id="cgtRateTable"></table>
+                        </div>
+                    </div>
+                    
+                    <div class="cgt-tips-container">
+                        <div class="cgt-tips-title"><i class="fas fa-book"></i> 양도소득세 용어 사전</div>
+                        <div class="cgt-terms-grid">
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">📊 양도차익</div>
+                                <div class="cgt-term-desc">양도가액에서 취득가액과 필요경비를 뺀 금액. 실제로 번 돈을 의미합니다.</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">📉 장기보유특별공제</div>
+                                <div class="cgt-term-desc">3년 이상 보유 시 양도차익의 일부를 공제. 1세대 1주택은 최대 80%, 일반은 최대 30%까지 공제.</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">🎯 기본공제</div>
+                                <div class="cgt-term-desc">양도소득 과세표준에서 연 250만원을 공제. 모든 양도에 적용됩니다.</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">📍 조정대상지역</div>
+                                <div class="cgt-term-desc">정부가 지정한 투기과열지구 및 조정대상지역. 세율 중과 및 장특공제 제한이 적용됩니다.</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">🏠 1세대 1주택</div>
+                                <div class="cgt-term-desc">세대원 전원이 1주택만 보유. 2년 이상 보유(조정지역: 거주 필수) 시 비과세 혜택.</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">⚖️ 다주택자 중과</div>
+                                <div class="cgt-term-desc">2주택자 +20%p, 3주택자 이상 +30%p 세율 중과 (2024년 한시 유예 중).</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">💰 필요경비</div>
+                                <div class="cgt-term-desc">취득세, 등기비용, 법무사비, 중개수수료, 인테리어비(자본적 지출) 등 인정되는 비용.</div>
+                            </div>
+                            <div class="cgt-term-card">
+                                <div class="cgt-term-name">🏢 비사업용 토지</div>
+                                <div class="cgt-term-desc">농지, 임야 등 사업에 사용하지 않는 토지. 기본세율 +10%p 중과 적용.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="cgt-exemption-section">
+                            <div class="cgt-exemption-title"><i class="fas fa-check-circle"></i> 비과세/감면 요건</div>
+                            <div class="cgt-exemption-item">
+                                <div class="cgt-exemption-item-title">🏠 1세대 1주택 비과세</div>
+                                <div class="cgt-exemption-item-content">
+                                    • 2년 이상 보유 (조정대상지역: 2년 이상 거주 필수)<br>
+                                    • 양도가액 12억원 이하: 전액 비과세<br>
+                                    • 양도가액 12억원 초과: (양도차익 × 12억 초과분/양도가액) 만 과세<br>
+                                    • 2017년 8월 2일 이전 취득 시 거주요건 면제
+                                </div>
+                            </div>
+                            <div class="cgt-exemption-item">
+                                <div class="cgt-exemption-item-title">🔄 일시적 2주택 비과세</div>
+                                <div class="cgt-exemption-item-content">
+                                    • 종전주택 취득 후 1년 이상 지나서 신규주택 취득<br>
+                                    • 신규주택 취득 후 3년 이내 종전주택 매도<br>
+                                    • 조정대상지역: 신규주택 취득 후 2년 내 종전주택 매도 & 신규주택 1년 내 전입
+                                </div>
+                            </div>
+                            <div class="cgt-exemption-item">
+                                <div class="cgt-exemption-item-title">👴 상속주택 특례</div>
+                                <div class="cgt-exemption-item-content">
+                                    • 상속받은 주택은 주택 수에서 제외 (5년간)<br>
+                                    • 피상속인이 1세대 1주택 요건 충족 시 상속인도 비과세 가능
+                                </div>
+                            </div>
+                            <div class="cgt-exemption-item">
+                                <div class="cgt-exemption-item-title">📈 장기보유특별공제율</div>
+                                <div class="cgt-exemption-item-content">
+                                    <strong>일반 부동산:</strong> 3년 6% → 15년 이상 30%<br>
+                                    <strong>1세대 1주택 (2년 거주):</strong> 3년 24% → 10년 이상 80%<br>
+                                    ※ 다주택자 조정지역 매도 시 장특공제 배제
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="cgt-save-section">
+                            <div class="cgt-save-title"><i class="fas fa-piggy-bank"></i> 양도소득세 절세 팁</div>
+                            <div class="cgt-save-item">
+                                <div class="cgt-save-item-title">1. 2년 보유/거주 요건 충족하기</div>
+                                <div class="cgt-save-item-content">1세대 1주택 비과세를 위해 반드시 2년 이상 보유하고, 조정대상지역은 실거주 2년을 채우세요.</div>
+                            </div>
+                            <div class="cgt-save-item">
+                                <div class="cgt-save-item-title">2. 필요경비 영수증 꼭 보관</div>
+                                <div class="cgt-save-item-content">취득세, 등기비용, 중개수수료, 인테리어비용(자본적 지출) 등 모든 영수증을 10년간 보관하세요.</div>
+                            </div>
+                            <div class="cgt-save-item">
+                                <div class="cgt-save-item-title">3. 장기보유특별공제 최대 활용</div>
+                                <div class="cgt-save-item-content">가능하면 3년 이상 보유하여 장특공제를 받으세요. 1세대 1주택은 10년 보유+거주 시 80% 공제!</div>
+                            </div>
+                            <div class="cgt-save-item">
+                                <div class="cgt-save-item-title">4. 양도 시기 조절하기</div>
+                                <div class="cgt-save-item-content">연말보다 연초에 양도하면 기본공제 250만원을 활용하기 유리합니다. 다른 양도소득과 합산되기 때문입니다.</div>
+                            </div>
+                            <div class="cgt-save-item">
+                                <div class="cgt-save-item-title">5. 일시적 2주택 특례 활용</div>
+                                <div class="cgt-save-item-content">이사 등으로 2주택이 된 경우, 3년(조정지역 2년) 내 기존주택 매도 시 비과세 적용됩니다.</div>
+                            </div>
+                            <div class="cgt-save-item">
+                                <div class="cgt-save-item-title">6. 2024년 다주택자 중과 유예 활용</div>
+                                <div class="cgt-save-item-content">현재 다주택자 중과세율이 한시 유예 중입니다. 중과 유예 기간 내 매도를 고려해보세요.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="cgt-warning-box">
+                            <strong>⚠️ 주의사항:</strong><br>
+                            • 본 계산기는 참고용이며, 정확한 세금은 세무사 상담을 권장합니다.<br>
+                            • 2024년 현재 다주택자 중과세율은 한시적으로 유예되어 기본세율이 적용됩니다.<br>
+                            • 개인 상황에 따라 추가 감면이나 중과가 적용될 수 있습니다.<br>
+                            • 지방소득세(양도세의 10%)가 별도로 부과됩니다.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+            const parent = checkbox.closest('.cgt-checkbox-item');
+            if (checkbox.checked) {
+                parent.classList.add('checked');
+            } else {
+                parent.classList.remove('checked');
+            }
+        }
+
+        function updateCgtOptions() {
+            const propertyType = document.getElementById('cgtPropertyType').value;
+            const houseCount = document.getElementById('cgtHouseCount').value;
+            const residenceGroup = document.getElementById('cgtResidencePeriodGroup');
+            
+            // 주거용 부동산만 거주기간 표시
+            if (['apartment', 'officetel', 'villa', 'house'].includes(propertyType)) {
+                residenceGroup.style.display = 'block';
+            } else {
+                residenceGroup.style.display = 'none';
+            }
+        }
+
+        function calculateCapitalGainsTax(e) {
+            e.preventDefault();
+            
+            const propertyType = document.getElementById('cgtPropertyType').value;
+            const region = document.getElementById('cgtRegion').value;
+            const houseCount = parseInt(document.getElementById('cgtHouseCount').value);
+            const holdingPeriod = parseFloat(document.getElementById('cgtHoldingPeriod').value);
+            const residencePeriod = parseFloat(document.getElementById('cgtResidencePeriod').value);
+            
+            const acquisitionPrice = parseNumberFromComma(document.getElementById('cgtAcquisitionPrice').value);
+            const salePrice = parseNumberFromComma(document.getElementById('cgtSalePrice').value);
+            const acquisitionCost = parseNumberFromComma(document.getElementById('cgtAcquisitionCost').value) || 0;
+            const saleCost = parseNumberFromComma(document.getElementById('cgtSaleCost').value) || 0;
+            
+            const exemption1 = document.getElementById('cgtExemption1').checked; // 1세대1주택
+            const exemption2 = document.getElementById('cgtExemption2').checked; // 일시적2주택
+            
+            const isResidential = ['apartment', 'officetel', 'villa', 'house'].includes(propertyType);
+            
+            // 1. 양도차익 계산
+            const totalCost = acquisitionPrice + acquisitionCost + saleCost;
+            let capitalGain = salePrice - totalCost;
+            
+            // 2. 비과세 여부 확인
+            let isExempt = false;
+            let exemptAmount = 0;
+            let taxableGain = capitalGain;
+            
+            if (isResidential && houseCount === 1 && exemption1) {
+                // 1세대 1주택 비과세 조건 확인
+                const meetsHoldingReq = holdingPeriod >= 2;
+                const meetsResidenceReq = region === 'normal' || residencePeriod >= 2;
+                
+                if (meetsHoldingReq && meetsResidenceReq) {
+                    if (salePrice <= 1200000000) {
+                        // 12억 이하 전액 비과세
+                        isExempt = true;
+                        exemptAmount = capitalGain;
+                        taxableGain = 0;
+                    } else {
+                        // 12억 초과분만 과세
+                        const excessRatio = (salePrice - 1200000000) / salePrice;
+                        taxableGain = Math.round(capitalGain * excessRatio);
+                        exemptAmount = capitalGain - taxableGain;
+                    }
+                }
+            }
+            
+            // 일시적 2주택 비과세
+            if (exemption2 && houseCount === 2) {
+                isExempt = true;
+                exemptAmount = capitalGain;
+                taxableGain = 0;
+            }
+            
+            // 3. 장기보유특별공제 계산
+            let longTermDeductionRate = 0;
+            let longTermDeduction = 0;
+            
+            if (taxableGain > 0 && holdingPeriod >= 3) {
+                if (isResidential && houseCount === 1 && residencePeriod >= 2) {
+                    // 1세대 1주택 장특공제 (보유+거주)
+                    const holdingRate = Math.min(Math.floor(holdingPeriod) * 4, 40); // 연 4%, 최대 40%
+                    const residenceRate = Math.min(Math.floor(residencePeriod) * 4, 40); // 연 4%, 최대 40%
+                    longTermDeductionRate = Math.min(holdingRate + residenceRate, 80);
+                } else {
+                    // 일반 장특공제
+                    const years = Math.floor(holdingPeriod);
+                    if (years >= 3 && years < 4) longTermDeductionRate = 6;
+                    else if (years >= 4 && years < 5) longTermDeductionRate = 8;
+                    else if (years >= 5 && years < 6) longTermDeductionRate = 10;
+                    else if (years >= 6 && years < 7) longTermDeductionRate = 12;
+                    else if (years >= 7 && years < 8) longTermDeductionRate = 14;
+                    else if (years >= 8 && years < 9) longTermDeductionRate = 16;
+                    else if (years >= 9 && years < 10) longTermDeductionRate = 18;
+                    else if (years >= 10 && years < 11) longTermDeductionRate = 20;
+                    else if (years >= 11 && years < 12) longTermDeductionRate = 22;
+                    else if (years >= 12 && years < 13) longTermDeductionRate = 24;
+                    else if (years >= 13 && years < 14) longTermDeductionRate = 26;
+                    else if (years >= 14 && years < 15) longTermDeductionRate = 28;
+                    else if (years >= 15) longTermDeductionRate = 30;
+                }
+                
+                longTermDeduction = Math.round(taxableGain * longTermDeductionRate / 100);
+            }
+            
+            // 4. 과세표준 계산
+            const afterLongTermDeduction = taxableGain - longTermDeduction;
+            const basicDeduction = 2500000; // 기본공제 250만원
+            const taxBase = Math.max(afterLongTermDeduction - basicDeduction, 0);
+            
+            // 5. 세율 적용
+            let taxRate = 0;
+            let progressiveDeduction = 0;
+            let additionalRate = 0;
+            
+            // 단기 양도 (주택)
+            if (isResidential) {
+                if (holdingPeriod < 1) {
+                    taxRate = 70;
+                } else if (holdingPeriod < 2) {
+                    taxRate = 60;
+                } else {
+                    // 기본세율
+                    if (taxBase <= 14000000) { taxRate = 6; progressiveDeduction = 0; }
+                    else if (taxBase <= 50000000) { taxRate = 15; progressiveDeduction = 1260000; }
+                    else if (taxBase <= 88000000) { taxRate = 24; progressiveDeduction = 5760000; }
+                    else if (taxBase <= 150000000) { taxRate = 35; progressiveDeduction = 15440000; }
+                    else if (taxBase <= 300000000) { taxRate = 38; progressiveDeduction = 19940000; }
+                    else if (taxBase <= 500000000) { taxRate = 40; progressiveDeduction = 25940000; }
+                    else if (taxBase <= 1000000000) { taxRate = 42; progressiveDeduction = 35940000; }
+                    else { taxRate = 45; progressiveDeduction = 65940000; }
+                }
+            } else {
+                // 비주거용 (상가, 토지 등)
+                if (holdingPeriod < 1) {
+                    taxRate = 50;
+                } else if (holdingPeriod < 2) {
+                    taxRate = 40;
+                } else {
+                    // 기본세율
+                    if (taxBase <= 14000000) { taxRate = 6; progressiveDeduction = 0; }
+                    else if (taxBase <= 50000000) { taxRate = 15; progressiveDeduction = 1260000; }
+                    else if (taxBase <= 88000000) { taxRate = 24; progressiveDeduction = 5760000; }
+                    else if (taxBase <= 150000000) { taxRate = 35; progressiveDeduction = 15440000; }
+                    else if (taxBase <= 300000000) { taxRate = 38; progressiveDeduction = 19940000; }
+                    else if (taxBase <= 500000000) { taxRate = 40; progressiveDeduction = 25940000; }
+                    else if (taxBase <= 1000000000) { taxRate = 42; progressiveDeduction = 35940000; }
+                    else { taxRate = 45; progressiveDeduction = 65940000; }
+                }
+            }
+            
+            // 6. 세액 계산
+            let calculatedTax = 0;
+            if (holdingPeriod < 2 && isResidential) {
+                calculatedTax = Math.round(taxBase * taxRate / 100);
+            } else {
+                calculatedTax = Math.round(taxBase * taxRate / 100 - progressiveDeduction);
+            }
+            calculatedTax = Math.max(calculatedTax, 0);
+            
+            // 지방소득세
+            const localTax = Math.round(calculatedTax * 0.1);
+            const totalTax = calculatedTax + localTax;
+            
+            // 결과 표시
+            const resultSection = document.getElementById('cgtResultSection');
+            resultSection.classList.add('active');
+            
+            // 요약 카드
+            document.getElementById('cgtResultSummary').innerHTML = `
+                <div class="cgt-summary-card profit">
+                    <div class="cgt-summary-label">양도차익</div>
+                    <div class="cgt-summary-value">${capitalGain.toLocaleString()}원</div>
+                </div>
+                <div class="cgt-summary-card deduction">
+                    <div class="cgt-summary-label">장기보유특별공제</div>
+                    <div class="cgt-summary-value">-${longTermDeduction.toLocaleString()}원</div>
+                </div>
+                <div class="cgt-summary-card tax">
+                    <div class="cgt-summary-label">양도소득세</div>
+                    <div class="cgt-summary-value">${calculatedTax.toLocaleString()}원</div>
+                </div>
+                <div class="cgt-summary-card total">
+                    <div class="cgt-summary-label">총 납부세액 (지방세 포함)</div>
+                    <div class="cgt-summary-value">${totalTax.toLocaleString()}원</div>
+                </div>
+            `;
+            
+            // 상세 테이블
+            let exemptBadge = isExempt ? '<span class="exemption-badge">비과세 적용</span>' : '';
+            if (exemptAmount > 0 && !isExempt) {
+                exemptBadge = '<span class="exemption-badge">부분 비과세</span>';
+            }
+            
+            document.getElementById('cgtDetailTable').innerHTML = `
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>금액</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>양도가액</td>
+                        <td>${salePrice.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>(-) 취득가액</td>
+                        <td>${acquisitionPrice.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>(-) 필요경비</td>
+                        <td>${(acquisitionCost + saleCost).toLocaleString()}원</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>= 양도차익 ${exemptBadge}</td>
+                        <td>${capitalGain.toLocaleString()}원</td>
+                    </tr>
+                    ${exemptAmount > 0 ? `
+                    <tr>
+                        <td>(-) 비과세 양도차익</td>
+                        <td>${exemptAmount.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>= 과세대상 양도차익</td>
+                        <td>${taxableGain.toLocaleString()}원</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td>(-) 장기보유특별공제 (${longTermDeductionRate}%)</td>
+                        <td>${longTermDeduction.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>= 양도소득금액</td>
+                        <td>${afterLongTermDeduction.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>(-) 기본공제</td>
+                        <td>${basicDeduction.toLocaleString()}원</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>= 과세표준</td>
+                        <td>${taxBase.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>적용세율</td>
+                        <td>${taxRate}%</td>
+                    </tr>
+                    <tr>
+                        <td>산출세액 (양도소득세)</td>
+                        <td>${calculatedTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>(+) 지방소득세 (10%)</td>
+                        <td>${localTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>총 납부세액</td>
+                        <td>${totalTax.toLocaleString()}원</td>
+                    </tr>
+                </tbody>
+            `;
+            
+            // 세율표
+            const rateTableData = [
+                { range: '1,400만원 이하', rate: '6%', deduction: '-' },
+                { range: '1,400만원 ~ 5,000만원', rate: '15%', deduction: '126만원' },
+                { range: '5,000만원 ~ 8,800만원', rate: '24%', deduction: '576만원' },
+                { range: '8,800만원 ~ 1.5억원', rate: '35%', deduction: '1,544만원' },
+                { range: '1.5억원 ~ 3억원', rate: '38%', deduction: '1,994만원' },
+                { range: '3억원 ~ 5억원', rate: '40%', deduction: '2,594만원' },
+                { range: '5억원 ~ 10억원', rate: '42%', deduction: '3,594만원' },
+                { range: '10억원 초과', rate: '45%', deduction: '6,594만원' }
+            ];
+            
+            let rateTableHTML = `
+                <thead>
+                    <tr>
+                        <th>과세표준</th>
+                        <th>세율</th>
+                        <th>누진공제</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            rateTableData.forEach((row, idx) => {
+                const isActive = (idx === 0 && taxBase <= 14000000) ||
+                    (idx === 1 && taxBase > 14000000 && taxBase <= 50000000) ||
+                    (idx === 2 && taxBase > 50000000 && taxBase <= 88000000) ||
+                    (idx === 3 && taxBase > 88000000 && taxBase <= 150000000) ||
+                    (idx === 4 && taxBase > 150000000 && taxBase <= 300000000) ||
+                    (idx === 5 && taxBase > 300000000 && taxBase <= 500000000) ||
+                    (idx === 6 && taxBase > 500000000 && taxBase <= 1000000000) ||
+                    (idx === 7 && taxBase > 1000000000);
+                
+                rateTableHTML += `
+                    <tr class="${isActive ? 'active-row' : ''}">
+                        <td>${row.range}</td>
+                        <td>${row.rate}</td>
+                        <td>${row.deduction}</td>
+                    </tr>
+                `;
+            });
+            
+            rateTableHTML += '</tbody>';
+            document.getElementById('cgtRateTable').innerHTML = rateTableHTML;
+            
+            // 결과로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // 콤마 입력 재설정
+            setTimeout(() => setupCommaInputs(), 100);
+        }
+
+        function getAcquisitionTaxCalculator() {
+            return `
+                <style>
+                    .acq-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .acq-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .acq-form-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #e2e8f0;
+                    }
+                    .acq-form-title i {
+                        color: #43e97b;
+                    }
+                    .acq-form-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .acq-form-grid-3 {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .acq-checkbox-group {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 15px;
+                        margin-top: 10px;
+                    }
+                    .acq-checkbox-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        background: white;
+                        padding: 12px 16px;
+                        border-radius: 10px;
+                        border: 2px solid #e2e8f0;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .acq-checkbox-item:hover {
+                        border-color: #43e97b;
+                    }
+                    .acq-checkbox-item.checked {
+                        border-color: #43e97b;
+                        background: #f0fff4;
+                    }
+                    .acq-checkbox-item input {
+                        width: 18px;
+                        height: 18px;
+                        cursor: pointer;
+                    }
+                    .acq-checkbox-item label {
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
+                    .acq-info-box {
+                        background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-top: 15px;
+                        border-left: 4px solid #43e97b;
+                    }
+                    .acq-info-box p {
+                        font-size: 13px;
+                        color: #276749;
+                        line-height: 1.6;
+                    }
+                    .acq-result-section {
+                        display: none;
+                    }
+                    .acq-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .acq-result-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .acq-summary-card {
+                        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .acq-summary-card.tax {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    }
+                    .acq-summary-card.local {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .acq-summary-card.special {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .acq-summary-card.total {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                    }
+                    .acq-summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .acq-summary-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    .acq-detail-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .acq-detail-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .acq-detail-title i {
+                        color: #43e97b;
+                    }
+                    .acq-detail-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .acq-detail-table th {
+                        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                        color: white;
+                        padding: 12px 15px;
+                        text-align: left;
+                        font-weight: 600;
+                    }
+                    .acq-detail-table th:first-child {
+                        border-radius: 10px 0 0 0;
+                    }
+                    .acq-detail-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                        text-align: right;
+                    }
+                    .acq-detail-table td {
+                        padding: 12px 15px;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .acq-detail-table td:last-child {
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                    .acq-detail-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .acq-detail-table tr.highlight {
+                        background: #f0fff4;
+                    }
+                    .acq-detail-table tr.total-row {
+                        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                        color: white;
+                    }
+                    .acq-detail-table tr.total-row td {
+                        border-bottom: none;
+                        font-weight: 700;
+                        font-size: 16px;
+                    }
+                    .acq-rate-table-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                        overflow-x: auto;
+                    }
+                    .acq-rate-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 13px;
+                    }
+                    .acq-rate-table th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 10px;
+                        text-align: center;
+                        font-weight: 600;
+                    }
+                    .acq-rate-table td {
+                        padding: 10px;
+                        text-align: center;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .acq-rate-table tr.active-row {
+                        background: #ebf4ff;
+                        font-weight: 600;
+                    }
+                    .acq-tips-container {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .acq-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .acq-tips-title i {
+                        color: #ffd700;
+                    }
+                    .acq-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 25px;
+                    }
+                    .acq-term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .acq-term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .acq-term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .acq-exemption-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .acq-exemption-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #38ef7d;
+                    }
+                    .acq-exemption-item {
+                        background: rgba(56,239,125,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #38ef7d;
+                    }
+                    .acq-exemption-item-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #38ef7d;
+                    }
+                    .acq-exemption-item-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .acq-save-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .acq-save-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #ffd700;
+                    }
+                    .acq-save-item {
+                        background: rgba(255,215,0,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #ffd700;
+                    }
+                    .acq-save-item-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #ffd700;
+                    }
+                    .acq-save-item-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .acq-warning-box {
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: rgba(252,129,129,0.1);
+                        border-radius: 10px;
+                        border-left: 4px solid #fc8181;
+                        font-size: 13px;
+                        line-height: 1.6;
+                    }
+                    .exemption-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+                        color: white;
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 10px;
+                    }
+                    .reduction-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                        color: white;
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 10px;
+                    }
+                    .surcharge-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+                        color: white;
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 10px;
+                    }
+                    @media (max-width: 768px) {
+                        .acq-result-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .acq-form-grid, .acq-form-grid-3 {
+                            grid-template-columns: 1fr;
+                        }
+                        .acq-terms-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .acq-summary-value {
+                            font-size: 15px;
+                        }
+                        .acq-checkbox-group {
+                            flex-direction: column;
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .acq-result-summary {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                <div class="acq-container">
+                    <div class="acq-form-section">
+                        <div class="acq-form-title"><i class="fas fa-building"></i> 부동산 정보</div>
+                        <form class="calc-form" onsubmit="calculateAcquisitionTax(event)">
+                            <div class="acq-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-home" style="color: #43e97b; margin-right: 8px;"></i>부동산 종류</label>
+                                    <select id="acqPropertyType" onchange="updateAcqOptions()">
+                                        <option value="apartment">아파트</option>
+                                        <option value="officetel">오피스텔 (주거용)</option>
+                                        <option value="villa">빌라/연립/다세대</option>
+                                        <option value="house">단독주택/다가구</option>
+                                        <option value="officetel-commercial">오피스텔 (업무용)</option>
+                                        <option value="commercial">상가/점포</option>
+                                        <option value="land">토지/땅</option>
+                                        <option value="farm-land">농지</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-exchange-alt" style="color: #43e97b; margin-right: 8px;"></i>취득 유형</label>
+                                    <select id="acqType" onchange="updateAcqOptions()">
+                                        <option value="purchase">매매 (유상취득)</option>
+                                        <option value="inheritance">상속</option>
+                                        <option value="gift">증여</option>
+                                        <option value="auction">경매/공매</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="acq-form-title" style="margin-top: 25px;"><i class="fas fa-map-marker-alt"></i> 지역 및 보유 현황</div>
+                            <div class="acq-form-grid-3">
+                                <div class="form-group">
+                                    <label><i class="fas fa-map" style="color: #43e97b; margin-right: 8px;"></i>지역 구분</label>
+                                    <select id="acqRegion">
+                                        <option value="regulated">조정대상지역</option>
+                                        <option value="normal">비규제지역</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="acqHouseCountGroup">
+                                    <label><i class="fas fa-home" style="color: #43e97b; margin-right: 8px;"></i>보유 주택 수 (취득 후)</label>
+                                    <select id="acqHouseCount">
+                                        <option value="1">1주택</option>
+                                        <option value="2">2주택</option>
+                                        <option value="3">3주택</option>
+                                        <option value="4">4주택 이상</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-user" style="color: #43e97b; margin-right: 8px;"></i>취득자 구분</label>
+                                    <select id="acqBuyerType">
+                                        <option value="individual">개인</option>
+                                        <option value="corporation">법인</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="acq-form-title" style="margin-top: 25px;"><i class="fas fa-won-sign"></i> 취득 금액</div>
+                            <div class="acq-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-tag" style="color: #43e97b; margin-right: 8px;"></i>취득가액 (원)</label>
+                                    <input type="text" id="acqPrice" data-comma="true" placeholder="500,000,000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-ruler-combined" style="color: #43e97b; margin-right: 8px;"></i>전용면적 (㎡)</label>
+                                    <input type="text" id="acqArea" placeholder="84" value="84">
+                                </div>
+                            </div>
+                            
+                            <div class="acq-form-title" style="margin-top: 25px;"><i class="fas fa-gift"></i> 세금 감면/특례 적용</div>
+                            <div class="acq-checkbox-group">
+                                <div class="acq-checkbox-item" id="acqExemptCheck1" onclick="toggleAcqCheckbox('acqExemption1')">
+                                    <input type="checkbox" id="acqExemption1">
+                                    <label>생애최초 주택 구입</label>
+                                </div>
+                                <div class="acq-checkbox-item" id="acqExemptCheck2" onclick="toggleAcqCheckbox('acqExemption2')">
+                                    <input type="checkbox" id="acqExemption2">
+                                    <label>신혼부부 (혼인 7년 이내)</label>
+                                </div>
+                                <div class="acq-checkbox-item" id="acqExemptCheck3" onclick="toggleAcqCheckbox('acqExemption3')">
+                                    <input type="checkbox" id="acqExemption3">
+                                    <label>다자녀 가구 (3자녀 이상)</label>
+                                </div>
+                                <div class="acq-checkbox-item" id="acqExemptCheck4" onclick="toggleAcqCheckbox('acqExemption4')">
+                                    <input type="checkbox" id="acqExemption4">
+                                    <label>농어촌 주택</label>
+                                </div>
+                            </div>
+                            <div class="acq-info-box">
+                                <p><strong>💡 생애최초 주택 구입 감면:</strong> 2024년 기준, 수도권 4억·비수도권 3억 이하 주택 취득 시 취득세 100% 감면 (1.5억 한도). 전용면적 60㎡ 이하 소형주택은 200만원 한도 추가 감면.</p>
+                            </div>
+                            
+                            <button type="submit" class="btn-calculate" style="margin-top: 25px;">
+                                <i class="fas fa-calculator" style="margin-right: 8px;"></i>취득세 계산하기
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="acq-result-section" id="acqResultSection">
+                        <div class="acq-result-summary" id="acqResultSummary"></div>
+                        
+                        <div class="acq-detail-container">
+                            <div class="acq-detail-title"><i class="fas fa-list-alt"></i> 취득세 계산 상세</div>
+                            <table class="acq-detail-table" id="acqDetailTable"></table>
+                        </div>
+                        
+                        <div class="acq-rate-table-container">
+                            <div class="acq-detail-title"><i class="fas fa-percentage"></i> 취득세 세율표 (2024년 기준)</div>
+                            <table class="acq-rate-table" id="acqRateTable"></table>
+                        </div>
+                    </div>
+                    
+                    <div class="acq-tips-container">
+                        <div class="acq-tips-title"><i class="fas fa-book"></i> 취득세 용어 사전</div>
+                        <div class="acq-terms-grid">
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">🏠 취득세</div>
+                                <div class="acq-term-desc">부동산을 취득할 때 내는 지방세. 취득가액에 세율을 곱하여 계산합니다. 취득일로부터 60일 이내 신고·납부해야 합니다.</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">📚 지방교육세</div>
+                                <div class="acq-term-desc">취득세의 10%를 추가로 납부하는 세금. 교육재정 확충을 위한 목적세입니다. 취득세와 함께 납부합니다.</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">🌾 농어촌특별세</div>
+                                <div class="acq-term-desc">취득세의 10%를 추가 납부 (전용 85㎡ 초과 시). 농어촌 발전을 위한 목적세입니다.</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">📍 조정대상지역</div>
+                                <div class="acq-term-desc">정부가 지정한 부동산 과열 지역. 다주택자 취득세 중과, 대출 규제 등이 적용됩니다.</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">🏢 중과세율</div>
+                                <div class="acq-term-desc">다주택자, 법인, 고가주택 등에 적용되는 높은 세율. 일반 세율의 3~4배까지 부과될 수 있습니다.</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">💰 과세표준</div>
+                                <div class="acq-term-desc">세금을 계산하는 기준 금액. 실거래가와 시가표준액 중 높은 금액이 적용됩니다.</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">🎁 증여취득</div>
+                                <div class="acq-term-desc">무상으로 부동산을 받는 경우. 시가표준액의 3.5%가 취득세로 부과됩니다 (주택 외).</div>
+                            </div>
+                            <div class="acq-term-card">
+                                <div class="acq-term-name">📜 상속취득</div>
+                                <div class="acq-term-desc">사망으로 인해 부동산을 받는 경우. 일반 상속은 2.8%, 농지 상속은 2.3%가 적용됩니다.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="acq-exemption-section">
+                            <div class="acq-exemption-title"><i class="fas fa-check-circle"></i> 취득세 감면 혜택 (2024년 기준)</div>
+                            <div class="acq-exemption-item">
+                                <div class="acq-exemption-item-title">🏠 생애최초 주택 구입 감면</div>
+                                <div class="acq-exemption-item-content">
+                                    • <strong>수도권 4억원·비수도권 3억원 이하</strong>: 취득세 100% 감면 (1.5억 한도)<br>
+                                    • 본인과 배우자 모두 주택을 소유한 적 없어야 함<br>
+                                    • 취득일로부터 3개월 내 전입, 3년간 거주 의무<br>
+                                    • 2025년 12월 31일까지 한시 적용
+                                </div>
+                            </div>
+                            <div class="acq-exemption-item">
+                                <div class="acq-exemption-item-title">💑 신혼부부 취득세 감면</div>
+                                <div class="acq-exemption-item-content">
+                                    • 혼인신고일로부터 7년 이내 부부<br>
+                                    • 부부합산 연소득 7천만원 이하 (맞벌이 8.5천만원)<br>
+                                    • 취득가액 3억원 이하 주택: 50% 감면<br>
+                                    • 생애최초와 중복 적용 불가
+                                </div>
+                            </div>
+                            <div class="acq-exemption-item">
+                                <div class="acq-exemption-item-title">👨‍👩‍👧‍👦 다자녀 가구 감면</div>
+                                <div class="acq-exemption-item-content">
+                                    • 18세 미만 자녀 3명 이상 가구<br>
+                                    • 취득세 50% 감면 (200만원 한도)<br>
+                                    • 취득 후 5년간 해당 주택 거주 의무
+                                </div>
+                            </div>
+                            <div class="acq-exemption-item">
+                                <div class="acq-exemption-item-title">🌾 농지 취득 감면</div>
+                                <div class="acq-exemption-item-content">
+                                    • 자경농민 농지 취득: 50% 감면<br>
+                                    • 8년 이상 자경 시 전액 감면<br>
+                                    • 귀농인 농지 취득: 50% 감면 (1회 한정)
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="acq-save-section">
+                            <div class="acq-save-title"><i class="fas fa-piggy-bank"></i> 취득세 절세 팁</div>
+                            <div class="acq-save-item">
+                                <div class="acq-save-item-title">1. 생애최초 감면 자격 확인</div>
+                                <div class="acq-save-item-content">본인과 배우자 모두 과거 주택 소유 이력이 없다면 최대 200만원까지 감면받을 수 있습니다.</div>
+                            </div>
+                            <div class="acq-save-item">
+                                <div class="acq-save-item-title">2. 6억원 / 9억원 기준 확인</div>
+                                <div class="acq-save-item-content">6억 이하 1%, 6~9억 1~3% 누진, 9억 초과 3%입니다. 가격 협상 시 기준선을 고려하세요.</div>
+                            </div>
+                            <div class="acq-save-item">
+                                <div class="acq-save-item-title">3. 85㎡ 면적 기준 확인</div>
+                                <div class="acq-save-item-content">전용면적 85㎡ 초과 시 농어촌특별세(취득세의 10%)가 추가됩니다. 84㎡ 주택이 유리할 수 있습니다.</div>
+                            </div>
+                            <div class="acq-save-item">
+                                <div class="acq-save-item-title">4. 취득 시기 조절</div>
+                                <div class="acq-save-item-content">기존 주택 처분 후 신규 주택 취득 시 1주택자 세율 적용. 처분 시기를 조절하여 중과 회피 가능합니다.</div>
+                            </div>
+                            <div class="acq-save-item">
+                                <div class="acq-save-item-title">5. 증여보다 매매가 유리한 경우</div>
+                                <div class="acq-save-item-content">저가 주택은 증여세(10~50%) + 취득세(3.5%)보다 매매 취득세(1~3%)가 낮을 수 있습니다.</div>
+                            </div>
+                            <div class="acq-save-item">
+                                <div class="acq-save-item-title">6. 일시적 2주택 활용</div>
+                                <div class="acq-save-item-content">기존 주택을 3년 내 처분 조건으로 신규 주택 취득 시 1주택자 세율이 적용됩니다.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="acq-warning-box">
+                            <strong>⚠️ 주의사항:</strong><br>
+                            • 본 계산기는 참고용이며, 정확한 세금은 관할 구청/세무서에 확인하세요.<br>
+                            • 2024년 기준 세율이며, 정책 변경에 따라 달라질 수 있습니다.<br>
+                            • 법인은 주택 취득 시 12% 중과세율이 적용됩니다.<br>
+                            • 조정대상지역 2주택 이상은 8~12% 중과될 수 있습니다.<br>
+                            • 취득일로부터 60일 내 신고·납부해야 가산세가 면제됩니다.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleAcqCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+            const parent = checkbox.closest('.acq-checkbox-item');
+            if (checkbox.checked) {
+                parent.classList.add('checked');
+            } else {
+                parent.classList.remove('checked');
+            }
+        }
+
+        function updateAcqOptions() {
+            const propertyType = document.getElementById('acqPropertyType').value;
+            const acqType = document.getElementById('acqType').value;
+            const houseCountGroup = document.getElementById('acqHouseCountGroup');
+            
+            // 주거용 부동산만 주택 수 표시
+            const isResidential = ['apartment', 'officetel', 'villa', 'house'].includes(propertyType);
+            houseCountGroup.style.display = isResidential ? 'block' : 'none';
+        }
+
+        function calculateAcquisitionTax(e) {
+            e.preventDefault();
+            
+            const propertyType = document.getElementById('acqPropertyType').value;
+            const acqType = document.getElementById('acqType').value;
+            const region = document.getElementById('acqRegion').value;
+            const houseCount = parseInt(document.getElementById('acqHouseCount').value);
+            const buyerType = document.getElementById('acqBuyerType').value;
+            const price = parseNumberFromComma(document.getElementById('acqPrice').value);
+            const area = parseFloat(document.getElementById('acqArea').value) || 84;
+            
+            const exemption1 = document.getElementById('acqExemption1').checked; // 생애최초
+            const exemption2 = document.getElementById('acqExemption2').checked; // 신혼부부
+            const exemption3 = document.getElementById('acqExemption3').checked; // 다자녀
+            const exemption4 = document.getElementById('acqExemption4').checked; // 농어촌
+            
+            const isResidential = ['apartment', 'officetel', 'villa', 'house'].includes(propertyType);
+            const isRegulated = region === 'regulated';
+            const isCorporation = buyerType === 'corporation';
+            
+            let taxRate = 0;
+            let statusBadge = '';
+            let rateDescription = '';
+            
+            // 취득세율 결정
+            if (acqType === 'inheritance') {
+                // 상속
+                if (propertyType === 'farm-land') {
+                    taxRate = 2.3;
+                    rateDescription = '농지 상속';
+                } else {
+                    taxRate = 2.8;
+                    rateDescription = '일반 상속';
+                }
+            } else if (acqType === 'gift') {
+                // 증여
+                if (isResidential) {
+                    taxRate = 3.5;
+                    rateDescription = '주택 증여';
+                } else {
+                    taxRate = 3.5;
+                    rateDescription = '비주거 증여';
+                }
+            } else {
+                // 매매/경매 (유상취득)
+                if (isResidential) {
+                    // 주택
+                    if (isCorporation) {
+                        // 법인
+                        taxRate = 12;
+                        rateDescription = '법인 주택 취득';
+                        statusBadge = '<span class="surcharge-badge">법인 중과</span>';
+                    } else if (isRegulated && houseCount >= 3) {
+                        // 조정지역 3주택 이상
+                        taxRate = 12;
+                        rateDescription = '조정지역 3주택 이상';
+                        statusBadge = '<span class="surcharge-badge">중과세율</span>';
+                    } else if (isRegulated && houseCount === 2) {
+                        // 조정지역 2주택
+                        taxRate = 8;
+                        rateDescription = '조정지역 2주택';
+                        statusBadge = '<span class="surcharge-badge">중과세율</span>';
+                    } else if (!isRegulated && houseCount >= 4) {
+                        // 비규제 4주택 이상
+                        taxRate = 12;
+                        rateDescription = '비규제 4주택 이상';
+                        statusBadge = '<span class="surcharge-badge">중과세율</span>';
+                    } else if (!isRegulated && houseCount === 3) {
+                        // 비규제 3주택
+                        taxRate = 8;
+                        rateDescription = '비규제 3주택';
+                        statusBadge = '<span class="surcharge-badge">중과세율</span>';
+                    } else {
+                        // 1주택자 또는 비규제 2주택
+                        if (price <= 600000000) {
+                            taxRate = 1;
+                            rateDescription = '6억 이하';
+                        } else if (price <= 900000000) {
+                            // 6억~9억: 누진세율 (1% + 초과분에 대해)
+                            taxRate = 1 + ((price - 600000000) / 300000000) * 2;
+                            rateDescription = '6억~9억 누진';
+                        } else {
+                            taxRate = 3;
+                            rateDescription = '9억 초과';
+                        }
+                    }
+                } else if (propertyType === 'officetel-commercial') {
+                    // 업무용 오피스텔
+                    taxRate = 4;
+                    rateDescription = '업무용 오피스텔';
+                } else if (propertyType === 'commercial') {
+                    // 상가
+                    taxRate = 4;
+                    rateDescription = '상가/점포';
+                } else if (propertyType === 'land') {
+                    // 토지
+                    taxRate = 4;
+                    rateDescription = '토지';
+                } else if (propertyType === 'farm-land') {
+                    // 농지
+                    taxRate = 3;
+                    rateDescription = '농지 매매';
+                }
+            }
+            
+            // 기본 취득세 계산
+            let acquisitionTax = Math.round(price * (taxRate / 100));
+            let originalTax = acquisitionTax;
+            
+            // 감면 적용
+            let reductionAmount = 0;
+            let reductionReason = '';
+            
+            if (exemption1 && isResidential && houseCount === 1) {
+                // 생애최초 주택 구입 감면
+                if (price <= 400000000) { // 수도권 4억 이하
+                    reductionAmount = Math.min(acquisitionTax, 2000000);
+                    reductionReason = '생애최초 주택 감면';
+                    statusBadge = '<span class="exemption-badge">생애최초 감면</span>';
+                }
+            } else if (exemption2 && isResidential && houseCount === 1) {
+                // 신혼부부 감면 (50%)
+                if (price <= 300000000) {
+                    reductionAmount = Math.round(acquisitionTax * 0.5);
+                    reductionReason = '신혼부부 감면 50%';
+                    statusBadge = '<span class="reduction-badge">신혼 감면</span>';
+                }
+            } else if (exemption3 && isResidential) {
+                // 다자녀 가구 감면
+                reductionAmount = Math.min(Math.round(acquisitionTax * 0.5), 2000000);
+                reductionReason = '다자녀 가구 감면';
+                statusBadge = '<span class="reduction-badge">다자녀 감면</span>';
+            }
+            
+            acquisitionTax = acquisitionTax - reductionAmount;
+            
+            // 지방교육세 (취득세의 10%)
+            const localEducationTax = Math.round(acquisitionTax * 0.1);
+            
+            // 농어촌특별세 (85㎡ 초과 시 취득세의 10%)
+            let ruralTax = 0;
+            if (area > 85 && isResidential && acqType !== 'inheritance') {
+                ruralTax = Math.round(acquisitionTax * 0.1);
+            }
+            
+            // 총 세금
+            const totalTax = acquisitionTax + localEducationTax + ruralTax;
+            
+            // 결과 섹션 표시
+            const resultSection = document.getElementById('acqResultSection');
+            resultSection.classList.add('active');
+            
+            // 요약 카드
+            document.getElementById('acqResultSummary').innerHTML = `
+                <div class="acq-summary-card tax">
+                    <div class="acq-summary-label">취득세 (${taxRate.toFixed(1)}%)</div>
+                    <div class="acq-summary-value">${acquisitionTax.toLocaleString()}원</div>
+                </div>
+                <div class="acq-summary-card local">
+                    <div class="acq-summary-label">지방교육세 (10%)</div>
+                    <div class="acq-summary-value">${localEducationTax.toLocaleString()}원</div>
+                </div>
+                <div class="acq-summary-card special">
+                    <div class="acq-summary-label">농어촌특별세</div>
+                    <div class="acq-summary-value">${ruralTax.toLocaleString()}원</div>
+                </div>
+                <div class="acq-summary-card total">
+                    <div class="acq-summary-label">총 납부세액</div>
+                    <div class="acq-summary-value">${totalTax.toLocaleString()}원</div>
+                </div>
+            `;
+            
+            // 상세 테이블
+            document.getElementById('acqDetailTable').innerHTML = `
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>금액/세율</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>취득가액</td>
+                        <td>${price.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>전용면적</td>
+                        <td>${area}㎡ ${area > 85 ? '(85㎡ 초과 - 농특세 부과)' : '(85㎡ 이하)'}</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>적용 세율 ${statusBadge}</td>
+                        <td>${taxRate.toFixed(1)}% (${rateDescription})</td>
+                    </tr>
+                    ${reductionAmount > 0 ? `
+                    <tr>
+                        <td>감면 전 취득세</td>
+                        <td>${originalTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr style="color: #38a169;">
+                        <td>(-) ${reductionReason}</td>
+                        <td>-${reductionAmount.toLocaleString()}원</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td>취득세</td>
+                        <td>${acquisitionTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>(+) 지방교육세 (취득세 × 10%)</td>
+                        <td>${localEducationTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>(+) 농어촌특별세 ${area <= 85 ? '(85㎡ 이하 면제)' : '(취득세 × 10%)'}</td>
+                        <td>${ruralTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>총 납부세액</td>
+                        <td>${totalTax.toLocaleString()}원</td>
+                    </tr>
+                </tbody>
+            `;
+            
+            // 세율표
+            const isCurrentResidential = isResidential && acqType === 'purchase' && !isCorporation;
+            document.getElementById('acqRateTable').innerHTML = `
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>취득가액/조건</th>
+                        <th>취득세율</th>
+                        <th>비고</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="${isCurrentResidential && price <= 600000000 && houseCount === 1 ? 'active-row' : ''}">
+                        <td rowspan="3">1주택자<br>(비규제/규제)</td>
+                        <td>6억원 이하</td>
+                        <td>1%</td>
+                        <td>기본세율</td>
+                    </tr>
+                    <tr class="${isCurrentResidential && price > 600000000 && price <= 900000000 && houseCount === 1 ? 'active-row' : ''}">
+                        <td>6억~9억원</td>
+                        <td>1~3%</td>
+                        <td>누진세율</td>
+                    </tr>
+                    <tr class="${isCurrentResidential && price > 900000000 && houseCount === 1 ? 'active-row' : ''}">
+                        <td>9억원 초과</td>
+                        <td>3%</td>
+                        <td>기본세율</td>
+                    </tr>
+                    <tr class="${isCurrentResidential && houseCount === 2 && isRegulated ? 'active-row' : ''}">
+                        <td>2주택자</td>
+                        <td>조정대상지역</td>
+                        <td>8%</td>
+                        <td>중과세율</td>
+                    </tr>
+                    <tr class="${isCurrentResidential && houseCount >= 3 && isRegulated ? 'active-row' : ''}">
+                        <td>3주택 이상</td>
+                        <td>조정대상지역</td>
+                        <td>12%</td>
+                        <td>중과세율</td>
+                    </tr>
+                    <tr class="${isCorporation && isResidential ? 'active-row' : ''}">
+                        <td>법인</td>
+                        <td>주택 취득</td>
+                        <td>12%</td>
+                        <td>중과세율</td>
+                    </tr>
+                    <tr class="${propertyType === 'commercial' || propertyType === 'officetel-commercial' || propertyType === 'land' ? 'active-row' : ''}">
+                        <td>비주거용</td>
+                        <td>상가/토지 등</td>
+                        <td>4%</td>
+                        <td>일반세율</td>
+                    </tr>
+                    <tr class="${acqType === 'inheritance' ? 'active-row' : ''}">
+                        <td>상속</td>
+                        <td>일반/농지</td>
+                        <td>2.8%/2.3%</td>
+                        <td>상속세율</td>
+                    </tr>
+                    <tr class="${acqType === 'gift' ? 'active-row' : ''}">
+                        <td>증여</td>
+                        <td>전체</td>
+                        <td>3.5%</td>
+                        <td>증여세율</td>
+                    </tr>
+                </tbody>
+            `;
+            
+            // 결과로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // 콤마 입력 재설정
+            setTimeout(() => setupCommaInputs(), 100);
+        }
+
+        function getCarTaxCalculator() {
+            return `
+                <style>
+                    .car-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 30px;
+                    }
+                    .car-form-section {
+                        background: #f8fafc;
+                        padding: 25px;
+                        border-radius: 15px;
+                    }
+                    .car-form-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #e2e8f0;
+                    }
+                    .car-form-title i {
+                        color: #fa709a;
+                    }
+                    .car-form-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .car-form-grid-3 {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr;
+                        gap: 20px;
+                    }
+                    .car-checkbox-group {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 15px;
+                        margin-top: 10px;
+                    }
+                    .car-checkbox-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        background: white;
+                        padding: 12px 16px;
+                        border-radius: 10px;
+                        border: 2px solid #e2e8f0;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .car-checkbox-item:hover {
+                        border-color: #fa709a;
+                    }
+                    .car-checkbox-item.checked {
+                        border-color: #fa709a;
+                        background: #fff5f7;
+                    }
+                    .car-checkbox-item input {
+                        width: 18px;
+                        height: 18px;
+                        cursor: pointer;
+                    }
+                    .car-checkbox-item label {
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
+                    .car-info-box {
+                        background: linear-gradient(135deg, #fff5f7 0%, #ffe0e6 100%);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-top: 15px;
+                        border-left: 4px solid #fa709a;
+                    }
+                    .car-info-box p {
+                        font-size: 13px;
+                        color: #9b2c2c;
+                        line-height: 1.6;
+                    }
+                    .car-info-box.electric {
+                        background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+                        border-left-color: #38b2ac;
+                    }
+                    .car-info-box.electric p {
+                        color: #234e52;
+                    }
+                    .car-result-section {
+                        display: none;
+                    }
+                    .car-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .car-result-summary {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .car-summary-card {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                    }
+                    .car-summary-card.tax {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    }
+                    .car-summary-card.local {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    }
+                    .car-summary-card.discount {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    }
+                    .car-summary-card.total {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .car-summary-label {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    .car-summary-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    .car-detail-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                    }
+                    .car-detail-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: #2d3748;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .car-detail-title i {
+                        color: #fa709a;
+                    }
+                    .car-detail-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .car-detail-table th {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                        color: white;
+                        padding: 12px 15px;
+                        text-align: left;
+                        font-weight: 600;
+                    }
+                    .car-detail-table th:first-child {
+                        border-radius: 10px 0 0 0;
+                    }
+                    .car-detail-table th:last-child {
+                        border-radius: 0 10px 0 0;
+                        text-align: right;
+                    }
+                    .car-detail-table td {
+                        padding: 12px 15px;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .car-detail-table td:last-child {
+                        text-align: right;
+                        font-weight: 600;
+                    }
+                    .car-detail-table tr:hover {
+                        background: #f7fafc;
+                    }
+                    .car-detail-table tr.highlight {
+                        background: #fff5f7;
+                    }
+                    .car-detail-table tr.total-row {
+                        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                        color: white;
+                    }
+                    .car-detail-table tr.total-row td {
+                        border-bottom: none;
+                        font-weight: 700;
+                        font-size: 16px;
+                    }
+                    .car-rate-table-container {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        margin-bottom: 30px;
+                        overflow-x: auto;
+                    }
+                    .car-rate-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 13px;
+                    }
+                    .car-rate-table th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 10px;
+                        text-align: center;
+                        font-weight: 600;
+                    }
+                    .car-rate-table td {
+                        padding: 10px;
+                        text-align: center;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .car-rate-table tr.active-row {
+                        background: #ebf4ff;
+                        font-weight: 600;
+                    }
+                    .car-tips-container {
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                        padding: 25px;
+                        border-radius: 15px;
+                        color: white;
+                    }
+                    .car-tips-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .car-tips-title i {
+                        color: #ffd700;
+                    }
+                    .car-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 25px;
+                    }
+                    .car-term-card {
+                        background: rgba(255,255,255,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        backdrop-filter: blur(10px);
+                    }
+                    .car-term-name {
+                        font-weight: 700;
+                        font-size: 15px;
+                        margin-bottom: 8px;
+                        color: #ffd700;
+                    }
+                    .car-term-desc {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .car-electric-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .car-electric-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #38ef7d;
+                    }
+                    .car-electric-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 15px;
+                    }
+                    .car-electric-card {
+                        background: rgba(56,239,125,0.1);
+                        padding: 18px;
+                        border-radius: 12px;
+                        border-left: 4px solid #38ef7d;
+                        text-align: center;
+                    }
+                    .car-electric-card-title {
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                        color: #38ef7d;
+                        font-size: 14px;
+                    }
+                    .car-electric-card-value {
+                        font-size: 24px;
+                        font-weight: 700;
+                        margin-bottom: 5px;
+                    }
+                    .car-electric-card-desc {
+                        font-size: 12px;
+                        opacity: 0.8;
+                    }
+                    .car-prepay-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .car-prepay-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #4facfe;
+                    }
+                    .car-prepay-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                    }
+                    .car-prepay-card {
+                        background: rgba(79,172,254,0.1);
+                        padding: 15px;
+                        border-radius: 12px;
+                        text-align: center;
+                        border: 2px solid rgba(79,172,254,0.3);
+                    }
+                    .car-prepay-month {
+                        font-size: 14px;
+                        color: #4facfe;
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                    }
+                    .car-prepay-rate {
+                        font-size: 24px;
+                        font-weight: 700;
+                    }
+                    .car-prepay-desc {
+                        font-size: 11px;
+                        opacity: 0.8;
+                        margin-top: 5px;
+                    }
+                    .car-save-section {
+                        margin-top: 25px;
+                        padding-top: 25px;
+                        border-top: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .car-save-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        color: #ffd700;
+                    }
+                    .car-save-item {
+                        background: rgba(255,215,0,0.1);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        border-left: 4px solid #ffd700;
+                    }
+                    .car-save-item-title {
+                        font-weight: 600;
+                        margin-bottom: 5px;
+                        color: #ffd700;
+                    }
+                    .car-save-item-content {
+                        font-size: 13px;
+                        opacity: 0.9;
+                        line-height: 1.5;
+                    }
+                    .car-warning-box {
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: rgba(252,129,129,0.1);
+                        border-radius: 10px;
+                        border-left: 4px solid #fc8181;
+                        font-size: 13px;
+                        line-height: 1.6;
+                    }
+                    .car-type-badge {
+                        display: inline-block;
+                        padding: 5px 12px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 10px;
+                    }
+                    .car-type-badge.electric {
+                        background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+                        color: white;
+                    }
+                    .car-type-badge.hybrid {
+                        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                        color: white;
+                    }
+                    .car-type-badge.discount {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                        color: white;
+                    }
+                    .cc-group {
+                        display: block;
+                    }
+                    .cc-group.hidden {
+                        display: none;
+                    }
+                    @media (max-width: 768px) {
+                        .car-result-summary {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        .car-form-grid, .car-form-grid-3 {
+                            grid-template-columns: 1fr;
+                        }
+                        .car-terms-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .car-summary-value {
+                            font-size: 15px;
+                        }
+                        .car-checkbox-group {
+                            flex-direction: column;
+                        }
+                        .car-electric-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        .car-prepay-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                    }
+                    @media (max-width: 480px) {
+                        .car-result-summary {
+                            grid-template-columns: 1fr;
+                        }
+                        .car-prepay-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                <div class="car-container">
+                    <div class="car-form-section">
+                        <div class="car-form-title"><i class="fas fa-car"></i> 차량 정보</div>
+                        <form class="calc-form" onsubmit="calculateCarTax(event)">
+                            <div class="car-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-car-side" style="color: #fa709a; margin-right: 8px;"></i>차량 종류</label>
+                                    <select id="carVehicleType" onchange="updateCarOptions()">
+                                        <option value="passenger">승용차</option>
+                                        <option value="van">승합차 (11인 이상)</option>
+                                        <option value="truck">화물차</option>
+                                        <option value="special">특수차</option>
+                                        <option value="motorcycle">이륜차 (오토바이)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-gas-pump" style="color: #fa709a; margin-right: 8px;"></i>연료 유형</label>
+                                    <select id="carFuelType" onchange="updateCarOptions()">
+                                        <option value="gasoline">휘발유/디젤</option>
+                                        <option value="lpg">LPG</option>
+                                        <option value="electric">전기차</option>
+                                        <option value="hybrid">하이브리드</option>
+                                        <option value="hydrogen">수소차</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="car-form-grid">
+                                <div class="form-group">
+                                    <label><i class="fas fa-briefcase" style="color: #fa709a; margin-right: 8px;"></i>용도 구분</label>
+                                    <select id="carUsageType">
+                                        <option value="private">비영업용 (자가용)</option>
+                                        <option value="business">영업용 (사업용)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar-alt" style="color: #fa709a; margin-right: 8px;"></i>최초 등록년도</label>
+                                    <input type="number" id="carYear" placeholder="2020" value="2024" min="1990" max="2026">
+                                    <small style="color: #718096; font-size: 12px; margin-top: 5px;">* 차량등록증의 최초등록일 기준 (예: 2020)</small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group cc-group" id="ccGroup">
+                                <label><i class="fas fa-tachometer-alt" style="color: #fa709a; margin-right: 8px;"></i>배기량 (cc)</label>
+                                <input type="text" id="carCC" data-comma="true" placeholder="2,000" value="2000">
+                            </div>
+                            
+                            <div class="car-info-box electric" id="electricInfo" style="display: none;">
+                                <p><strong>⚡ 전기차/수소차 안내:</strong> 전기차와 수소차는 배기량이 없어 <strong>비영업용 연 10만원, 영업용 연 2만원</strong>의 고정 세금이 부과됩니다. 또한 취득세 감면 혜택도 받을 수 있습니다!</p>
+                            </div>
+                            
+                            <div class="car-form-title" style="margin-top: 25px;"><i class="fas fa-gift"></i> 세금 감면 혜택</div>
+                            <div class="car-checkbox-group">
+                                <div class="car-checkbox-item" id="carExemptCheck1" onclick="toggleCarCheckbox('carExemption1')">
+                                    <input type="checkbox" id="carExemption1">
+                                    <label>장애인 차량</label>
+                                </div>
+                                <div class="car-checkbox-item" id="carExemptCheck2" onclick="toggleCarCheckbox('carExemption2')">
+                                    <input type="checkbox" id="carExemption2">
+                                    <label>국가유공자</label>
+                                </div>
+                                <div class="car-checkbox-item" id="carExemptCheck3" onclick="toggleCarCheckbox('carExemption3')">
+                                    <input type="checkbox" id="carExemption3">
+                                    <label>다자녀 가구 (3자녀+)</label>
+                                </div>
+                                <div class="car-checkbox-item" id="carExemptCheck4" onclick="toggleCarCheckbox('carExemption4')">
+                                    <input type="checkbox" id="carExemption4">
+                                    <label>경차 (1,000cc 이하)</label>
+                                </div>
+                            </div>
+                            <div class="car-info-box">
+                                <p><strong>💡 감면 혜택 안내:</strong> 장애인·국가유공자는 2,000cc 이하 차량 취득세 면제 및 자동차세 감면 혜택이 있습니다. 경차(1,000cc 이하)는 취득세 75만원 한도 면제!</p>
+                            </div>
+                            
+                            <button type="submit" class="btn-calculate" style="margin-top: 25px;">
+                                <i class="fas fa-calculator" style="margin-right: 8px;"></i>자동차세 계산하기
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="car-result-section" id="carResultSection">
+                        <div class="car-result-summary" id="carResultSummary"></div>
+                        
+                        <div class="car-detail-container">
+                            <div class="car-detail-title"><i class="fas fa-list-alt"></i> 자동차세 계산 상세</div>
+                            <table class="car-detail-table" id="carDetailTable"></table>
+                        </div>
+                        
+                        <div class="car-rate-table-container">
+                            <div class="car-detail-title"><i class="fas fa-percentage"></i> 자동차세 세율표 (2026년 최신 기준)</div>
+                            <table class="car-rate-table" id="carRateTable"></table>
+                        </div>
+                    </div>
+                    
+                    <div class="car-tips-container">
+                        <div class="car-tips-title"><i class="fas fa-book"></i> 자동차세 용어 사전</div>
+                        <div class="car-terms-grid">
+                            <div class="car-term-card">
+                                <div class="car-term-name">🚗 자동차세</div>
+                                <div class="car-term-desc">자동차 소유에 대해 부과되는 지방세. 배기량(cc)에 따라 세금이 결정되며, 매년 6월과 12월에 납부합니다.</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">📚 지방교육세</div>
+                                <div class="car-term-desc">자동차세의 30%가 지방교육세로 추가 부과됩니다. 교육재정 확충을 위한 목적세입니다.</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">📉 차령 경감</div>
+                                <div class="car-term-desc">차량 연식에 따라 세금이 경감됩니다. 3년차부터 매년 5%씩 최대 50%까지 경감 (12년 이상).</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">💰 연납 할인</div>
+                                <div class="car-term-desc">1년치 세금을 1월에 한꺼번에 납부하면 약 4.57% 할인! 3월 납부 시 약 3.76% 할인.</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">🏢 영업용 vs 비영업용</div>
+                                <div class="car-term-desc">영업용(택시, 버스 등)은 비영업용보다 세율이 현저히 낮습니다. 약 1/10 수준.</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">⚡ 친환경차</div>
+                                <div class="car-term-desc">전기차, 수소차는 배기량 없이 고정 세액. 비영업용 10만원, 영업용 2만원 (연간).</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">🔋 하이브리드</div>
+                                <div class="car-term-desc">하이브리드 차량은 일반 내연기관과 동일하게 배기량 기준으로 과세됩니다.</div>
+                            </div>
+                            <div class="car-term-card">
+                                <div class="car-term-name">🛵 이륜차</div>
+                                <div class="car-term-desc">125cc 초과 이륜차(오토바이)도 자동차세 대상. 배기량별 차등 과세.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="car-electric-section">
+                            <div class="car-electric-title"><i class="fas fa-bolt"></i> 전기차·수소차 세금 혜택 (2026년 최신)</div>
+                            <div class="car-electric-grid">
+                                <div class="car-electric-card">
+                                    <div class="car-electric-card-title">🚗 자동차세</div>
+                                    <div class="car-electric-card-value">10만원</div>
+                                    <div class="car-electric-card-desc">비영업용 연간 (영업용 2만원)</div>
+                                </div>
+                                <div class="car-electric-card">
+                                    <div class="car-electric-card-title">💵 취득세 감면</div>
+                                    <div class="car-electric-card-value">최대 140만원</div>
+                                    <div class="car-electric-card-desc">전기차 취득세 감면 한도</div>
+                                </div>
+                                <div class="car-electric-card">
+                                    <div class="car-electric-card-title">🅿️ 공영주차장</div>
+                                    <div class="car-electric-card-value">50% 할인</div>
+                                    <div class="car-electric-card-desc">지자체별 상이</div>
+                                </div>
+                            </div>
+                            <div class="car-info-box electric" style="margin-top: 15px;">
+                                <p><strong>🌱 친환경차 추가 혜택:</strong> 고속도로 통행료 50% 할인, 혼잡통행료 면제, 공영주차장 할인, 충전요금 할인 등 다양한 혜택이 있습니다. 지자체별로 추가 혜택이 다를 수 있으니 확인하세요!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="car-prepay-section">
+                            <div class="car-prepay-title"><i class="fas fa-calendar-check"></i> 연납 할인 제도</div>
+                            <div class="car-prepay-grid">
+                                <div class="car-prepay-card">
+                                    <div class="car-prepay-month">1월 연납</div>
+                                    <div class="car-prepay-rate">4.57%</div>
+                                    <div class="car-prepay-desc">1.16~1.31 신청</div>
+                                </div>
+                                <div class="car-prepay-card">
+                                    <div class="car-prepay-month">3월 연납</div>
+                                    <div class="car-prepay-rate">3.76%</div>
+                                    <div class="car-prepay-desc">3.16~3.31 신청</div>
+                                </div>
+                                <div class="car-prepay-card">
+                                    <div class="car-prepay-month">6월 연납</div>
+                                    <div class="car-prepay-rate">2.52%</div>
+                                    <div class="car-prepay-desc">6.16~6.30 신청</div>
+                                </div>
+                                <div class="car-prepay-card">
+                                    <div class="car-prepay-month">9월 연납</div>
+                                    <div class="car-prepay-rate">1.26%</div>
+                                    <div class="car-prepay-desc">9.16~9.30 신청</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="car-save-section">
+                            <div class="car-save-title"><i class="fas fa-piggy-bank"></i> 자동차세 절세 팁</div>
+                            <div class="car-save-item">
+                                <div class="car-save-item-title">1. 1월 연납 신청하기</div>
+                                <div class="car-save-item-content">매년 1월에 연납 신청하면 4.57% 할인! 위택스(wetax.go.kr)에서 간편하게 신청 가능합니다.</div>
+                            </div>
+                            <div class="car-save-item">
+                                <div class="car-save-item-title">2. 경차 구매 고려</div>
+                                <div class="car-save-item-content">1,000cc 이하 경차는 취득세 75만원 한도 면제, 자동차세도 저렴합니다. 연 10만원 이하!</div>
+                            </div>
+                            <div class="car-save-item">
+                                <div class="car-save-item-title">3. 전기차 전환</div>
+                                <div class="car-save-item-content">전기차는 자동차세가 연 10만원 고정! 2,000cc 차량 대비 연 40만원 이상 절약 가능합니다.</div>
+                            </div>
+                            <div class="car-save-item">
+                                <div class="car-save-item-title">4. 차령 경감 활용</div>
+                                <div class="car-save-item-content">차량이 오래될수록 세금이 줄어듭니다. 12년 이상 보유 시 최대 50% 경감!</div>
+                            </div>
+                            <div class="car-save-item">
+                                <div class="car-save-item-title">5. 감면 대상 확인</div>
+                                <div class="car-save-item-content">장애인, 국가유공자, 다자녀 가구는 감면 혜택이 있습니다. 해당되면 꼭 신청하세요!</div>
+                            </div>
+                            <div class="car-save-item">
+                                <div class="car-save-item-title">6. 말소 시 환급</div>
+                                <div class="car-save-item-content">차량을 폐차·수출·양도하면 남은 기간 세금이 환급됩니다. 이전등록 후 자동 정산.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="car-warning-box">
+                            <strong>⚠️ 주의사항:</strong><br>
+                            • 자동차세는 매년 6월(1기분), 12월(2기분)에 납부합니다.<br>
+                            • 연납 신청은 위택스(wetax.go.kr) 또는 관할 구청에서 가능합니다.<br>
+                            • 미납 시 가산금(3%)이 부과되며, 번호판 영치될 수 있습니다.<br>
+                            • 전기차 혜택은 2026년 최신 기준이며, 정책에 따라 변경될 수 있습니다.<br>
+                            • 차령 경감은 최초등록일 기준 3년차부터 적용됩니다.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCarCheckbox(id) {
+            const checkbox = document.getElementById(id);
+            checkbox.checked = !checkbox.checked;
+            const parent = checkbox.closest('.car-checkbox-item');
+            if (checkbox.checked) {
+                parent.classList.add('checked');
+            } else {
+                parent.classList.remove('checked');
+            }
+        }
+
+        function updateCarOptions() {
+            const fuelType = document.getElementById('carFuelType').value;
+            const ccGroup = document.getElementById('ccGroup');
+            const electricInfo = document.getElementById('electricInfo');
+            
+            if (fuelType === 'electric' || fuelType === 'hydrogen') {
+                ccGroup.classList.add('hidden');
+                electricInfo.style.display = 'block';
+            } else {
+                ccGroup.classList.remove('hidden');
+                electricInfo.style.display = 'none';
+            }
+        }
+
+        function calculateCarTax(e) {
+            e.preventDefault();
+            
+            const vehicleType = document.getElementById('carVehicleType').value;
+            const fuelType = document.getElementById('carFuelType').value;
+            const usageType = document.getElementById('carUsageType').value;
+            const carYear = parseInt(document.getElementById('carYear').value) || 2024;
+            const cc = parseNumberFromComma(document.getElementById('carCC').value) || 2000;
+            
+            const isElectric = fuelType === 'electric' || fuelType === 'hydrogen';
+            const isBusiness = usageType === 'business';
+            const isPrivate = usageType === 'private';
+            
+            // 감면 체크
+            const isDisabled = document.getElementById('carExemption1').checked;
+            const isVeteran = document.getElementById('carExemption2').checked;
+            const isMultiChild = document.getElementById('carExemption3').checked;
+            const isCompact = document.getElementById('carExemption4').checked || cc <= 1000;
+            
+            // 차령 계산 (경감률) - 2026년 기준
+            const currentYear = 2026;
+            const vehicleAge = Math.max(currentYear - carYear, 0);
+            let ageDiscountRate = 0;
+            if (vehicleAge >= 3) {
+                ageDiscountRate = Math.min((vehicleAge - 2) * 5, 50); // 3년차부터 5%씩, 최대 50%
+            }
+            
+            let baseTax = 0;
+            let taxDescription = '';
+            let ccPerRate = 0;
+            
+            // 세금 계산
+            if (isElectric) {
+                // 전기차/수소차
+                baseTax = isBusiness ? 20000 : 100000;
+                taxDescription = fuelType === 'electric' ? '전기차 고정세액' : '수소차 고정세액';
+            } else if (vehicleType === 'passenger') {
+                // 승용차
+                if (isBusiness) {
+                    // 영업용
+                    if (cc <= 1600) {
+                        ccPerRate = 18;
+                    } else if (cc <= 2500) {
+                        ccPerRate = 19;
+                    } else {
+                        ccPerRate = 24;
+                    }
+                } else {
+                    // 비영업용
+                    if (cc <= 1000) {
+                        ccPerRate = 80;
+                    } else if (cc <= 1600) {
+                        ccPerRate = 140;
+                    } else {
+                        ccPerRate = 200;
+                    }
+                }
+                baseTax = cc * ccPerRate;
+                taxDescription = `${cc.toLocaleString()}cc × ${ccPerRate}원`;
+            } else if (vehicleType === 'van') {
+                // 승합차
+                baseTax = isBusiness ? 25000 : 65000;
+                taxDescription = '승합차 고정세액';
+            } else if (vehicleType === 'truck') {
+                // 화물차
+                baseTax = isBusiness ? 6600 : 28500;
+                taxDescription = '화물차 고정세액';
+            } else if (vehicleType === 'special') {
+                // 특수차
+                baseTax = isBusiness ? 13500 : 58500;
+                taxDescription = '특수차 고정세액';
+            } else if (vehicleType === 'motorcycle') {
+                // 이륜차
+                if (cc <= 125) {
+                    baseTax = 0;
+                    taxDescription = '125cc 이하 면세';
+                } else if (cc <= 260) {
+                    baseTax = 18000;
+                    taxDescription = '260cc 이하';
+                } else {
+                    baseTax = isBusiness ? 18000 : 36000;
+                    taxDescription = '260cc 초과';
+                }
+            }
+            
+            // 차령 경감 적용 (전기차/수소차 제외)
+            let ageDiscount = 0;
+            if (!isElectric && ageDiscountRate > 0) {
+                ageDiscount = Math.round(baseTax * ageDiscountRate / 100);
+            }
+            const taxAfterAge = baseTax - ageDiscount;
+            
+            // 지방교육세 (30%)
+            const localEducationTax = Math.round(taxAfterAge * 0.3);
+            
+            // 감면 적용
+            let exemptionAmount = 0;
+            let exemptionReason = '';
+            
+            if (isDisabled || isVeteran) {
+                if (cc <= 2000) {
+                    exemptionAmount = taxAfterAge + localEducationTax;
+                    exemptionReason = isDisabled ? '장애인 차량 전액 면제' : '국가유공자 전액 면제';
+                }
+            } else if (isMultiChild) {
+                exemptionAmount = Math.round((taxAfterAge + localEducationTax) * 0.5);
+                exemptionReason = '다자녀 가구 50% 감면';
+            }
+            
+            // 총 세금
+            const totalBeforeExemption = taxAfterAge + localEducationTax;
+            const totalTax = Math.max(totalBeforeExemption - exemptionAmount, 0);
+            
+            // 연납 시 할인액
+            const annualPayDiscount = Math.round(totalTax * 0.0457);
+            const annualPayAmount = totalTax - annualPayDiscount;
+            
+            // 결과 표시
+            const resultSection = document.getElementById('carResultSection');
+            resultSection.classList.add('active');
+            
+            // 배지 생성
+            let badge = '';
+            if (isElectric) {
+                badge = `<span class="car-type-badge electric">⚡ ${fuelType === 'electric' ? '전기차' : '수소차'}</span>`;
+            } else if (fuelType === 'hybrid') {
+                badge = '<span class="car-type-badge hybrid">🔋 하이브리드</span>';
+            }
+            if (exemptionAmount > 0) {
+                badge += `<span class="car-type-badge discount">💰 감면 적용</span>`;
+            }
+            
+            // 요약 카드
+            document.getElementById('carResultSummary').innerHTML = `
+                <div class="car-summary-card tax">
+                    <div class="car-summary-label">자동차세 (연간)</div>
+                    <div class="car-summary-value">${taxAfterAge.toLocaleString()}원</div>
+                </div>
+                <div class="car-summary-card local">
+                    <div class="car-summary-label">지방교육세 (30%)</div>
+                    <div class="car-summary-value">${localEducationTax.toLocaleString()}원</div>
+                </div>
+                <div class="car-summary-card discount">
+                    <div class="car-summary-label">${exemptionAmount > 0 ? '감면액' : '연납 시 할인'}</div>
+                    <div class="car-summary-value">-${(exemptionAmount > 0 ? exemptionAmount : annualPayDiscount).toLocaleString()}원</div>
+                </div>
+                <div class="car-summary-card total">
+                    <div class="car-summary-label">총 납부세액 (연간)</div>
+                    <div class="car-summary-value">${totalTax.toLocaleString()}원</div>
+                </div>
+            `;
+            
+            // 상세 테이블
+            document.getElementById('carDetailTable').innerHTML = `
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>금액/내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>차량 종류 ${badge}</td>
+                        <td>${getVehicleTypeName(vehicleType)} (${isBusiness ? '영업용' : '비영업용'})</td>
+                    </tr>
+                    ${!isElectric ? `
+                    <tr>
+                        <td>배기량</td>
+                        <td>${cc.toLocaleString()}cc</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td>차량 연식</td>
+                        <td>${carYear}년 (${vehicleAge}년차)</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>기본 자동차세</td>
+                        <td>${baseTax.toLocaleString()}원 (${taxDescription})</td>
+                    </tr>
+                    ${ageDiscount > 0 ? `
+                    <tr style="color: #38a169;">
+                        <td>(-) 차령 경감 (${ageDiscountRate}%)</td>
+                        <td>-${ageDiscount.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>경감 후 자동차세</td>
+                        <td>${taxAfterAge.toLocaleString()}원</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td>(+) 지방교육세 (30%)</td>
+                        <td>${localEducationTax.toLocaleString()}원</td>
+                    </tr>
+                    ${exemptionAmount > 0 ? `
+                    <tr style="color: #38a169;">
+                        <td>(-) ${exemptionReason}</td>
+                        <td>-${exemptionAmount.toLocaleString()}원</td>
+                    </tr>
+                    ` : ''}
+                    <tr class="total-row">
+                        <td>연간 총 납부세액</td>
+                        <td>${totalTax.toLocaleString()}원</td>
+                    </tr>
+                    <tr>
+                        <td>📅 1월 연납 시 (4.57% 할인)</td>
+                        <td><strong>${annualPayAmount.toLocaleString()}원</strong> (-${annualPayDiscount.toLocaleString()}원)</td>
+                    </tr>
+                    <tr>
+                        <td>📅 반기 납부 (6월/12월)</td>
+                        <td>${Math.round(totalTax / 2).toLocaleString()}원 × 2회</td>
+                    </tr>
+                </tbody>
+            `;
+            
+            // 세율표
+            const isPassengerPrivate = vehicleType === 'passenger' && isPrivate && !isElectric;
+            const isPassengerBusiness = vehicleType === 'passenger' && isBusiness && !isElectric;
+            
+            document.getElementById('carRateTable').innerHTML = `
+                <thead>
+                    <tr>
+                        <th>차량 구분</th>
+                        <th>배기량/조건</th>
+                        <th>세액 (연간)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="${isPassengerPrivate && cc <= 1000 ? 'active-row' : ''}">
+                        <td rowspan="3">비영업용 승용차</td>
+                        <td>1,000cc 이하</td>
+                        <td>cc당 80원</td>
+                    </tr>
+                    <tr class="${isPassengerPrivate && cc > 1000 && cc <= 1600 ? 'active-row' : ''}">
+                        <td>1,000cc~1,600cc</td>
+                        <td>cc당 140원</td>
+                    </tr>
+                    <tr class="${isPassengerPrivate && cc > 1600 ? 'active-row' : ''}">
+                        <td>1,600cc 초과</td>
+                        <td>cc당 200원</td>
+                    </tr>
+                    <tr class="${isPassengerBusiness && cc <= 1600 ? 'active-row' : ''}">
+                        <td rowspan="3">영업용 승용차</td>
+                        <td>1,600cc 이하</td>
+                        <td>cc당 18원</td>
+                    </tr>
+                    <tr class="${isPassengerBusiness && cc > 1600 && cc <= 2500 ? 'active-row' : ''}">
+                        <td>1,600cc~2,500cc</td>
+                        <td>cc당 19원</td>
+                    </tr>
+                    <tr class="${isPassengerBusiness && cc > 2500 ? 'active-row' : ''}">
+                        <td>2,500cc 초과</td>
+                        <td>cc당 24원</td>
+                    </tr>
+                    <tr class="${isElectric && !isBusiness ? 'active-row' : ''}">
+                        <td>전기차/수소차 (비영업)</td>
+                        <td>-</td>
+                        <td>100,000원</td>
+                    </tr>
+                    <tr class="${isElectric && isBusiness ? 'active-row' : ''}">
+                        <td>전기차/수소차 (영업)</td>
+                        <td>-</td>
+                        <td>20,000원</td>
+                    </tr>
+                    <tr class="${vehicleType === 'van' ? 'active-row' : ''}">
+                        <td>승합차</td>
+                        <td>비영업/영업</td>
+                        <td>65,000원 / 25,000원</td>
+                    </tr>
+                    <tr class="${vehicleType === 'truck' ? 'active-row' : ''}">
+                        <td>화물차</td>
+                        <td>비영업/영업</td>
+                        <td>28,500원 / 6,600원</td>
+                    </tr>
+                </tbody>
+            `;
+            
+            // 결과로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // 콤마 입력 재설정
+            setTimeout(() => setupCommaInputs(), 100);
+        }
+
+        function getVehicleTypeName(type) {
+            const names = {
+                'passenger': '승용차',
+                'van': '승합차',
+                'truck': '화물차',
+                'special': '특수차',
+                'motorcycle': '이륜차'
+            };
+            return names[type] || type;
         }
     </script>
 </body>
