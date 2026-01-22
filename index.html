@@ -720,6 +720,13 @@
                     </div>
                     <h3>배란일<br>계산기</h3>
                 </div>
+
+                <div class="calc-card" data-calc="smoking">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #eb5757 0%, #f2994a 100%);">
+                        <i class="fas fa-smoking"></i>
+                    </div>
+                    <h3>흡연<br>계산기</h3>
+                </div>
             </div>
         </div>
 
@@ -900,6 +907,9 @@
                 case 'unit-converter':
                     calcBody.innerHTML = getUnitConverterCalculator();
                     initUnitConverter();
+                    break;
+                case 'smoking':
+                    calcBody.innerHTML = getSmokingCalculator();
                     break;
                 default:
                     calcBody.innerHTML = `<p style="text-align: center; color: #718096;">이 계산기는 준비 중입니다.</p>`;
@@ -11164,6 +11174,729 @@
                 'motorcycle': '이륜차'
             };
             return names[type] || type;
+        }
+
+        // ===== 흡연 계산기 =====
+        function getSmokingCalculator() {
+            return `
+                <style>
+                    .smoking-calculator {
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    
+                    .smoking-form-section {
+                        background: #fff;
+                        border-radius: 16px;
+                        padding: 30px;
+                        margin-bottom: 24px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .smoking-form-title {
+                        font-size: 20px;
+                        font-weight: 700;
+                        color: #eb5757;
+                        margin-bottom: 24px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .smoking-form-title i {
+                        font-size: 24px;
+                    }
+                    
+                    .smoking-form-group {
+                        margin-bottom: 20px;
+                    }
+                    
+                    .smoking-form-group label {
+                        display: block;
+                        font-weight: 600;
+                        color: #333;
+                        margin-bottom: 8px;
+                        font-size: 15px;
+                    }
+                    
+                    .smoking-form-group .label-hint {
+                        font-weight: 400;
+                        color: #888;
+                        font-size: 13px;
+                    }
+                    
+                    .smoking-radio-group {
+                        display: flex;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                    }
+                    
+                    .smoking-radio-item {
+                        flex: 1;
+                        min-width: 140px;
+                    }
+                    
+                    .smoking-radio-item input {
+                        display: none;
+                    }
+                    
+                    .smoking-radio-item label {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 16px 12px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        text-align: center;
+                        background: #fafafa;
+                    }
+                    
+                    .smoking-radio-item label:hover {
+                        border-color: #eb5757;
+                        background: #fff5f5;
+                    }
+                    
+                    .smoking-radio-item input:checked + label {
+                        border-color: #eb5757;
+                        background: linear-gradient(135deg, #eb5757 0%, #f2994a 100%);
+                        color: white;
+                    }
+                    
+                    .smoking-radio-item label i {
+                        font-size: 28px;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .smoking-radio-item label span {
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+                    
+                    .smoking-input-row {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                    }
+                    
+                    .smoking-input-field {
+                        position: relative;
+                    }
+                    
+                    .smoking-input-field input {
+                        width: 100%;
+                        padding: 14px 50px 14px 16px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 10px;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .smoking-input-field input:focus {
+                        outline: none;
+                        border-color: #eb5757;
+                        box-shadow: 0 0 0 3px rgba(235, 87, 87, 0.1);
+                    }
+                    
+                    .smoking-input-suffix {
+                        position: absolute;
+                        right: 16px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #888;
+                        font-weight: 500;
+                    }
+                    
+                    .smoking-btn-calculate {
+                        width: 100%;
+                        padding: 18px;
+                        background: linear-gradient(135deg, #eb5757 0%, #f2994a 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 18px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        margin-top: 10px;
+                    }
+                    
+                    .smoking-btn-calculate:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 25px rgba(235, 87, 87, 0.4);
+                    }
+                    
+                    .smoking-result-section {
+                        display: none;
+                    }
+                    
+                    .smoking-result-section.active {
+                        display: block;
+                        animation: fadeInUp 0.5s ease;
+                    }
+                    
+                    .smoking-summary-card {
+                        background: linear-gradient(135deg, #eb5757 0%, #f2994a 100%);
+                        border-radius: 20px;
+                        padding: 30px;
+                        color: white;
+                        text-align: center;
+                        margin-bottom: 24px;
+                        box-shadow: 0 8px 30px rgba(235, 87, 87, 0.3);
+                    }
+                    
+                    .smoking-summary-title {
+                        font-size: 16px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .smoking-summary-days {
+                        font-size: 48px;
+                        font-weight: 800;
+                        margin-bottom: 4px;
+                    }
+                    
+                    .smoking-summary-days span {
+                        font-size: 24px;
+                        font-weight: 400;
+                    }
+                    
+                    .smoking-summary-subtitle {
+                        font-size: 18px;
+                        margin-top: 16px;
+                        padding-top: 16px;
+                        border-top: 1px solid rgba(255,255,255,0.3);
+                    }
+                    
+                    .smoking-summary-tax {
+                        font-size: 36px;
+                        font-weight: 800;
+                        color: #fff700;
+                        margin-top: 8px;
+                        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    }
+                    
+                    .smoking-cost-card {
+                        background: #fff;
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .smoking-cost-title {
+                        font-size: 16px;
+                        color: #888;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .smoking-cost-amount {
+                        font-size: 32px;
+                        font-weight: 800;
+                        color: #333;
+                    }
+                    
+                    .smoking-cost-desc {
+                        font-size: 14px;
+                        color: #888;
+                        margin-top: 8px;
+                    }
+                    
+                    .smoking-tax-breakdown {
+                        background: #fff;
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .smoking-tax-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #333;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .smoking-tax-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        padding: 16px 0;
+                        border-bottom: 1px solid #f0f0f0;
+                    }
+                    
+                    .smoking-tax-item:last-child {
+                        border-bottom: none;
+                    }
+                    
+                    .smoking-tax-item-left {
+                        flex: 1;
+                    }
+                    
+                    .smoking-tax-item-name {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #333;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .smoking-tax-item-name .tax-icon {
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 16px;
+                    }
+                    
+                    .smoking-tax-item-desc {
+                        font-size: 13px;
+                        color: #888;
+                        margin-top: 4px;
+                        padding-left: 40px;
+                    }
+                    
+                    .smoking-tax-item-amount {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #333;
+                        text-align: right;
+                        white-space: nowrap;
+                    }
+                    
+                    .smoking-warning-box {
+                        background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+                        border: 2px solid #eb5757;
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                    }
+                    
+                    .smoking-warning-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #eb5757;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 12px;
+                    }
+                    
+                    .smoking-warning-text {
+                        font-size: 15px;
+                        color: #c0392b;
+                        line-height: 1.6;
+                    }
+                    
+                    .smoking-tips-section {
+                        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+                        border-radius: 16px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                    }
+                    
+                    .smoking-tips-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #2e7d32;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 16px;
+                    }
+                    
+                    .smoking-tip-item {
+                        background: white;
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-bottom: 12px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    }
+                    
+                    .smoking-tip-item:last-child {
+                        margin-bottom: 0;
+                    }
+                    
+                    .smoking-tip-item-title {
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #2e7d32;
+                        margin-bottom: 6px;
+                    }
+                    
+                    .smoking-tip-item-content {
+                        font-size: 14px;
+                        color: #555;
+                        line-height: 1.5;
+                    }
+                    
+                    .smoking-hotline {
+                        background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+                        border-radius: 12px;
+                        padding: 20px;
+                        color: white;
+                        text-align: center;
+                        margin-top: 16px;
+                    }
+                    
+                    .smoking-hotline-title {
+                        font-size: 14px;
+                        opacity: 0.9;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .smoking-hotline-number {
+                        font-size: 28px;
+                        font-weight: 800;
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .smoking-input-row {
+                            grid-template-columns: 1fr;
+                        }
+                        
+                        .smoking-radio-item {
+                            min-width: 100px;
+                        }
+                        
+                        .smoking-summary-days {
+                            font-size: 36px;
+                        }
+                        
+                        .smoking-summary-tax {
+                            font-size: 28px;
+                        }
+                        
+                        .smoking-cost-amount {
+                            font-size: 24px;
+                        }
+                    }
+                </style>
+                
+                <div class="smoking-calculator">
+                    <form class="smoking-form-section" onsubmit="calculateSmoking(event)">
+                        <div class="smoking-form-title">
+                            <i class="fas fa-smoking"></i>
+                            흡연 정보 입력
+                        </div>
+                        
+                        <div class="smoking-form-group">
+                            <label>피우는 담배 종류</label>
+                            <div class="smoking-radio-group">
+                                <div class="smoking-radio-item">
+                                    <input type="radio" name="cigaretteType" id="typeNormal" value="normal" checked>
+                                    <label for="typeNormal">
+                                        <i class="fas fa-smoking"></i>
+                                        <span>연초 일반형 담배</span>
+                                    </label>
+                                </div>
+                                <div class="smoking-radio-item">
+                                    <input type="radio" name="cigaretteType" id="typeHeat" value="heat">
+                                    <label for="typeHeat">
+                                        <i class="fas fa-fire"></i>
+                                        <span>궐련형 전자담배</span>
+                                    </label>
+                                </div>
+                                <div class="smoking-radio-item">
+                                    <input type="radio" name="cigaretteType" id="typeLiquid" value="liquid">
+                                    <label for="typeLiquid">
+                                        <i class="fas fa-tint"></i>
+                                        <span>액상형 전자담배</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="smoking-input-row">
+                            <div class="smoking-form-group">
+                                <label>
+                                    흡연 기간 
+                                    <span class="label-hint">(1년 미만은 소수점 입력)</span>
+                                </label>
+                                <div class="smoking-input-field">
+                                    <input type="number" id="smokingYears" step="0.1" min="0.1" max="100" placeholder="예: 10" required>
+                                    <span class="smoking-input-suffix">년</span>
+                                </div>
+                            </div>
+                            
+                            <div class="smoking-form-group">
+                                <label>
+                                    하루 흡연량 
+                                    <span class="label-hint">(1갑=1ml)</span>
+                                </label>
+                                <div class="smoking-input-field">
+                                    <input type="number" id="smokingAmount" step="0.1" min="0.1" max="10" placeholder="예: 1" required>
+                                    <span class="smoking-input-suffix">갑/ml</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="smoking-btn-calculate">
+                            <i class="fas fa-calculator"></i>
+                            계산하기
+                        </button>
+                    </form>
+                    
+                    <div class="smoking-result-section" id="smokingResult">
+                        <!-- 결과가 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            `;
+        }
+        
+        function calculateSmoking(e) {
+            e.preventDefault();
+            
+            const cigaretteType = document.querySelector('input[name="cigaretteType"]:checked').value;
+            const years = parseFloat(document.getElementById('smokingYears').value) || 0;
+            const dailyAmount = parseFloat(document.getElementById('smokingAmount').value) || 0;
+            
+            if (years <= 0 || dailyAmount <= 0) {
+                alert('올바른 값을 입력해주세요.');
+                return;
+            }
+            
+            // 총 흡연 일수
+            const totalDays = Math.round(years * 365);
+            
+            // 담배 가격 (2024년 기준 4,500원)
+            const pricePerPack = 4500;
+            
+            // 총 담배 비용
+            const totalCost = Math.round(totalDays * dailyAmount * pricePerPack);
+            
+            // 담배 세금 구조 (1갑 4,500원 기준)
+            // 담배 소비세: 1,007원 (약 22.4%)
+            // 지방교육세: 443원 (약 9.8%)
+            // 건강증진기금: 841원 (약 18.7%)
+            // 개별소비세: 594원 (약 13.2%)
+            // 폐기물부담금: 24.4원 (약 0.5%)
+            // 부가가치세: 409원 (약 9.1%)
+            // 총 세금: 약 3,318.4원 (약 73.7%)
+            
+            let taxRates;
+            if (cigaretteType === 'normal') {
+                // 연초 일반형 담배
+                taxRates = {
+                    cigaretteTax: 1007 / 4500,        // 담배소비세
+                    localEducationTax: 443 / 4500,   // 지방교육세
+                    healthFund: 841 / 4500,          // 건강증진기금
+                    individualTax: 594 / 4500,       // 개별소비세
+                    wasteFee: 24.4 / 4500,           // 폐기물부담금
+                    vat: 409 / 4500                  // 부가가치세
+                };
+            } else if (cigaretteType === 'heat') {
+                // 궐련형 전자담배 (연초의 90%)
+                taxRates = {
+                    cigaretteTax: (1007 * 0.9) / 4500,
+                    localEducationTax: (443 * 0.9) / 4500,
+                    healthFund: (841 * 0.9) / 4500,
+                    individualTax: (594 * 0.9) / 4500,
+                    wasteFee: (24.4 * 0.9) / 4500,
+                    vat: (409 * 0.9) / 4500
+                };
+            } else {
+                // 액상형 전자담배 (니코틴 1ml당 기준)
+                taxRates = {
+                    cigaretteTax: 628 / 4500,
+                    localEducationTax: 276 / 4500,
+                    healthFund: 525 / 4500,
+                    individualTax: 370 / 4500,
+                    wasteFee: 15 / 4500,
+                    vat: 255 / 4500
+                };
+            }
+            
+            // 각 세금 계산
+            const cigaretteTax = Math.round(totalCost * taxRates.cigaretteTax);
+            const localEducationTax = Math.round(totalCost * taxRates.localEducationTax);
+            const healthFund = Math.round(totalCost * taxRates.healthFund);
+            const individualTax = Math.round(totalCost * taxRates.individualTax);
+            const wasteFee = Math.round(totalCost * taxRates.wasteFee);
+            const vat = Math.round(totalCost * taxRates.vat);
+            
+            const totalTax = cigaretteTax + localEducationTax + healthFund + individualTax + wasteFee + vat;
+            
+            // 담배 종류 이름
+            const typeNames = {
+                'normal': '연초 일반형 담배',
+                'heat': '궐련형 전자담배',
+                'liquid': '액상형 전자담배'
+            };
+            
+            const resultHTML = `
+                <div class="smoking-summary-card">
+                    <div class="smoking-summary-title">당신이 <strong>${typeNames[cigaretteType]}</strong>를 피운 기간</div>
+                    <div class="smoking-summary-days">
+                        ${formatNumberWithComma(totalDays)} <span>일</span>
+                    </div>
+                    <div class="smoking-summary-subtitle">동안 나라에 지불한 담뱃세는 총</div>
+                    <div class="smoking-summary-tax">${formatNumberWithComma(totalTax)}원</div>
+                </div>
+                
+                <div class="smoking-cost-card">
+                    <div class="smoking-cost-title">💸 그동안 담배에 쓴 총 비용</div>
+                    <div class="smoking-cost-amount">${formatNumberWithComma(totalCost)}원</div>
+                    <div class="smoking-cost-desc">1갑 ${formatNumberWithComma(pricePerPack)}원 기준 / 하루 ${dailyAmount}갑 × ${formatNumberWithComma(totalDays)}일</div>
+                </div>
+                
+                <div class="smoking-tax-breakdown">
+                    <div class="smoking-tax-title">
+                        <i class="fas fa-receipt"></i>
+                        담뱃세 상세 내역
+                    </div>
+                    
+                    <div class="smoking-tax-item">
+                        <div class="smoking-tax-item-left">
+                            <div class="smoking-tax-item-name">
+                                <span class="tax-icon" style="background: #e3f2fd;">🏛️</span>
+                                담배소비세
+                            </div>
+                            <div class="smoking-tax-item-desc">내가 살고 있는 동네(시, 군, 구)의 운영비로 사용</div>
+                        </div>
+                        <div class="smoking-tax-item-amount">${formatNumberWithComma(cigaretteTax)}원</div>
+                    </div>
+                    
+                    <div class="smoking-tax-item">
+                        <div class="smoking-tax-item-left">
+                            <div class="smoking-tax-item-name">
+                                <span class="tax-icon" style="background: #fff3e0;">🏫</span>
+                                지방교육세
+                            </div>
+                            <div class="smoking-tax-item-desc">선생님들의 월급, 학교 운영 물품 구입</div>
+                        </div>
+                        <div class="smoking-tax-item-amount">${formatNumberWithComma(localEducationTax)}원</div>
+                    </div>
+                    
+                    <div class="smoking-tax-item">
+                        <div class="smoking-tax-item-left">
+                            <div class="smoking-tax-item-name">
+                                <span class="tax-icon" style="background: #e8f5e9;">💪</span>
+                                건강증진기금
+                            </div>
+                            <div class="smoking-tax-item-desc">국민건강보험 적자 충당, 감염병 관리 기술 개발, 국가병원 현대화 사업 등</div>
+                        </div>
+                        <div class="smoking-tax-item-amount">${formatNumberWithComma(healthFund)}원</div>
+                    </div>
+                    
+                    <div class="smoking-tax-item">
+                        <div class="smoking-tax-item-left">
+                            <div class="smoking-tax-item-name">
+                                <span class="tax-icon" style="background: #ffebee;">🚒</span>
+                                개별소비세
+                            </div>
+                            <div class="smoking-tax-item-desc">소방관 월급, 소방서 설비 등</div>
+                        </div>
+                        <div class="smoking-tax-item-amount">${formatNumberWithComma(individualTax)}원</div>
+                    </div>
+                    
+                    <div class="smoking-tax-item">
+                        <div class="smoking-tax-item-left">
+                            <div class="smoking-tax-item-name">
+                                <span class="tax-icon" style="background: #fce4ec;">🗑️</span>
+                                폐기물부담금
+                            </div>
+                            <div class="smoking-tax-item-desc">담배꽁초 처리 비용으로 사용되어야 하지 않을까? 🤔</div>
+                        </div>
+                        <div class="smoking-tax-item-amount">${formatNumberWithComma(wasteFee)}원</div>
+                    </div>
+                    
+                    <div class="smoking-tax-item">
+                        <div class="smoking-tax-item-left">
+                            <div class="smoking-tax-item-name">
+                                <span class="tax-icon" style="background: #f3e5f5;">💎</span>
+                                부가가치세
+                            </div>
+                            <div class="smoking-tax-item-desc">국가 운영에 필요한 국세로 활용</div>
+                        </div>
+                        <div class="smoking-tax-item-amount">${formatNumberWithComma(vat)}원</div>
+                    </div>
+                </div>
+                
+                <div class="smoking-warning-box">
+                    <div class="smoking-warning-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        이 중 한 푼도 흡연자를 위해 사용되지 않는다는 사실 😤
+                    </div>
+                    <div class="smoking-warning-text">
+                        담뱃세는 <strong>흡연구역 증설</strong>이나 <strong>흡연자 편의시설</strong>에 사용해야 하지 않을까요?<br>
+                        그런데 담뱃세 중 흡연자에게 직접 돌아오는 혜택은 거의 없습니다. 🤷‍♂️
+                    </div>
+                </div>
+                
+                <div class="smoking-tips-section">
+                    <div class="smoking-tips-title">
+                        <i class="fas fa-leaf"></i>
+                        금연 관련 정보 & 팁
+                    </div>
+                    
+                    <div class="smoking-tip-item">
+                        <div class="smoking-tip-item-title">🏥 금연치료 지원사업</div>
+                        <div class="smoking-tip-item-content">
+                            전국 보건소에서 무료 금연상담 및 금연보조제를 제공합니다. 
+                            금연 패치, 껌, 사탕 등을 무료로 받을 수 있어요!
+                        </div>
+                    </div>
+                    
+                    <div class="smoking-tip-item">
+                        <div class="smoking-tip-item-title">💊 병원 금연치료</div>
+                        <div class="smoking-tip-item-content">
+                            건강보험이 적용되는 금연치료 프로그램이 있습니다. 
+                            8~12주간 총 6회 진료 시 본인부담금 최대 6만원만 납부!
+                        </div>
+                    </div>
+                    
+                    <div class="smoking-tip-item">
+                        <div class="smoking-tip-item-title">📱 금연길라잡이 앱</div>
+                        <div class="smoking-tip-item-content">
+                            금연 진행 상황 체크, 금연으로 아낀 돈 확인, 건강 회복 상태를 
+                            실시간으로 확인할 수 있는 무료 앱입니다.
+                        </div>
+                    </div>
+                    
+                    <div class="smoking-tip-item">
+                        <div class="smoking-tip-item-title">⏰ 금연 후 신체 변화</div>
+                        <div class="smoking-tip-item-content">
+                            • 20분: 혈압, 맥박 정상화<br>
+                            • 8시간: 혈중 일산화탄소 정상화<br>
+                            • 48시간: 후각, 미각 회복 시작<br>
+                            • 2주~3개월: 폐기능 30% 향상<br>
+                            • 1년: 심장병 위험 50% 감소
+                        </div>
+                    </div>
+                    
+                    <div class="smoking-tip-item">
+                        <div class="smoking-tip-item-title">💰 금연으로 절약되는 금액</div>
+                        <div class="smoking-tip-item-content">
+                            하루 1갑 기준으로 1년이면 약 <strong>${formatNumberWithComma(Math.round(pricePerPack * 365))}원</strong>,<br>
+                            10년이면 약 <strong>${formatNumberWithComma(Math.round(pricePerPack * 365 * 10))}원</strong>을 절약할 수 있습니다!
+                        </div>
+                    </div>
+                    
+                    <div class="smoking-hotline">
+                        <div class="smoking-hotline-title">금연상담전화 (무료)</div>
+                        <div class="smoking-hotline-number">📞 1544-9030</div>
+                    </div>
+                </div>
+            `;
+            
+            const resultSection = document.getElementById('smokingResult');
+            resultSection.innerHTML = resultHTML;
+            resultSection.classList.add('active');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     </script>
 </body>
