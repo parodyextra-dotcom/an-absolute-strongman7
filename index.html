@@ -897,6 +897,10 @@
                 case 'car-tax':
                     calcBody.innerHTML = getCarTaxCalculator();
                     break;
+                case 'unit-converter':
+                    calcBody.innerHTML = getUnitConverterCalculator();
+                    initUnitConverter();
+                    break;
                 default:
                     calcBody.innerHTML = `<p style="text-align: center; color: #718096;">이 계산기는 준비 중입니다.</p>`;
             }
@@ -3128,40 +3132,326 @@
 
         function getPercentageCalculator() {
             return `
-                <form class="calc-form" onsubmit="calculatePercentage(event)">
-                    <div class="form-group">
-                        <label>전체 값</label>
-                        <input type="number" id="percentTotal" placeholder="1000" required>
+                <div class="percent-calc-container">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary-color);">
+                        <i class="fas fa-percent"></i> 계산할 방식을 선택하세요
+                    </h3>
+                    
+                    <div class="percent-method-tabs">
+                        <button class="percent-tab active" onclick="selectPercentMethod(1, this)">
+                            <i class="fas fa-calculator"></i>
+                            <span>A의 B%는?</span>
+                        </button>
+                        <button class="percent-tab" onclick="selectPercentMethod(2, this)">
+                            <i class="fas fa-percentage"></i>
+                            <span>A는 B의 몇%?</span>
+                        </button>
+                        <button class="percent-tab" onclick="selectPercentMethod(3, this)">
+                            <i class="fas fa-search-plus"></i>
+                            <span>B%가 A일 때 전체는?</span>
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>퍼센트 (%)</label>
-                        <input type="number" step="0.1" id="percentValue" placeholder="15" required>
+
+                    <div id="percentMethodDesc" class="percent-method-desc">
+                        <i class="fas fa-info-circle"></i>
+                        <span>예: 1000의 15%는 얼마인가요?</span>
                     </div>
-                    <button type="submit" class="btn-calculate">계산하기</button>
-                </form>
-                <div class="result-box" id="percentResult"></div>
+
+                    <form class="calc-form" onsubmit="calculatePercentage(event)">
+                        <input type="hidden" id="percentMethod" value="1">
+                        
+                        <div class="form-group">
+                            <label id="labelA"><i class="fas fa-a"></i> 값 A (기준 값)</label>
+                            <input type="number" step="any" id="percentA" placeholder="1000" required>
+                        </div>
+                        <div class="form-group">
+                            <label id="labelB"><i class="fas fa-b"></i> 값 B (퍼센트 %)</label>
+                            <input type="number" step="any" id="percentB" placeholder="15" required>
+                        </div>
+                        <button type="submit" class="btn-calculate">
+                            <i class="fas fa-calculator"></i> 계산하기
+                        </button>
+                    </form>
+                    
+                    <div class="result-box" id="percentResult"></div>
+
+                    <div class="percent-tips">
+                        <h4><i class="fas fa-lightbulb"></i> 퍼센트 계산 활용 팁</h4>
+                        <div class="tip-grid">
+                            <div class="tip-item">
+                                <i class="fas fa-shopping-cart"></i>
+                                <strong>할인 계산</strong>
+                                <p>정가 50,000원에서 20% 할인 시 할인 금액 계산</p>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-chart-line"></i>
+                                <strong>성장률/변화율</strong>
+                                <p>매출 120만원이 150만원으로 → 몇 % 증가?</p>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-piggy-bank"></i>
+                                <strong>이자/수익률</strong>
+                                <p>원금 대비 이자가 몇 %인지, 투자 수익률 계산</p>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-utensils"></i>
+                                <strong>팁 계산</strong>
+                                <p>식사비의 15~20% 팁 계산 시 활용</p>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-home"></i>
+                                <strong>세금/수수료</strong>
+                                <p>부동산 중개수수료, 세금 계산 등</p>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-graduation-cap"></i>
+                                <strong>점수/성적</strong>
+                                <p>전체 문제 중 맞힌 비율, 성적 계산</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .percent-calc-container {
+                        max-width: 100%;
+                    }
+                    .percent-method-tabs {
+                        display: flex;
+                        gap: 10px;
+                        margin-bottom: 20px;
+                        flex-wrap: wrap;
+                    }
+                    .percent-tab {
+                        flex: 1;
+                        min-width: 140px;
+                        padding: 15px 10px;
+                        border: 2px solid #e2e8f0;
+                        background: white;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .percent-tab i {
+                        font-size: 24px;
+                        color: var(--primary-color);
+                    }
+                    .percent-tab span {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: var(--text-dark);
+                    }
+                    .percent-tab:hover {
+                        border-color: var(--primary-color);
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+                    }
+                    .percent-tab.active {
+                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                        border-color: transparent;
+                    }
+                    .percent-tab.active i,
+                    .percent-tab.active span {
+                        color: white;
+                    }
+                    .percent-method-desc {
+                        background: linear-gradient(135deg, #e0e7ff 0%, #f0e6ff 100%);
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        font-size: 15px;
+                        color: var(--primary-color);
+                    }
+                    .percent-method-desc i {
+                        font-size: 20px;
+                    }
+                    .percent-tips {
+                        margin-top: 30px;
+                        padding: 25px;
+                        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                        border-radius: 16px;
+                        border: 1px solid #e2e8f0;
+                    }
+                    .percent-tips h4 {
+                        color: var(--primary-color);
+                        margin-bottom: 20px;
+                        font-size: 18px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .percent-tips h4 i {
+                        color: #f59e0b;
+                    }
+                    .tip-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 15px;
+                    }
+                    .tip-item {
+                        background: white;
+                        padding: 18px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                        transition: all 0.3s ease;
+                    }
+                    .tip-item:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+                    }
+                    .tip-item i {
+                        font-size: 28px;
+                        color: var(--primary-color);
+                        margin-bottom: 10px;
+                        display: block;
+                    }
+                    .tip-item strong {
+                        display: block;
+                        margin-bottom: 8px;
+                        color: var(--text-dark);
+                        font-size: 15px;
+                    }
+                    .tip-item p {
+                        font-size: 13px;
+                        color: var(--text-light);
+                        line-height: 1.5;
+                    }
+                    @media (max-width: 600px) {
+                        .percent-method-tabs {
+                            flex-direction: column;
+                        }
+                        .percent-tab {
+                            flex-direction: row;
+                            justify-content: center;
+                        }
+                    }
+                </style>
             `;
+        }
+
+        function selectPercentMethod(method, btn) {
+            // 탭 활성화 변경
+            document.querySelectorAll('.percent-tab').forEach(tab => tab.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // 숨겨진 값 업데이트
+            document.getElementById('percentMethod').value = method;
+            
+            // 라벨과 설명 업데이트
+            const labelA = document.getElementById('labelA');
+            const labelB = document.getElementById('labelB');
+            const desc = document.getElementById('percentMethodDesc');
+            const inputA = document.getElementById('percentA');
+            const inputB = document.getElementById('percentB');
+            
+            switch(method) {
+                case 1:
+                    labelA.innerHTML = '<i class="fas fa-a"></i> 값 A (기준 값)';
+                    labelB.innerHTML = '<i class="fas fa-b"></i> 값 B (퍼센트 %)';
+                    inputA.placeholder = '1000';
+                    inputB.placeholder = '15';
+                    desc.innerHTML = '<i class="fas fa-info-circle"></i><span>예: 1000의 15%는 얼마인가요? → 150</span>';
+                    break;
+                case 2:
+                    labelA.innerHTML = '<i class="fas fa-a"></i> 값 A (부분 값)';
+                    labelB.innerHTML = '<i class="fas fa-b"></i> 값 B (전체 값)';
+                    inputA.placeholder = '30';
+                    inputB.placeholder = '200';
+                    desc.innerHTML = '<i class="fas fa-info-circle"></i><span>예: 30은 200의 몇 %? → 15%</span>';
+                    break;
+                case 3:
+                    labelA.innerHTML = '<i class="fas fa-a"></i> 값 A (부분 값)';
+                    labelB.innerHTML = '<i class="fas fa-b"></i> 값 B (해당 퍼센트 %)';
+                    inputA.placeholder = '150';
+                    inputB.placeholder = '15';
+                    desc.innerHTML = '<i class="fas fa-info-circle"></i><span>예: 15%가 150일 때 전체는? → 1000</span>';
+                    break;
+            }
+            
+            // 입력 필드 초기화
+            inputA.value = '';
+            inputB.value = '';
+            document.getElementById('percentResult').className = 'result-box';
+            document.getElementById('percentResult').innerHTML = '';
         }
 
         function calculatePercentage(e) {
             e.preventDefault();
-            const total = parseFloat(document.getElementById('percentTotal').value);
-            const percent = parseFloat(document.getElementById('percentValue').value);
+            const method = parseInt(document.getElementById('percentMethod').value);
+            const a = parseFloat(document.getElementById('percentA').value);
+            const b = parseFloat(document.getElementById('percentB').value);
             
-            const result = total * (percent / 100);
+            let result, resultTitle, resultItems;
+            
+            switch(method) {
+                case 1: // A의 B%는?
+                    result = a * (b / 100);
+                    resultTitle = 'A의 B% 계산 결과';
+                    resultItems = `
+                        <div class="result-item">
+                            <span class="result-label">계산식</span>
+                            <span class="result-value">${a.toLocaleString()} × ${b}%</span>
+                        </div>
+                        <div class="result-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; padding: 15px;">
+                            <span class="result-label" style="color: rgba(255,255,255,0.9);">${a.toLocaleString()}의 ${b}%는</span>
+                            <span class="result-value" style="font-size: 28px; color: white;">${result.toLocaleString()}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">남은 값 (${100-b}%)</span>
+                            <span class="result-value">${(a - result).toLocaleString()}</span>
+                        </div>
+                    `;
+                    break;
+                case 2: // A는 B의 몇%?
+                    result = (a / b) * 100;
+                    resultTitle = 'A가 B의 몇 %인지 계산';
+                    resultItems = `
+                        <div class="result-item">
+                            <span class="result-label">계산식</span>
+                            <span class="result-value">${a.toLocaleString()} ÷ ${b.toLocaleString()} × 100</span>
+                        </div>
+                        <div class="result-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; padding: 15px;">
+                            <span class="result-label" style="color: rgba(255,255,255,0.9);">${a.toLocaleString()}은(는) ${b.toLocaleString()}의</span>
+                            <span class="result-value" style="font-size: 28px; color: white;">${result.toFixed(2)}%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">나머지 비율</span>
+                            <span class="result-value">${(100 - result).toFixed(2)}%</span>
+                        </div>
+                    `;
+                    break;
+                case 3: // B%가 A일 때 전체는?
+                    result = a / (b / 100);
+                    resultTitle = '전체 값 역산 결과';
+                    resultItems = `
+                        <div class="result-item">
+                            <span class="result-label">계산식</span>
+                            <span class="result-value">${a.toLocaleString()} ÷ ${b}% × 100</span>
+                        </div>
+                        <div class="result-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; padding: 15px;">
+                            <span class="result-label" style="color: rgba(255,255,255,0.9);">${b}%가 ${a.toLocaleString()}일 때 전체는</span>
+                            <span class="result-value" style="font-size: 28px; color: white;">${result.toLocaleString()}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">나머지 ${100-b}%의 값</span>
+                            <span class="result-value">${(result - a).toLocaleString()}</span>
+                        </div>
+                    `;
+                    break;
+            }
             
             const resultBox = document.getElementById('percentResult');
             resultBox.className = 'result-box active';
             resultBox.innerHTML = `
-                <h3>퍼센트 계산 결과</h3>
-                <div class="result-item">
-                    <span class="result-label">${total.toLocaleString()}의 ${percent}%</span>
-                    <span class="result-value">${result.toLocaleString()}</span>
-                </div>
-                <div class="result-item">
-                    <span class="result-label">남은 값</span>
-                    <span class="result-value">${(total - result).toLocaleString()}</span>
-                </div>
+                <h3><i class="fas fa-check-circle" style="color: #10b981;"></i> ${resultTitle}</h3>
+                ${resultItems}
             `;
         }
 
@@ -4461,6 +4751,665 @@
                 </div>
             `;
         }
+
+        // ============ 단위환산 계산기 ============
+        const unitConversionData = {
+            length: {
+                name: '길이',
+                icon: 'fas fa-ruler',
+                color: '#667eea',
+                description: '길이는 물체의 한 끝에서 다른 끝까지의 거리입니다. SI 기본단위는 미터(m)입니다.',
+                units: {
+                    'km': { name: '킬로미터 (km)', toBase: 1000 },
+                    'm': { name: '미터 (m)', toBase: 1 },
+                    'cm': { name: '센티미터 (cm)', toBase: 0.01 },
+                    'mm': { name: '밀리미터 (mm)', toBase: 0.001 },
+                    'in': { name: '인치 (in)', toBase: 0.0254 },
+                    'ft': { name: '피트 (ft)', toBase: 0.3048 },
+                    'yd': { name: '야드 (yd)', toBase: 0.9144 },
+                    'mi': { name: '마일 (mi)', toBase: 1609.344 },
+                    'nm': { name: '해리 (nm)', toBase: 1852 },
+                    'li': { name: '리 (里)', toBase: 392.727 },
+                    'ja': { name: '자 (尺)', toBase: 0.303 }
+                },
+                tips: [
+                    { icon: 'fas fa-running', title: '마라톤', desc: '풀 마라톤은 42.195km (약 26.2마일)' },
+                    { icon: 'fas fa-plane', title: '비행기 고도', desc: '순항 고도 약 10,000m (33,000ft)' },
+                    { icon: 'fas fa-child', title: '신장 환산', desc: '180cm = 약 5피트 11인치' }
+                ]
+            },
+            area: {
+                name: '넓이',
+                icon: 'fas fa-vector-square',
+                color: '#f093fb',
+                description: '넓이는 2차원 평면이 차지하는 공간의 크기입니다. SI 단위는 제곱미터(m²)입니다.',
+                units: {
+                    'km2': { name: '제곱킬로미터 (km²)', toBase: 1000000 },
+                    'm2': { name: '제곱미터 (m²)', toBase: 1 },
+                    'cm2': { name: '제곱센티미터 (cm²)', toBase: 0.0001 },
+                    'ha': { name: '헥타르 (ha)', toBase: 10000 },
+                    'ac': { name: '에이커 (ac)', toBase: 4046.8564224 },
+                    'pyeong': { name: '평 (坪)', toBase: 3.305785 },
+                    'ft2': { name: '제곱피트 (ft²)', toBase: 0.09290304 },
+                    'in2': { name: '제곱인치 (in²)', toBase: 0.00064516 },
+                    'yd2': { name: '제곱야드 (yd²)', toBase: 0.83612736 }
+                },
+                tips: [
+                    { icon: 'fas fa-home', title: '아파트 평수', desc: '30평 = 약 99.17m² (전용면적)' },
+                    { icon: 'fas fa-futbol', title: '축구장', desc: '약 7,140m² (약 2,160평)' },
+                    { icon: 'fas fa-city', title: '서울 면적', desc: '약 605km² (약 1억 8천만평)' }
+                ]
+            },
+            speed: {
+                name: '속도',
+                icon: 'fas fa-tachometer-alt',
+                color: '#4facfe',
+                description: '속도는 물체가 단위 시간 동안 이동한 거리입니다. SI 단위는 m/s입니다.',
+                units: {
+                    'mps': { name: '미터/초 (m/s)', toBase: 1 },
+                    'kmh': { name: '킬로미터/시 (km/h)', toBase: 0.277778 },
+                    'mph': { name: '마일/시 (mph)', toBase: 0.44704 },
+                    'knot': { name: '노트 (knot)', toBase: 0.514444 },
+                    'fps': { name: '피트/초 (ft/s)', toBase: 0.3048 },
+                    'mach': { name: '마하 (Mach)', toBase: 343 }
+                },
+                tips: [
+                    { icon: 'fas fa-car', title: '고속도로', desc: '100km/h = 약 62mph = 약 27.8m/s' },
+                    { icon: 'fas fa-fighter-jet', title: '음속', desc: '마하 1 = 약 1,235km/h (해수면 기준)' },
+                    { icon: 'fas fa-ship', title: '선박 속도', desc: '1노트 = 약 1.852km/h' }
+                ]
+            },
+            temperature: {
+                name: '온도',
+                icon: 'fas fa-thermometer-half',
+                color: '#fa709a',
+                description: '온도는 물체의 열적 상태를 나타내는 물리량입니다. SI 단위는 켈빈(K)입니다.',
+                units: {
+                    'c': { name: '섭씨 (°C)', toBase: 'special' },
+                    'f': { name: '화씨 (°F)', toBase: 'special' },
+                    'k': { name: '켈빈 (K)', toBase: 'special' }
+                },
+                tips: [
+                    { icon: 'fas fa-snowflake', title: '물의 어는점', desc: '0°C = 32°F = 273.15K' },
+                    { icon: 'fas fa-fire', title: '물의 끓는점', desc: '100°C = 212°F = 373.15K' },
+                    { icon: 'fas fa-user', title: '체온', desc: '36.5°C = 약 97.7°F' }
+                ]
+            },
+            pressure: {
+                name: '압력',
+                icon: 'fas fa-compress-arrows-alt',
+                color: '#30cfd0',
+                description: '압력은 단위 면적당 가해지는 힘입니다. SI 단위는 파스칼(Pa)입니다.',
+                units: {
+                    'pa': { name: '파스칼 (Pa)', toBase: 1 },
+                    'kpa': { name: '킬로파스칼 (kPa)', toBase: 1000 },
+                    'mpa': { name: '메가파스칼 (MPa)', toBase: 1000000 },
+                    'bar': { name: '바 (bar)', toBase: 100000 },
+                    'atm': { name: '기압 (atm)', toBase: 101325 },
+                    'psi': { name: '파운드/제곱인치 (psi)', toBase: 6894.757 },
+                    'mmhg': { name: '수은주밀리미터 (mmHg)', toBase: 133.322 },
+                    'torr': { name: '토르 (Torr)', toBase: 133.322 }
+                },
+                tips: [
+                    { icon: 'fas fa-cloud', title: '대기압', desc: '1기압 = 101,325Pa = 약 14.7psi' },
+                    { icon: 'fas fa-car', title: '타이어 압력', desc: '약 32psi = 약 2.2bar' },
+                    { icon: 'fas fa-heartbeat', title: '혈압', desc: '정상 혈압: 120/80 mmHg' }
+                ]
+            },
+            weight: {
+                name: '무게',
+                icon: 'fas fa-weight-hanging',
+                color: '#f5576c',
+                description: '무게(질량)은 물체가 가진 물질의 양입니다. SI 단위는 킬로그램(kg)입니다.',
+                units: {
+                    't': { name: '톤 (t)', toBase: 1000 },
+                    'kg': { name: '킬로그램 (kg)', toBase: 1 },
+                    'g': { name: '그램 (g)', toBase: 0.001 },
+                    'mg': { name: '밀리그램 (mg)', toBase: 0.000001 },
+                    'lb': { name: '파운드 (lb)', toBase: 0.453592 },
+                    'oz': { name: '온스 (oz)', toBase: 0.0283495 },
+                    'geun': { name: '근 (斤)', toBase: 0.6 },
+                    'don': { name: '돈 (錢)', toBase: 0.00375 }
+                },
+                tips: [
+                    { icon: 'fas fa-dumbbell', title: '파운드 환산', desc: '1kg = 약 2.2lb' },
+                    { icon: 'fas fa-apple-alt', title: '한 근', desc: '과일/야채 1근 = 600g' },
+                    { icon: 'fas fa-ring', title: '금 돈', desc: '1돈 = 3.75g (금반지 기준)' }
+                ]
+            },
+            volume: {
+                name: '부피',
+                icon: 'fas fa-cube',
+                color: '#764ba2',
+                description: '부피는 3차원 공간에서 물체가 차지하는 공간의 크기입니다. SI 단위는 세제곱미터(m³)입니다.',
+                units: {
+                    'm3': { name: '세제곱미터 (m³)', toBase: 1 },
+                    'l': { name: '리터 (L)', toBase: 0.001 },
+                    'ml': { name: '밀리리터 (mL)', toBase: 0.000001 },
+                    'cm3': { name: '세제곱센티미터 (cm³)', toBase: 0.000001 },
+                    'gal': { name: '갤런 (US gal)', toBase: 0.00378541 },
+                    'qt': { name: '쿼트 (qt)', toBase: 0.000946353 },
+                    'pt': { name: '파인트 (pt)', toBase: 0.000473176 },
+                    'cup': { name: '컵 (cup)', toBase: 0.000236588 },
+                    'floz': { name: '액량온스 (fl oz)', toBase: 0.0000295735 }
+                },
+                tips: [
+                    { icon: 'fas fa-tint', title: '물 1리터', desc: '1L = 1,000mL = 약 0.264갤런' },
+                    { icon: 'fas fa-gas-pump', title: '기름 갤런', desc: '1갤런(US) = 약 3.785L' },
+                    { icon: 'fas fa-mug-hot', title: '커피 한 잔', desc: '약 240mL = 1컵(US)' }
+                ]
+            }
+        };
+
+        function getUnitConverterCalculator() {
+            return `
+                <div class="unit-converter-container">
+                    <div class="unit-category-tabs">
+                        ${Object.entries(unitConversionData).map(([key, cat]) => `
+                            <button class="unit-cat-tab ${key === 'length' ? 'active' : ''}" 
+                                    onclick="selectUnitCategory('${key}', this)"
+                                    style="--cat-color: ${cat.color}">
+                                <i class="${cat.icon}"></i>
+                                <span>${cat.name}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div class="unit-description" id="unitDescription">
+                        <i class="fas fa-info-circle"></i>
+                        <span>${unitConversionData.length.description}</span>
+                    </div>
+
+                    <div class="unit-converter-main">
+                        <div class="unit-input-group">
+                            <label><i class="fas fa-arrow-right"></i> 변환할 값</label>
+                            <div class="unit-input-row">
+                                <input type="number" step="any" id="unitValueFrom" placeholder="1" oninput="convertUnit('from')">
+                                <select id="unitSelectFrom" onchange="convertUnit('from')"></select>
+                            </div>
+                        </div>
+
+                        <button class="unit-swap-btn" onclick="swapUnits()" title="단위 교환">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+
+                        <div class="unit-input-group">
+                            <label><i class="fas fa-arrow-left"></i> 변환 결과</label>
+                            <div class="unit-input-row">
+                                <input type="number" step="any" id="unitValueTo" placeholder="결과" oninput="convertUnit('to')">
+                                <select id="unitSelectTo" onchange="convertUnit('from')"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="unit-result-box" id="unitResultBox">
+                        <div class="unit-result-formula" id="unitFormula"></div>
+                    </div>
+
+                    <div class="unit-all-conversions" id="unitAllConversions">
+                        <h4><i class="fas fa-list"></i> 모든 단위로 변환</h4>
+                        <div class="unit-grid" id="unitGrid"></div>
+                    </div>
+
+                    <div class="unit-tips-section" id="unitTips">
+                        <h4><i class="fas fa-lightbulb"></i> 알아두면 유용한 팁</h4>
+                        <div class="unit-tips-grid" id="unitTipsGrid"></div>
+                    </div>
+                </div>
+
+                <style>
+                    .unit-converter-container {
+                        max-width: 100%;
+                    }
+                    .unit-category-tabs {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 8px;
+                        margin-bottom: 20px;
+                    }
+                    .unit-cat-tab {
+                        padding: 12px 16px;
+                        border: 2px solid #e2e8f0;
+                        background: white;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
+                    .unit-cat-tab i {
+                        font-size: 18px;
+                        color: var(--cat-color);
+                    }
+                    .unit-cat-tab:hover {
+                        border-color: var(--cat-color);
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    }
+                    .unit-cat-tab.active {
+                        background: var(--cat-color);
+                        border-color: var(--cat-color);
+                        color: white;
+                    }
+                    .unit-cat-tab.active i {
+                        color: white;
+                    }
+                    .unit-description {
+                        background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+                        padding: 15px 20px;
+                        border-radius: 12px;
+                        margin-bottom: 25px;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                        font-size: 14px;
+                        color: #4a5568;
+                        line-height: 1.6;
+                    }
+                    .unit-description i {
+                        color: var(--primary-color);
+                        font-size: 20px;
+                        margin-top: 2px;
+                    }
+                    .unit-converter-main {
+                        background: white;
+                        border-radius: 16px;
+                        padding: 25px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                        display: flex;
+                        flex-direction: column;
+                        gap: 15px;
+                        position: relative;
+                    }
+                    .unit-input-group {
+                        flex: 1;
+                    }
+                    .unit-input-group label {
+                        display: block;
+                        font-weight: 600;
+                        margin-bottom: 10px;
+                        color: var(--text-dark);
+                        font-size: 14px;
+                    }
+                    .unit-input-group label i {
+                        color: var(--primary-color);
+                        margin-right: 5px;
+                    }
+                    .unit-input-row {
+                        display: flex;
+                        gap: 10px;
+                    }
+                    .unit-input-row input {
+                        flex: 1;
+                        padding: 15px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        font-size: 18px;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                    }
+                    .unit-input-row input:focus {
+                        outline: none;
+                        border-color: var(--primary-color);
+                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+                    }
+                    .unit-input-row select {
+                        min-width: 180px;
+                        padding: 15px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        background: white;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .unit-input-row select:focus {
+                        outline: none;
+                        border-color: var(--primary-color);
+                    }
+                    .unit-swap-btn {
+                        align-self: center;
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        border: none;
+                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                        color: white;
+                        font-size: 20px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    }
+                    .unit-swap-btn:hover {
+                        transform: rotate(180deg) scale(1.1);
+                    }
+                    .unit-result-box {
+                        margin-top: 20px;
+                        padding: 20px;
+                        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                        border-radius: 16px;
+                        color: white;
+                        display: none;
+                    }
+                    .unit-result-box.active {
+                        display: block;
+                    }
+                    .unit-result-formula {
+                        text-align: center;
+                        font-size: 22px;
+                        font-weight: 700;
+                    }
+                    .unit-all-conversions {
+                        margin-top: 25px;
+                        padding: 25px;
+                        background: #f8fafc;
+                        border-radius: 16px;
+                        display: none;
+                    }
+                    .unit-all-conversions.active {
+                        display: block;
+                    }
+                    .unit-all-conversions h4 {
+                        margin-bottom: 20px;
+                        color: var(--text-dark);
+                        font-size: 16px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .unit-all-conversions h4 i {
+                        color: var(--primary-color);
+                    }
+                    .unit-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                        gap: 12px;
+                    }
+                    .unit-grid-item {
+                        background: white;
+                        padding: 15px;
+                        border-radius: 12px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    }
+                    .unit-grid-item:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+                    }
+                    .unit-grid-item .unit-name {
+                        font-size: 13px;
+                        color: var(--text-light);
+                    }
+                    .unit-grid-item .unit-value {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: var(--primary-color);
+                    }
+                    .unit-tips-section {
+                        margin-top: 30px;
+                        padding: 25px;
+                        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+                        border-radius: 16px;
+                        border: 1px solid #fcd34d;
+                    }
+                    .unit-tips-section h4 {
+                        margin-bottom: 20px;
+                        color: #92400e;
+                        font-size: 16px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    .unit-tips-section h4 i {
+                        color: #f59e0b;
+                    }
+                    .unit-tips-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                        gap: 15px;
+                    }
+                    .unit-tip-item {
+                        background: white;
+                        padding: 18px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    }
+                    .unit-tip-item i {
+                        font-size: 28px;
+                        color: var(--primary-color);
+                        margin-bottom: 10px;
+                        display: block;
+                    }
+                    .unit-tip-item strong {
+                        display: block;
+                        margin-bottom: 8px;
+                        color: var(--text-dark);
+                        font-size: 14px;
+                    }
+                    .unit-tip-item p {
+                        font-size: 13px;
+                        color: var(--text-light);
+                        line-height: 1.5;
+                    }
+                    @media (max-width: 600px) {
+                        .unit-category-tabs {
+                            justify-content: center;
+                        }
+                        .unit-cat-tab {
+                            padding: 10px 12px;
+                            font-size: 12px;
+                        }
+                        .unit-cat-tab span {
+                            display: none;
+                        }
+                        .unit-cat-tab i {
+                            margin: 0;
+                        }
+                        .unit-input-row {
+                            flex-direction: column;
+                        }
+                        .unit-input-row select {
+                            min-width: 100%;
+                        }
+                    }
+                </style>
+            `;
+        }
+
+        let currentUnitCategory = 'length';
+
+        function initUnitConverter() {
+            selectUnitCategory('length', document.querySelector('.unit-cat-tab'));
+        }
+
+        function selectUnitCategory(category, btn) {
+            currentUnitCategory = category;
+            
+            // 탭 활성화
+            document.querySelectorAll('.unit-cat-tab').forEach(tab => tab.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            const catData = unitConversionData[category];
+            
+            // 설명 업데이트
+            document.getElementById('unitDescription').innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <span>${catData.description}</span>
+            `;
+            
+            // 셀렉트 옵션 업데이트
+            const selectFrom = document.getElementById('unitSelectFrom');
+            const selectTo = document.getElementById('unitSelectTo');
+            
+            const options = Object.entries(catData.units).map(([key, unit]) => 
+                `<option value="${key}">${unit.name}</option>`
+            ).join('');
+            
+            selectFrom.innerHTML = options;
+            selectTo.innerHTML = options;
+            
+            // 두 번째 단위 기본값 설정
+            if (Object.keys(catData.units).length > 1) {
+                selectTo.selectedIndex = 1;
+            }
+            
+            // 입력값 초기화
+            document.getElementById('unitValueFrom').value = '1';
+            document.getElementById('unitValueTo').value = '';
+            
+            // 팁 업데이트
+            updateUnitTips(catData.tips);
+            
+            // 변환 실행
+            convertUnit('from');
+        }
+
+        function updateUnitTips(tips) {
+            const tipsGrid = document.getElementById('unitTipsGrid');
+            tipsGrid.innerHTML = tips.map(tip => `
+                <div class="unit-tip-item">
+                    <i class="${tip.icon}"></i>
+                    <strong>${tip.title}</strong>
+                    <p>${tip.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function convertUnit(direction) {
+            const catData = unitConversionData[currentUnitCategory];
+            const fromUnit = document.getElementById('unitSelectFrom').value;
+            const toUnit = document.getElementById('unitSelectTo').value;
+            const inputFrom = document.getElementById('unitValueFrom');
+            const inputTo = document.getElementById('unitValueTo');
+            
+            let value, result;
+            
+            if (direction === 'from') {
+                value = parseFloat(inputFrom.value);
+                if (isNaN(value)) {
+                    inputTo.value = '';
+                    hideUnitResults();
+                    return;
+                }
+                result = convertValue(value, fromUnit, toUnit, catData);
+                inputTo.value = formatUnitValue(result);
+            } else {
+                value = parseFloat(inputTo.value);
+                if (isNaN(value)) {
+                    inputFrom.value = '';
+                    hideUnitResults();
+                    return;
+                }
+                result = convertValue(value, toUnit, fromUnit, catData);
+                inputFrom.value = formatUnitValue(result);
+                value = result;
+                result = parseFloat(inputTo.value);
+            }
+            
+            // 결과 표시
+            showUnitResults(value, fromUnit, result, toUnit, catData);
+        }
+
+        function convertValue(value, from, to, catData) {
+            // 온도는 특별 처리
+            if (currentUnitCategory === 'temperature') {
+                return convertTemperature(value, from, to);
+            }
+            
+            // 일반 변환: 값 → 기준단위 → 목표단위
+            const baseValue = value * catData.units[from].toBase;
+            return baseValue / catData.units[to].toBase;
+        }
+
+        function convertTemperature(value, from, to) {
+            let celsius;
+            
+            // 먼저 섭씨로 변환
+            switch(from) {
+                case 'c': celsius = value; break;
+                case 'f': celsius = (value - 32) * 5 / 9; break;
+                case 'k': celsius = value - 273.15; break;
+            }
+            
+            // 섭씨에서 목표 단위로 변환
+            switch(to) {
+                case 'c': return celsius;
+                case 'f': return celsius * 9 / 5 + 32;
+                case 'k': return celsius + 273.15;
+            }
+        }
+
+        function formatUnitValue(value) {
+            if (Math.abs(value) >= 1000000 || (Math.abs(value) < 0.0001 && value !== 0)) {
+                return value.toExponential(6);
+            }
+            // 소수점 처리
+            const fixed = parseFloat(value.toPrecision(10));
+            return fixed;
+        }
+
+        function showUnitResults(fromValue, fromUnit, toValue, toUnit, catData) {
+            const resultBox = document.getElementById('unitResultBox');
+            const formula = document.getElementById('unitFormula');
+            const allConversions = document.getElementById('unitAllConversions');
+            const unitGrid = document.getElementById('unitGrid');
+            
+            // 메인 결과
+            resultBox.classList.add('active');
+            formula.innerHTML = `${formatUnitValue(fromValue)} ${catData.units[fromUnit].name.split(' ')[0]} = ${formatUnitValue(toValue)} ${catData.units[toUnit].name.split(' ')[0]}`;
+            
+            // 모든 단위 변환
+            allConversions.classList.add('active');
+            unitGrid.innerHTML = Object.entries(catData.units).map(([key, unit]) => {
+                const converted = convertValue(fromValue, fromUnit, key, catData);
+                return `
+                    <div class="unit-grid-item" onclick="selectTargetUnit('${key}')">
+                        <span class="unit-name">${unit.name}</span>
+                        <span class="unit-value">${formatUnitValue(converted)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function hideUnitResults() {
+            document.getElementById('unitResultBox').classList.remove('active');
+            document.getElementById('unitAllConversions').classList.remove('active');
+        }
+
+        function selectTargetUnit(unitKey) {
+            document.getElementById('unitSelectTo').value = unitKey;
+            convertUnit('from');
+        }
+
+        function swapUnits() {
+            const selectFrom = document.getElementById('unitSelectFrom');
+            const selectTo = document.getElementById('unitSelectTo');
+            const inputFrom = document.getElementById('unitValueFrom');
+            const inputTo = document.getElementById('unitValueTo');
+            
+            // 단위 교환
+            const tempUnit = selectFrom.value;
+            selectFrom.value = selectTo.value;
+            selectTo.value = tempUnit;
+            
+            // 값 교환
+            const tempValue = inputFrom.value;
+            inputFrom.value = inputTo.value;
+            inputTo.value = tempValue;
+            
+            // 재계산
+            convertUnit('from');
+        }
+
+        // ============ 단위환산 계산기 끝 ============
 
         function getUnitPriceCalculator() {
             return `
