@@ -883,6 +883,7 @@
                     break;
                 case 'unit-price':
                     calcBody.innerHTML = getUnitPriceCalculator();
+                    initUnitPriceCalculator();
                     break;
                 case 'dividend':
                     calcBody.innerHTML = getDividendCalculator();
@@ -910,6 +911,10 @@
                     break;
                 case 'smoking':
                     calcBody.innerHTML = getSmokingCalculator();
+                    break;
+                case 'lunar-solar':
+                    calcBody.innerHTML = getLunarSolarConverter();
+                    initLunarSolarConverter();
                     break;
                 default:
                     calcBody.innerHTML = `<p style="text-align: center; color: #718096;">이 계산기는 준비 중입니다.</p>`;
@@ -3467,51 +3472,729 @@
 
         function getBMICalculator() {
             return `
-                <form class="calc-form" onsubmit="calculateBMI(event)">
-                    <div class="form-group">
-                        <label>신장 (cm)</label>
-                        <input type="number" step="0.1" id="height" placeholder="170" required>
+                <style>
+                    .bmi-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 25px;
+                    }
+                    
+                    .bmi-input-section {
+                        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    }
+                    
+                    .bmi-section-title {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #166534;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .bmi-section-title i {
+                        color: #22c55e;
+                    }
+                    
+                    .bmi-type-selector {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 10px;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .bmi-type-btn {
+                        padding: 15px 12px;
+                        border: 2px solid #bbf7d0;
+                        background: white;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        text-align: center;
+                    }
+                    
+                    .bmi-type-btn:hover {
+                        border-color: #22c55e;
+                        background: #f0fdf4;
+                    }
+                    
+                    .bmi-type-btn.active {
+                        border-color: #22c55e;
+                        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                        color: white;
+                    }
+                    
+                    .bmi-type-btn i {
+                        font-size: 24px;
+                        margin-bottom: 8px;
+                        display: block;
+                    }
+                    
+                    .bmi-type-btn span {
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+                    
+                    .bmi-type-btn.active i,
+                    .bmi-type-btn.active span {
+                        color: white;
+                    }
+                    
+                    .bmi-inputs-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                    }
+                    
+                    .bmi-inputs-grid.with-age {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .bmi-inputs-grid, .bmi-inputs-grid.with-age {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    
+                    .bmi-input-group {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                    }
+                    
+                    .bmi-input-group label {
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: #166534;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    }
+                    
+                    .bmi-input-group label i {
+                        color: #22c55e;
+                        font-size: 12px;
+                    }
+                    
+                    .bmi-input-group input {
+                        padding: 14px 16px;
+                        border: 2px solid #bbf7d0;
+                        border-radius: 12px;
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #166534;
+                        background: white;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .bmi-input-group input:focus {
+                        outline: none;
+                        border-color: #22c55e;
+                        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+                    }
+                    
+                    .bmi-input-group input::placeholder {
+                        color: #86efac;
+                    }
+                    
+                    .bmi-calc-btn {
+                        margin-top: 20px;
+                        padding: 16px;
+                        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 16px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        width: 100%;
+                    }
+                    
+                    .bmi-calc-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+                    }
+                    
+                    .bmi-result-section {
+                        display: none;
+                    }
+                    
+                    .bmi-result-section.active {
+                        display: block;
+                        animation: fadeIn 0.4s ease;
+                    }
+                    
+                    .bmi-result-main {
+                        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .bmi-score {
+                        font-size: 56px;
+                        font-weight: 800;
+                        color: #92400e;
+                        line-height: 1;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .bmi-status {
+                        display: inline-block;
+                        padding: 8px 20px;
+                        border-radius: 20px;
+                        font-size: 18px;
+                        font-weight: 700;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .bmi-status.underweight { background: #dbeafe; color: #1e40af; }
+                    .bmi-status.normal { background: #dcfce7; color: #166534; }
+                    .bmi-status.overweight { background: #fef3c7; color: #92400e; }
+                    .bmi-status.obese { background: #fee2e2; color: #991b1b; }
+                    .bmi-status.severely-obese { background: #fecaca; color: #7f1d1d; }
+                    
+                    .bmi-gauge-container {
+                        margin: 20px 0;
+                        padding: 15px;
+                        background: white;
+                        border-radius: 15px;
+                    }
+                    
+                    .bmi-gauge {
+                        height: 16px;
+                        background: linear-gradient(to right, #3b82f6 0%, #22c55e 25%, #eab308 50%, #f97316 75%, #ef4444 100%);
+                        border-radius: 8px;
+                        position: relative;
+                        margin: 10px 0;
+                    }
+                    
+                    .bmi-gauge-marker {
+                        position: absolute;
+                        top: -8px;
+                        width: 32px;
+                        height: 32px;
+                        background: white;
+                        border: 3px solid #1f2937;
+                        border-radius: 50%;
+                        transform: translateX(-50%);
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 10px;
+                        font-weight: 800;
+                    }
+                    
+                    .bmi-gauge-labels {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 11px;
+                        color: #6b7280;
+                        margin-top: 8px;
+                    }
+                    
+                    .bmi-details-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                        margin-bottom: 20px;
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .bmi-details-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    
+                    .bmi-detail-card {
+                        background: white;
+                        padding: 20px;
+                        border-radius: 16px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    }
+                    
+                    .bmi-detail-card h4 {
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: #6b7280;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .bmi-detail-card h4 i {
+                        color: #22c55e;
+                    }
+                    
+                    .bmi-detail-card .value {
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #1f2937;
+                    }
+                    
+                    .bmi-detail-card .sub {
+                        font-size: 13px;
+                        color: #9ca3af;
+                        margin-top: 5px;
+                    }
+                    
+                    .bmi-solution-section {
+                        background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .bmi-solution-title {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #5b21b6;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .bmi-solution-title i {
+                        color: #8b5cf6;
+                    }
+                    
+                    .bmi-solution-list {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                    }
+                    
+                    .bmi-solution-item {
+                        background: white;
+                        padding: 15px 18px;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+                    }
+                    
+                    .bmi-solution-item i {
+                        color: #8b5cf6;
+                        font-size: 18px;
+                        margin-top: 2px;
+                    }
+                    
+                    .bmi-solution-item .content {
+                        flex: 1;
+                    }
+                    
+                    .bmi-solution-item .content h5 {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #1f2937;
+                        margin-bottom: 4px;
+                    }
+                    
+                    .bmi-solution-item .content p {
+                        font-size: 13px;
+                        color: #6b7280;
+                        line-height: 1.5;
+                    }
+                    
+                    .bmi-tips-section {
+                        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                    }
+                    
+                    .bmi-tips-title {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #92400e;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .bmi-tips-title i {
+                        color: #f59e0b;
+                    }
+                    
+                    .bmi-tips-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 12px;
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .bmi-tips-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    
+                    .bmi-tip-card {
+                        background: white;
+                        padding: 15px;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .bmi-tip-card:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+                    }
+                    
+                    .bmi-tip-card .emoji {
+                        font-size: 24px;
+                    }
+                    
+                    .bmi-tip-card .content h5 {
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: #1f2937;
+                        margin-bottom: 4px;
+                    }
+                    
+                    .bmi-tip-card .content p {
+                        font-size: 12px;
+                        color: #6b7280;
+                        line-height: 1.4;
+                    }
+                    
+                    .bmi-age-notice {
+                        background: #e0f2fe;
+                        border: 2px solid #7dd3fc;
+                        border-radius: 12px;
+                        padding: 12px 15px;
+                        margin-top: 15px;
+                        display: none;
+                    }
+                    
+                    .bmi-age-notice.visible {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .bmi-age-notice i {
+                        color: #0284c7;
+                        font-size: 18px;
+                    }
+                    
+                    .bmi-age-notice span {
+                        font-size: 13px;
+                        color: #0369a1;
+                        line-height: 1.4;
+                    }
+                </style>
+                
+                <div class="bmi-container">
+                    <div class="bmi-input-section">
+                        <div class="bmi-section-title">
+                            <i class="fas fa-user-check"></i> 비만도 측정
+                        </div>
+                        
+                        <div class="bmi-type-selector">
+                            <button type="button" class="bmi-type-btn" onclick="selectBMIType('child', this)">
+                                <i class="fas fa-child"></i>
+                                <span>어린이</span>
+                            </button>
+                            <button type="button" class="bmi-type-btn active" onclick="selectBMIType('male', this)">
+                                <i class="fas fa-male"></i>
+                                <span>성인 남성</span>
+                            </button>
+                            <button type="button" class="bmi-type-btn" onclick="selectBMIType('female', this)">
+                                <i class="fas fa-female"></i>
+                                <span>성인 여성</span>
+                            </button>
+                        </div>
+                        
+                        <div class="bmi-age-notice" id="bmiAgeNotice">
+                            <i class="fas fa-info-circle"></i>
+                            <span>어린이(2~18세)의 BMI는 나이와 성별에 따른 백분위수로 판정됩니다. 정확한 진단은 전문의와 상담하세요.</span>
+                        </div>
+                        
+                        <form onsubmit="calculateBMI(event)">
+                            <div class="bmi-inputs-grid" id="bmiInputsGrid">
+                                <div class="bmi-input-group">
+                                    <label><i class="fas fa-ruler-vertical"></i> 신장</label>
+                                    <input type="number" step="0.1" id="bmiHeight" placeholder="170 cm" required>
+                                </div>
+                                <div class="bmi-input-group">
+                                    <label><i class="fas fa-weight"></i> 체중</label>
+                                    <input type="number" step="0.1" id="bmiWeight" placeholder="65 kg" required>
+                                </div>
+                                <div class="bmi-input-group" id="bmiAgeGroup" style="display: none;">
+                                    <label><i class="fas fa-birthday-cake"></i> 나이</label>
+                                    <input type="number" id="bmiAge" placeholder="10 세" min="2" max="18">
+                                </div>
+                            </div>
+                            <button type="submit" class="bmi-calc-btn">
+                                <i class="fas fa-calculator"></i> 비만도 계산하기
+                            </button>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label>체중 (kg)</label>
-                        <input type="number" step="0.1" id="weight" placeholder="65" required>
+                    
+                    <div class="bmi-result-section" id="bmiResultSection">
+                        <!-- 결과가 여기에 표시됨 -->
                     </div>
-                    <button type="submit" class="btn-calculate">계산하기</button>
-                </form>
-                <div class="result-box" id="bmiResult"></div>
+                    
+                    <div class="bmi-tips-section">
+                        <div class="bmi-tips-title">
+                            <i class="fas fa-lightbulb"></i> 비만에 대한 상식
+                        </div>
+                        <div class="bmi-tips-grid">
+                            <div class="bmi-tip-card">
+                                <span class="emoji">⚖️</span>
+                                <div class="content">
+                                    <h5>BMI의 한계</h5>
+                                    <p>BMI는 근육량을 구분하지 못합니다. 운동선수는 BMI가 높아도 건강할 수 있습니다.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">📏</span>
+                                <div class="content">
+                                    <h5>허리둘레도 중요</h5>
+                                    <p>남성 90cm, 여성 85cm 이상이면 복부비만입니다. 내장지방이 더 위험합니다.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">🍽️</span>
+                                <div class="content">
+                                    <h5>기초대사량</h5>
+                                    <p>무리한 다이어트는 기초대사량을 낮춰 요요현상을 유발합니다. 천천히 감량하세요.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">🏃</span>
+                                <div class="content">
+                                    <h5>체지방률</h5>
+                                    <p>남성 15~20%, 여성 20~25%가 정상입니다. BMI보다 체지방률이 더 정확한 지표입니다.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">💪</span>
+                                <div class="content">
+                                    <h5>근육의 중요성</h5>
+                                    <p>근육 1kg은 하루 약 50kcal를 소비합니다. 근력 운동으로 기초대사량을 높이세요.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">😴</span>
+                                <div class="content">
+                                    <h5>수면과 비만</h5>
+                                    <p>수면 부족은 식욕 호르몬을 교란시켜 비만 위험을 40% 높입니다. 7-8시간 수면이 이상적입니다.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">🧬</span>
+                                <div class="content">
+                                    <h5>유전적 요인</h5>
+                                    <p>비만의 40~70%는 유전적 요인입니다. 하지만 생활습관 개선으로 충분히 관리할 수 있습니다.</p>
+                                </div>
+                            </div>
+                            <div class="bmi-tip-card">
+                                <span class="emoji">⏰</span>
+                                <div class="content">
+                                    <h5>건강한 감량 속도</h5>
+                                    <p>주당 0.5~1kg 감량이 이상적입니다. 급격한 감량은 근손실과 영양 불균형을 초래합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `;
+        }
+        
+        let currentBMIType = 'male';
+        
+        function selectBMIType(type, btn) {
+            currentBMIType = type;
+            document.querySelectorAll('.bmi-type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const ageGroup = document.getElementById('bmiAgeGroup');
+            const inputsGrid = document.getElementById('bmiInputsGrid');
+            const ageNotice = document.getElementById('bmiAgeNotice');
+            
+            if (type === 'child') {
+                ageGroup.style.display = 'block';
+                inputsGrid.classList.add('with-age');
+                ageNotice.classList.add('visible');
+                document.getElementById('bmiAge').required = true;
+            } else {
+                ageGroup.style.display = 'none';
+                inputsGrid.classList.remove('with-age');
+                ageNotice.classList.remove('visible');
+                document.getElementById('bmiAge').required = false;
+            }
         }
 
         function calculateBMI(e) {
             e.preventDefault();
-            const height = parseFloat(document.getElementById('height').value) / 100;
-            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('bmiHeight').value) / 100;
+            const weight = parseFloat(document.getElementById('bmiWeight').value);
+            const age = currentBMIType === 'child' ? parseInt(document.getElementById('bmiAge').value) : null;
             
             const bmi = weight / (height * height);
-            let status = '';
+            const heightCm = height * 100;
             
-            if (bmi < 18.5) status = '저체중';
-            else if (bmi < 23) status = '정상';
-            else if (bmi < 25) status = '과체중';
-            else if (bmi < 30) status = '비만';
-            else status = '고도비만';
+            let status, statusClass, statusText, solutions;
             
-            const resultBox = document.getElementById('bmiResult');
-            resultBox.className = 'result-box active';
-            resultBox.innerHTML = `
-                <h3>BMI 계산 결과</h3>
-                <div class="result-item">
-                    <span class="result-label">BMI 지수</span>
-                    <span class="result-value">${bmi.toFixed(1)}</span>
+            // 어린이의 경우 다른 기준 적용
+            if (currentBMIType === 'child') {
+                // 어린이 BMI 백분위수 기준 (간략화)
+                if (bmi < 14) {
+                    status = '저체중'; statusClass = 'underweight';
+                    statusText = '정상 범위보다 체중이 적습니다.';
+                } else if (bmi < 18.5) {
+                    status = '정상'; statusClass = 'normal';
+                    statusText = '건강한 체중 범위입니다.';
+                } else if (bmi < 21) {
+                    status = '과체중 위험'; statusClass = 'overweight';
+                    statusText = '체중 관리가 필요합니다.';
+                } else {
+                    status = '비만'; statusClass = 'obese';
+                    statusText = '전문의 상담이 권장됩니다.';
+                }
+                
+                solutions = [
+                    { icon: 'fas fa-carrot', title: '균형 잡힌 식단', desc: '과일, 채소, 단백질을 골고루 섭취하고 패스트푸드와 탄산음료를 줄이세요.' },
+                    { icon: 'fas fa-running', title: '활동적인 생활', desc: '하루 60분 이상 신체 활동을 권장합니다. 바깥 놀이와 운동을 즐기세요.' },
+                    { icon: 'fas fa-moon', title: '충분한 수면', desc: '성장기에는 충분한 수면이 중요합니다. 연령에 맞는 수면 시간을 확보하세요.' },
+                    { icon: 'fas fa-tv', title: '스크린 타임 제한', desc: 'TV, 스마트폰 사용 시간을 하루 2시간 이내로 제한하세요.' }
+                ];
+            } else {
+                // 성인 기준 (아시아-태평양 기준)
+                let baseBMI = currentBMIType === 'female' ? 
+                    { low: 18.5, normal: 23, overweight: 25, obese: 30 } :
+                    { low: 18.5, normal: 23, overweight: 25, obese: 30 };
+                
+                if (bmi < baseBMI.low) {
+                    status = '저체중'; statusClass = 'underweight';
+                    statusText = currentBMIType === 'female' ? 
+                        '정상 범위보다 체중이 낮습니다. 영양 섭취에 주의하세요.' :
+                        '정상 범위보다 체중이 낮습니다. 균형 잡힌 식사가 필요합니다.';
+                } else if (bmi < baseBMI.normal) {
+                    status = '정상'; statusClass = 'normal';
+                    statusText = '건강한 체중을 유지하고 있습니다. 현재 상태를 유지하세요!';
+                } else if (bmi < baseBMI.overweight) {
+                    status = '과체중'; statusClass = 'overweight';
+                    statusText = '정상 범위를 약간 초과했습니다. 생활습관 개선을 권장합니다.';
+                } else if (bmi < baseBMI.obese) {
+                    status = '비만'; statusClass = 'obese';
+                    statusText = '비만 상태입니다. 건강을 위해 체중 관리가 필요합니다.';
+                } else {
+                    status = '고도비만'; statusClass = 'severely-obese';
+                    statusText = '고도비만 상태입니다. 전문의 상담을 권장합니다.';
+                }
+                
+                if (statusClass === 'underweight') {
+                    solutions = [
+                        { icon: 'fas fa-utensils', title: '칼로리 섭취 증가', desc: '하루 300~500kcal 추가 섭취를 목표로 하세요. 건강한 지방과 단백질 위주로 섭취하세요.' },
+                        { icon: 'fas fa-dumbbell', title: '근력 운동', desc: '근육량 증가를 위해 주 3~4회 근력 운동을 권장합니다.' },
+                        { icon: 'fas fa-clock', title: '규칙적인 식사', desc: '하루 3끼 + 2회 간식으로 규칙적인 영양 섭취를 유지하세요.' },
+                        { icon: 'fas fa-stethoscope', title: '건강 체크', desc: '급격한 체중 감소가 있다면 전문의 상담을 받아보세요.' }
+                    ];
+                } else if (statusClass === 'normal') {
+                    solutions = [
+                        { icon: 'fas fa-check-circle', title: '현재 상태 유지', desc: '균형 잡힌 식단과 규칙적인 운동으로 현재의 건강한 체중을 유지하세요.' },
+                        { icon: 'fas fa-heartbeat', title: '유산소 운동', desc: '주 150분 이상의 중등도 유산소 운동으로 심혈관 건강을 유지하세요.' },
+                        { icon: 'fas fa-apple-alt', title: '영양 균형', desc: '다양한 채소, 과일, 통곡물, 양질의 단백질을 섭취하세요.' },
+                        { icon: 'fas fa-bed', title: '충분한 휴식', desc: '7~8시간 수면과 스트레스 관리로 전반적인 건강을 유지하세요.' }
+                    ];
+                } else {
+                    solutions = [
+                        { icon: 'fas fa-salad', title: '식단 조절', desc: currentBMIType === 'female' ? 
+                            '일일 1,200~1,500kcal를 목표로 하세요. 단백질과 식이섬유 위주로 섭취하세요.' :
+                            '일일 1,500~1,800kcal를 목표로 하세요. 탄수화물과 지방 섭취를 줄이세요.' },
+                        { icon: 'fas fa-walking', title: '유산소 운동', desc: '주 5회, 30분 이상 걷기, 조깅, 수영 등의 유산소 운동을 실천하세요.' },
+                        { icon: 'fas fa-dumbbell', title: '근력 운동', desc: '주 2~3회 근력 운동으로 기초대사량을 높이세요.' },
+                        { icon: 'fas fa-glass-water', title: '충분한 수분', desc: '하루 2L 이상의 물을 마시고, 당분이 든 음료는 피하세요.' }
+                    ];
+                }
+            }
+            
+            // 이상 체중 계산
+            const idealWeightMin = 18.5 * height * height;
+            const idealWeightMax = 23 * height * height;
+            const weightDiff = weight - idealWeightMax;
+            
+            // 게이지 위치 계산 (BMI 15~35 범위)
+            let gaugePosition = ((bmi - 15) / 20) * 100;
+            gaugePosition = Math.max(0, Math.min(100, gaugePosition));
+            
+            const resultSection = document.getElementById('bmiResultSection');
+            resultSection.className = 'bmi-result-section active';
+            resultSection.innerHTML = `
+                <div class="bmi-result-main">
+                    <div class="bmi-score">${bmi.toFixed(1)}</div>
+                    <div class="bmi-status ${statusClass}">${status}</div>
+                    <p style="color: #78716c; font-size: 14px; margin: 0;">${statusText}</p>
+                    
+                    <div class="bmi-gauge-container">
+                        <div class="bmi-gauge">
+                            <div class="bmi-gauge-marker" style="left: ${gaugePosition}%">${bmi.toFixed(0)}</div>
+                        </div>
+                        <div class="bmi-gauge-labels">
+                            <span>15 저체중</span>
+                            <span>18.5</span>
+                            <span>23 정상</span>
+                            <span>25</span>
+                            <span>30 비만</span>
+                            <span>35+</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="result-item">
-                    <span class="result-label">판정</span>
-                    <span class="result-value">${status}</span>
+                
+                <div class="bmi-details-grid">
+                    <div class="bmi-detail-card">
+                        <h4><i class="fas fa-bullseye"></i> 이상 체중 범위</h4>
+                        <div class="value">${idealWeightMin.toFixed(1)} ~ ${idealWeightMax.toFixed(1)} kg</div>
+                        <div class="sub">신장 ${heightCm}cm 기준</div>
+                    </div>
+                    <div class="bmi-detail-card">
+                        <h4><i class="fas fa-balance-scale"></i> 체중 차이</h4>
+                        <div class="value" style="color: ${weightDiff > 0 ? '#dc2626' : weightDiff < -5 ? '#2563eb' : '#16a34a'}">
+                            ${weightDiff > 0 ? '+' : ''}${weightDiff.toFixed(1)} kg
+                        </div>
+                        <div class="sub">${weightDiff > 0 ? '감량 권장' : weightDiff < -5 ? '증량 권장' : '적정 체중'}</div>
+                    </div>
                 </div>
-                <div class="result-item" style="border: none; padding-top: 20px; font-size: 14px; opacity: 0.9;">
-                    <span>저체중: 18.5 미만 | 정상: 18.5-22.9 | 과체중: 23-24.9 | 비만: 25-29.9 | 고도비만: 30 이상</span>
+                
+                <div class="bmi-solution-section">
+                    <div class="bmi-solution-title">
+                        <i class="fas fa-lightbulb"></i> 맞춤 건강 관리 방법
+                    </div>
+                    <div class="bmi-solution-list">
+                        ${solutions.map(s => `
+                            <div class="bmi-solution-item">
+                                <i class="${s.icon}"></i>
+                                <div class="content">
+                                    <h5>${s.title}</h5>
+                                    <p>${s.desc}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             `;
+            
+            // 결과 영역으로 스크롤
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function getDutchPayCalculator() {
@@ -6337,6 +7020,36 @@
                     { icon: 'fas fa-gas-pump', title: '기름 갤런', desc: '1갤런(US) = 약 3.785L' },
                     { icon: 'fas fa-mug-hot', title: '커피 한 잔', desc: '약 240mL = 1컵(US)' }
                 ]
+            },
+            data: {
+                name: '데이터(비트)',
+                icon: 'fas fa-database',
+                color: '#10b981',
+                description: '데이터 크기는 디지털 정보의 양을 나타냅니다. 기본 단위는 비트(bit)와 바이트(byte)입니다. 1바이트 = 8비트입니다.',
+                units: {
+                    'bit': { name: '비트 (bit)', toBase: 1 },
+                    'byte': { name: '바이트 (B)', toBase: 8 },
+                    'kb': { name: '킬로바이트 (KB)', toBase: 8000 },
+                    'kib': { name: '키비바이트 (KiB)', toBase: 8192 },
+                    'mb': { name: '메가바이트 (MB)', toBase: 8000000 },
+                    'mib': { name: '메비바이트 (MiB)', toBase: 8388608 },
+                    'gb': { name: '기가바이트 (GB)', toBase: 8000000000 },
+                    'gib': { name: '기비바이트 (GiB)', toBase: 8589934592 },
+                    'tb': { name: '테라바이트 (TB)', toBase: 8000000000000 },
+                    'tib': { name: '테비바이트 (TiB)', toBase: 8796093022208 },
+                    'pb': { name: '페타바이트 (PB)', toBase: 8000000000000000 },
+                    'pib': { name: '페비바이트 (PiB)', toBase: 9007199254740992 },
+                    'kbit': { name: '킬로비트 (Kbit)', toBase: 1000 },
+                    'mbit': { name: '메가비트 (Mbit)', toBase: 1000000 },
+                    'gbit': { name: '기가비트 (Gbit)', toBase: 1000000000 }
+                },
+                tips: [
+                    { icon: 'fas fa-wifi', title: '인터넷 속도', desc: '100Mbps = 초당 약 12.5MB 다운로드' },
+                    { icon: 'fas fa-hdd', title: 'SSD/HDD', desc: '1TB = 약 1,000GB = 약 8조 비트' },
+                    { icon: 'fas fa-memory', title: 'RAM 메모리', desc: '8GB = 64기가비트 = 약 68억 비트' },
+                    { icon: 'fas fa-film', title: '4K 영화', desc: '4K 영화 1편 ≈ 약 25~100GB' },
+                    { icon: 'fas fa-info-circle', title: 'KB vs KiB', desc: 'KB(1000)는 SI단위, KiB(1024)는 이진단위' }
+                ]
             }
         };
 
@@ -6850,46 +7563,664 @@
 
         // ============ 단위환산 계산기 끝 ============
 
+        // ============ 단가 계산기 시작 ============
+        let unitPriceItems = [];
+        let unitPriceIdCounter = 0;
+        let unitPriceSortOrder = 'desc'; // 'asc' 또는 'desc'
+
         function getUnitPriceCalculator() {
             return `
-                <form class="calc-form" onsubmit="calculateUnitPrice(event)">
-                    <div class="form-group">
-                        <label>총 금액 (원)</label>
-                        <input type="number" id="unitTotalPrice" placeholder="10000" required>
+                <style>
+                    .unit-price-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 25px;
+                    }
+                    
+                    /* 입력 영역 스타일 - 카드형 디자인 */
+                    .unit-price-input-section {
+                        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    }
+                    
+                    .unit-price-section-title {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #334155;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .unit-price-section-title i {
+                        color: #6366f1;
+                        font-size: 18px;
+                    }
+                    
+                    .unit-price-items-list {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                        gap: 15px;
+                    }
+                    
+                    .unit-price-card {
+                        background: white;
+                        border-radius: 16px;
+                        padding: 20px;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                        transition: all 0.3s ease;
+                        border: 2px solid transparent;
+                        position: relative;
+                    }
+                    
+                    .unit-price-card:hover {
+                        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+                        border-color: #c7d2fe;
+                        transform: translateY(-2px);
+                    }
+                    
+                    .unit-price-card-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .unit-price-card-num {
+                        width: 28px;
+                        height: 28px;
+                        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                        color: white;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 13px;
+                        font-weight: 700;
+                    }
+                    
+                    .unit-price-delete-btn {
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 50%;
+                        border: none;
+                        background: #f1f5f9;
+                        color: #94a3b8;
+                        font-size: 14px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    
+                    .unit-price-delete-btn:hover {
+                        background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+                        color: white;
+                        transform: scale(1.1);
+                    }
+                    
+                    .unit-price-card-body {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 12px;
+                    }
+                    
+                    .unit-price-input-group {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 6px;
+                    }
+                    
+                    .unit-price-input-group label {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #64748b;
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                    }
+                    
+                    .unit-price-input-group label i {
+                        font-size: 11px;
+                        color: #94a3b8;
+                    }
+                    
+                    .unit-price-card input {
+                        width: 100%;
+                        padding: 12px 14px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 10px;
+                        font-size: 15px;
+                        font-weight: 500;
+                        color: #1f2937;
+                        transition: all 0.3s ease;
+                        background: #f8fafc;
+                    }
+                    
+                    .unit-price-card input:focus {
+                        outline: none;
+                        border-color: #6366f1;
+                        background: white;
+                        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+                    }
+                    
+                    .unit-price-card input::placeholder {
+                        color: #cbd5e1;
+                    }
+                    
+                    .unit-price-card input.name-input {
+                        border-color: #c7d2fe;
+                        background: #eef2ff;
+                    }
+                    
+                    .unit-price-card input.name-input:focus {
+                        border-color: #6366f1;
+                        background: white;
+                    }
+                    
+                    .unit-price-row-group {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px;
+                    }
+                    
+                    .unit-price-card .calculated-result {
+                        margin-top: 5px;
+                        padding: 14px;
+                        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                        border-radius: 10px;
+                        text-align: center;
+                        border: 2px solid #fcd34d;
+                    }
+                    
+                    .unit-price-card .calculated-result .result-label {
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: #92400e;
+                        margin-bottom: 4px;
+                        display: block;
+                    }
+                    
+                    .unit-price-card .calculated-result .result-value {
+                        font-size: 18px;
+                        font-weight: 800;
+                        color: #b45309;
+                    }
+                    
+                    .unit-price-add-btn {
+                        margin-top: 15px;
+                        padding: 16px 25px;
+                        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 15px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        width: 100%;
+                    }
+                    
+                    .unit-price-add-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+                    }
+                    
+                    /* 결과 테이블 섹션 */
+                    .unit-price-result-section {
+                        background: linear-gradient(135deg, #fef7ed 0%, #fef3c7 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    }
+                    
+                    .unit-price-result-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .unit-price-result-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #92400e;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .unit-price-result-title i {
+                        color: #f59e0b;
+                    }
+                    
+                    .unit-price-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        background: white;
+                        border-radius: 15px;
+                        overflow: hidden;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    }
+                    
+                    .unit-price-table th {
+                        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                        padding: 15px 12px;
+                        text-align: center;
+                        font-weight: 600;
+                        color: #92400e;
+                        font-size: 14px;
+                    }
+                    
+                    .unit-price-table th.sortable {
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        user-select: none;
+                    }
+                    
+                    .unit-price-table th.sortable:hover {
+                        background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+                    }
+                    
+                    .unit-price-table th.sortable.active {
+                        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                        color: white;
+                    }
+                    
+                    .unit-price-table th .sort-icon {
+                        margin-left: 5px;
+                        font-size: 12px;
+                    }
+                    
+                    .unit-price-table td {
+                        padding: 14px 12px;
+                        text-align: center;
+                        border-bottom: 1px solid #fef3c7;
+                        font-size: 14px;
+                        color: #374151;
+                    }
+                    
+                    .unit-price-table tr:last-child td {
+                        border-bottom: none;
+                    }
+                    
+                    .unit-price-table tr:hover td {
+                        background: #fffbeb;
+                    }
+                    
+                    .unit-price-table .item-name {
+                        font-weight: 600;
+                        color: #1f2937;
+                    }
+                    
+                    .unit-price-table .unit-price-value {
+                        font-weight: 700;
+                        color: #dc2626;
+                    }
+                    
+                    .unit-price-empty {
+                        text-align: center;
+                        padding: 40px;
+                        color: #9ca3af;
+                        font-size: 15px;
+                    }
+                    
+                    .unit-price-empty i {
+                        font-size: 40px;
+                        margin-bottom: 15px;
+                        display: block;
+                        color: #d1d5db;
+                    }
+                    
+                    /* 활용 팁 섹션 */
+                    .unit-price-tips-section {
+                        background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+                        padding: 25px;
+                        border-radius: 20px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    }
+                    
+                    .unit-price-tips-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #5b21b6;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .unit-price-tips-title i {
+                        color: #8b5cf6;
+                    }
+                    
+                    .unit-price-tips-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                    }
+                    
+                    @media (max-width: 768px) {
+                        .unit-price-tips-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                    
+                    .unit-price-tip-card {
+                        background: white;
+                        padding: 18px;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+                    }
+                    
+                    .unit-price-tip-card:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.15);
+                    }
+                    
+                    .unit-price-tip-icon {
+                        font-size: 24px;
+                        flex-shrink: 0;
+                    }
+                    
+                    .unit-price-tip-content h4 {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #1f2937;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .unit-price-tip-content p {
+                        font-size: 13px;
+                        color: #6b7280;
+                        line-height: 1.5;
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .unit-price-items-list {
+                            grid-template-columns: 1fr;
+                        }
+                        .unit-price-row-group {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+                
+                <div class="unit-price-container">
+                    <!-- 입력 영역 - 카드 형식 -->
+                    <div class="unit-price-input-section">
+                        <div class="unit-price-section-title">
+                            <i class="fas fa-edit"></i> 품목 정보 입력
+                        </div>
+                        <div class="unit-price-items-list" id="unitPriceItemsList">
+                            <!-- 카드형 아이템들이 여기에 추가됨 -->
+                        </div>
+                        <button class="unit-price-add-btn" onclick="addUnitPriceItem()">
+                            <i class="fas fa-plus"></i> 품목 추가
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>수량</label>
-                        <input type="number" step="0.1" id="unitQuantity" placeholder="5" required>
+                    
+                    <!-- 결과 테이블 -->
+                    <div class="unit-price-result-section">
+                        <div class="unit-price-result-header">
+                            <div class="unit-price-result-title">
+                                <i class="fas fa-chart-bar"></i> 단가 비교표
+                            </div>
+                        </div>
+                        <div id="unitPriceResultTable">
+                            <div class="unit-price-empty">
+                                <i class="fas fa-box-open"></i>
+                                품목을 추가하면 단가 비교표가 표시됩니다
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-calculate">계산하기</button>
-                </form>
-                <div class="result-box" id="unitPriceResult"></div>
+                    
+                    <!-- 활용 팁 -->
+                    <div class="unit-price-tips-section">
+                        <div class="unit-price-tips-title">
+                            <i class="fas fa-lightbulb"></i> 활용 팁
+                        </div>
+                        <div class="unit-price-tips-grid">
+                            <div class="unit-price-tip-card">
+                                <span class="unit-price-tip-icon">🛒</span>
+                                <div class="unit-price-tip-content">
+                                    <h4>마트 장보기</h4>
+                                    <p>대용량 vs 소용량 제품의 실제 단가를 비교해보세요</p>
+                                </div>
+                            </div>
+                            <div class="unit-price-tip-card">
+                                <span class="unit-price-tip-icon">📦</span>
+                                <div class="unit-price-tip-content">
+                                    <h4>온라인 쇼핑</h4>
+                                    <p>배송비 포함한 실제 단가를 비교해보세요</p>
+                                </div>
+                            </div>
+                            <div class="unit-price-tip-card">
+                                <span class="unit-price-tip-icon">🏭</span>
+                                <div class="unit-price-tip-content">
+                                    <h4>도매 vs 소매</h4>
+                                    <p>대량 구매시 절약할 수 있는 금액을 확인하세요</p>
+                                </div>
+                            </div>
+                            <div class="unit-price-tip-card">
+                                <span class="unit-price-tip-icon">🏷️</span>
+                                <div class="unit-price-tip-content">
+                                    <h4>할인 상품 비교</h4>
+                                    <p>1+1, 2+1 행사의 실제 단가를 계산해보세요</p>
+                                </div>
+                            </div>
+                            <div class="unit-price-tip-card">
+                                <span class="unit-price-tip-icon">☕</span>
+                                <div class="unit-price-tip-content">
+                                    <h4>음료/식품 비교</h4>
+                                    <p>ml당, g당 가격을 비교해보세요</p>
+                                </div>
+                            </div>
+                            <div class="unit-price-tip-card">
+                                <span class="unit-price-tip-icon">💼</span>
+                                <div class="unit-price-tip-content">
+                                    <h4>사업자용</h4>
+                                    <p>공급업체 견적의 단가를 비교 분석하세요</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `;
         }
 
-        function calculateUnitPrice(e) {
-            e.preventDefault();
-            const total = parseFloat(document.getElementById('unitTotalPrice').value);
-            const quantity = parseFloat(document.getElementById('unitQuantity').value);
+        function initUnitPriceCalculator() {
+            unitPriceItems = [];
+            unitPriceIdCounter = 0;
+            addUnitPriceItem();
+        }
+
+        function addUnitPriceItem() {
+            const id = ++unitPriceIdCounter;
+            unitPriceItems.push({ id, name: '', price: '', quantity: '' });
+            renderUnitPriceItems();
             
-            const unitPrice = total / quantity;
+            // 새로 추가된 입력필드에 포커스
+            setTimeout(() => {
+                const nameInput = document.querySelector(`#unitPriceItem_${id} .name-input`);
+                if (nameInput) nameInput.focus();
+            }, 100);
+        }
+
+        function removeUnitPriceItem(id) {
+            unitPriceItems = unitPriceItems.filter(item => item.id !== id);
+            renderUnitPriceItems();
+            updateUnitPriceTable();
+        }
+
+        function updateUnitPriceItem(id, field, value) {
+            const item = unitPriceItems.find(item => item.id === id);
+            if (item) {
+                item[field] = value;
+                
+                // 단가 자동 계산
+                if (field === 'price' || field === 'quantity') {
+                    const price = parseFloat(item.price.replace(/,/g, '')) || 0;
+                    const quantity = parseFloat(item.quantity.replace(/,/g, '')) || 0;
+                    const unitPrice = quantity > 0 ? price / quantity : 0;
+                    
+                    const unitPriceDisplay = document.querySelector(`#unitPriceItem_${id} .result-value`);
+                    if (unitPriceDisplay) {
+                        unitPriceDisplay.textContent = unitPrice > 0 ? unitPrice.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + '원' : '-';
+                    }
+                }
+                
+                updateUnitPriceTable();
+            }
+        }
+
+        function renderUnitPriceItems() {
+            const container = document.getElementById('unitPriceItemsList');
+            if (!container) return;
             
-            const resultBox = document.getElementById('unitPriceResult');
-            resultBox.className = 'result-box active';
-            resultBox.innerHTML = `
-                <h3>단가 계산 결과</h3>
-                <div class="result-item">
-                    <span class="result-label">총 금액</span>
-                    <span class="result-value">${total.toLocaleString()}원</span>
-                </div>
-                <div class="result-item">
-                    <span class="result-label">수량</span>
-                    <span class="result-value">${quantity}</span>
-                </div>
-                <div class="result-item">
-                    <span class="result-label">단가</span>
-                    <span class="result-value">${unitPrice.toLocaleString()}원</span>
-                </div>
+            container.innerHTML = unitPriceItems.map((item, index) => {
+                const price = parseFloat(item.price.replace(/,/g, '')) || 0;
+                const quantity = parseFloat(item.quantity.replace(/,/g, '')) || 0;
+                const unitPrice = quantity > 0 ? price / quantity : 0;
+                
+                return `
+                    <div class="unit-price-card" id="unitPriceItem_${item.id}">
+                        <div class="unit-price-card-header">
+                            <div class="unit-price-card-num">${index + 1}</div>
+                            <button class="unit-price-delete-btn" onclick="removeUnitPriceItem(${item.id})" title="삭제">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="unit-price-card-body">
+                            <div class="unit-price-input-group">
+                                <label><i class="fas fa-tag"></i> 품목명</label>
+                                <input type="text" class="name-input" placeholder="예: 우유 1L" 
+                                       value="${item.name}" 
+                                       onchange="updateUnitPriceItem(${item.id}, 'name', this.value)">
+                            </div>
+                            <div class="unit-price-row-group">
+                                <div class="unit-price-input-group">
+                                    <label><i class="fas fa-won-sign"></i> 가격</label>
+                                    <input type="text" inputmode="numeric" placeholder="3,500" 
+                                           value="${item.price}" 
+                                           oninput="this.value = formatNumberInput(this.value); updateUnitPriceItem(${item.id}, 'price', this.value)">
+                                </div>
+                                <div class="unit-price-input-group">
+                                    <label><i class="fas fa-cubes"></i> 수량</label>
+                                    <input type="text" inputmode="numeric" placeholder="12" 
+                                           value="${item.quantity}" 
+                                           oninput="this.value = formatNumberInput(this.value); updateUnitPriceItem(${item.id}, 'quantity', this.value)">
+                                </div>
+                            </div>
+                            <div class="calculated-result">
+                                <span class="result-label">개당 단가</span>
+                                <span class="result-value">${unitPrice > 0 ? unitPrice.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + '원' : '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatNumberInput(value) {
+            // 숫자와 소수점만 허용
+            let cleaned = value.replace(/[^\d.]/g, '');
+            
+            // 소수점이 여러 개인 경우 첫 번째만 유지
+            const parts = cleaned.split('.');
+            if (parts.length > 2) {
+                cleaned = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // 정수 부분에 콤마 추가
+            if (cleaned) {
+                const [intPart, decPart] = cleaned.split('.');
+                const formattedInt = parseInt(intPart || 0).toLocaleString('ko-KR');
+                return decPart !== undefined ? formattedInt + '.' + decPart : formattedInt;
+            }
+            
+            return cleaned;
+        }
+
+        function toggleUnitPriceSort() {
+            unitPriceSortOrder = unitPriceSortOrder === 'desc' ? 'asc' : 'desc';
+            updateUnitPriceTable();
+        }
+
+        function updateUnitPriceTable() {
+            const container = document.getElementById('unitPriceResultTable');
+            if (!container) return;
+            
+            // 유효한 아이템만 필터링 (이름, 가격, 수량이 모두 있는 것)
+            const validItems = unitPriceItems.filter(item => {
+                const price = parseFloat(item.price.replace(/,/g, '')) || 0;
+                const quantity = parseFloat(item.quantity.replace(/,/g, '')) || 0;
+                return item.name && price > 0 && quantity > 0;
+            }).map(item => {
+                const price = parseFloat(item.price.replace(/,/g, ''));
+                const quantity = parseFloat(item.quantity.replace(/,/g, ''));
+                return {
+                    ...item,
+                    priceNum: price,
+                    quantityNum: quantity,
+                    unitPrice: price / quantity
+                };
+            });
+            
+            if (validItems.length === 0) {
+                container.innerHTML = `
+                    <div class="unit-price-empty">
+                        <i class="fas fa-box-open"></i>
+                        품목을 추가하면 단가 비교표가 표시됩니다
+                    </div>
+                `;
+                return;
+            }
+            
+            // 단가 기준 정렬
+            validItems.sort((a, b) => {
+                return unitPriceSortOrder === 'desc' 
+                    ? b.unitPrice - a.unitPrice 
+                    : a.unitPrice - b.unitPrice;
+            });
+            
+            const sortIcon = unitPriceSortOrder === 'desc' ? '↓' : '↑';
+            
+            container.innerHTML = `
+                <table class="unit-price-table">
+                    <thead>
+                        <tr>
+                            <th>품목명</th>
+                            <th>가격</th>
+                            <th>수량</th>
+                            <th class="sortable active" onclick="toggleUnitPriceSort()">
+                                단가 <span class="sort-icon">${sortIcon}</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${validItems.map(item => `
+                            <tr>
+                                <td class="item-name">${item.name}</td>
+                                <td>${item.priceNum.toLocaleString('ko-KR')}</td>
+                                <td>${item.quantityNum.toLocaleString('ko-KR')}</td>
+                                <td class="unit-price-value">${item.unitPrice.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
             `;
         }
 
@@ -11897,6 +13228,701 @@
             resultSection.innerHTML = resultHTML;
             resultSection.classList.add('active');
             resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ==================== 음력양력 변환기 ====================
+        
+        // 음력 데이터 (1900-2100년)
+        // 각 연도별 16비트: 윤달월(4비트) + 각 월의 대소월 정보(12비트)
+        const lunarData = [
+            0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2, // 1900-1909
+            0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977, // 1910-1919
+            0x04970, 0x0a4b0, 0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970, // 1920-1929
+            0x06566, 0x0d4a0, 0x0ea50, 0x06e95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950, // 1930-1939
+            0x0d4a0, 0x1d8a6, 0x0b550, 0x056a0, 0x1a5b4, 0x025d0, 0x092d0, 0x0d2b2, 0x0a950, 0x0b557, // 1940-1949
+            0x06ca0, 0x0b550, 0x15355, 0x04da0, 0x0a5b0, 0x14573, 0x052b0, 0x0a9a8, 0x0e950, 0x06aa0, // 1950-1959
+            0x0aea6, 0x0ab50, 0x04b60, 0x0aae4, 0x0a570, 0x05260, 0x0f263, 0x0d950, 0x05b57, 0x056a0, // 1960-1969
+            0x096d0, 0x04dd5, 0x04ad0, 0x0a4d0, 0x0d4d4, 0x0d250, 0x0d558, 0x0b540, 0x0b6a0, 0x195a6, // 1970-1979
+            0x095b0, 0x049b0, 0x0a974, 0x0a4b0, 0x0b27a, 0x06a50, 0x06d40, 0x0af46, 0x0ab60, 0x09570, // 1980-1989
+            0x04af5, 0x04970, 0x064b0, 0x074a3, 0x0ea50, 0x06b58, 0x055c0, 0x0ab60, 0x096d5, 0x092e0, // 1990-1999
+            0x0c960, 0x0d954, 0x0d4a0, 0x0da50, 0x07552, 0x056a0, 0x0abb7, 0x025d0, 0x092d0, 0x0cab5, // 2000-2009
+            0x0a950, 0x0b4a0, 0x0baa4, 0x0ad50, 0x055d9, 0x04ba0, 0x0a5b0, 0x15176, 0x052b0, 0x0a930, // 2010-2019
+            0x07954, 0x06aa0, 0x0ad50, 0x05b52, 0x04b60, 0x0a6e6, 0x0a4e0, 0x0d260, 0x0ea65, 0x0d530, // 2020-2029
+            0x05aa0, 0x076a3, 0x096d0, 0x04afb, 0x04ad0, 0x0a4d0, 0x1d0b6, 0x0d250, 0x0d520, 0x0dd45, // 2030-2039
+            0x0b5a0, 0x056d0, 0x055b2, 0x049b0, 0x0a577, 0x0a4b0, 0x0aa50, 0x1b255, 0x06d20, 0x0ada0, // 2040-2049
+            0x14b63, 0x09370, 0x049f8, 0x04970, 0x064b0, 0x168a6, 0x0ea50, 0x06b20, 0x1a6c4, 0x0aae0, // 2050-2059
+            0x0a2e0, 0x0d2e3, 0x0c960, 0x0d557, 0x0d4a0, 0x0da50, 0x05d55, 0x056a0, 0x0a6d0, 0x055d4, // 2060-2069
+            0x052d0, 0x0a9b8, 0x0a950, 0x0b4a0, 0x0b6a6, 0x0ad50, 0x055a0, 0x0aba4, 0x0a5b0, 0x052b0, // 2070-2079
+            0x0b273, 0x06930, 0x07337, 0x06aa0, 0x0ad50, 0x14b55, 0x04b60, 0x0a570, 0x054e4, 0x0d160, // 2080-2089
+            0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0, 0x0d150, 0x0f252, // 2090-2099
+            0x0d520 // 2100
+        ];
+
+        // 천간 (天干)
+        const heavenlyStems = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
+        // 지지 (地支)
+        const earthlyBranches = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+        // 띠 동물
+        const zodiacAnimals = ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지'];
+        // 띠 이모지
+        const zodiacEmojis = ['🐀', '🐂', '🐅', '🐇', '🐉', '🐍', '🐎', '🐑', '🐒', '🐓', '🐕', '🐖'];
+
+        // 해당 연도의 윤달 정보 (윤달이 없으면 0)
+        function getLeapMonth(year) {
+            return lunarData[year - 1900] & 0xf;
+        }
+
+        // 해당 연도의 윤달 일수
+        function getLeapMonthDays(year) {
+            if (getLeapMonth(year)) {
+                return (lunarData[year - 1900] & 0x10000) ? 30 : 29;
+            }
+            return 0;
+        }
+
+        // 해당 연도, 월의 일수
+        function getLunarMonthDays(year, month) {
+            return (lunarData[year - 1900] & (0x10000 >> month)) ? 30 : 29;
+        }
+
+        // 해당 연도의 총 일수
+        function getLunarYearDays(year) {
+            let sum = 348; // 12개월 * 29일 기본
+            for (let i = 0x8000; i > 0x8; i >>= 1) {
+                if (lunarData[year - 1900] & i) sum++;
+            }
+            return sum + getLeapMonthDays(year);
+        }
+
+        // 양력을 음력으로 변환
+        function solarToLunar(solarYear, solarMonth, solarDay) {
+            // 기준일: 1900년 1월 31일 = 음력 1900년 1월 1일
+            const baseDate = new Date(1900, 0, 31);
+            const targetDate = new Date(solarYear, solarMonth - 1, solarDay);
+            
+            let offset = Math.floor((targetDate - baseDate) / 86400000);
+            
+            if (offset < 0 || solarYear < 1900 || solarYear > 2100) {
+                return null;
+            }
+
+            let lunarYear = 1900;
+            let lunarMonth = 1;
+            let lunarDay = 1;
+            let isLeapMonth = false;
+
+            // 연도 계산
+            let yearDays;
+            while (lunarYear < 2101 && offset >= (yearDays = getLunarYearDays(lunarYear))) {
+                offset -= yearDays;
+                lunarYear++;
+            }
+
+            // 월 계산
+            let leapMonth = getLeapMonth(lunarYear);
+            let month = 1;
+            let monthDays;
+            let isLeap = false;
+
+            while (month <= 12) {
+                if (leapMonth > 0 && month === leapMonth + 1 && !isLeap) {
+                    // 윤달 처리
+                    monthDays = getLeapMonthDays(lunarYear);
+                    isLeap = true;
+                    month--;
+                } else {
+                    monthDays = getLunarMonthDays(lunarYear, month);
+                    isLeap = false;
+                }
+
+                if (offset < monthDays) {
+                    break;
+                }
+                offset -= monthDays;
+                month++;
+            }
+
+            lunarMonth = month;
+            lunarDay = offset + 1;
+            isLeapMonth = isLeap;
+
+            return {
+                year: lunarYear,
+                month: lunarMonth,
+                day: lunarDay,
+                isLeapMonth: isLeapMonth
+            };
+        }
+
+        // 음력을 양력으로 변환
+        function lunarToSolar(lunarYear, lunarMonth, lunarDay, isLeapMonth) {
+            if (lunarYear < 1900 || lunarYear > 2100) {
+                return null;
+            }
+
+            let leapMonth = getLeapMonth(lunarYear);
+            
+            // 윤달 유효성 검사
+            if (isLeapMonth && leapMonth !== lunarMonth) {
+                return null;
+            }
+
+            // 일 수 유효성 검사
+            let maxDays;
+            if (isLeapMonth) {
+                maxDays = getLeapMonthDays(lunarYear);
+            } else {
+                maxDays = getLunarMonthDays(lunarYear, lunarMonth);
+            }
+            if (lunarDay > maxDays) {
+                return null;
+            }
+
+            // 기준일로부터의 일수 계산
+            let offset = 0;
+
+            // 1900년부터 해당 연도 전까지의 일수
+            for (let y = 1900; y < lunarYear; y++) {
+                offset += getLunarYearDays(y);
+            }
+
+            // 해당 연도의 1월부터 해당 월 전까지의 일수
+            for (let m = 1; m < lunarMonth; m++) {
+                offset += getLunarMonthDays(lunarYear, m);
+                if (leapMonth === m) {
+                    offset += getLeapMonthDays(lunarYear);
+                }
+            }
+
+            // 윤달인 경우 해당 월의 일수도 추가
+            if (isLeapMonth) {
+                offset += getLunarMonthDays(lunarYear, lunarMonth);
+            }
+
+            // 일수 추가
+            offset += lunarDay - 1;
+
+            // 기준일(1900년 1월 31일)에 일수를 더함
+            const baseDate = new Date(1900, 0, 31);
+            const resultDate = new Date(baseDate.getTime() + offset * 86400000);
+
+            return {
+                year: resultDate.getFullYear(),
+                month: resultDate.getMonth() + 1,
+                day: resultDate.getDate()
+            };
+        }
+
+        // 간지 계산
+        function getGanZhi(year) {
+            const stemIndex = (year - 4) % 10;
+            const branchIndex = (year - 4) % 12;
+            return {
+                stem: heavenlyStems[stemIndex < 0 ? stemIndex + 10 : stemIndex],
+                branch: earthlyBranches[branchIndex < 0 ? branchIndex + 12 : branchIndex],
+                zodiac: zodiacAnimals[branchIndex < 0 ? branchIndex + 12 : branchIndex],
+                emoji: zodiacEmojis[branchIndex < 0 ? branchIndex + 12 : branchIndex]
+            };
+        }
+
+        // 요일 계산
+        function getDayOfWeek(year, month, day) {
+            const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            const date = new Date(year, month - 1, day);
+            return days[date.getDay()];
+        }
+
+        // 음력양력 변환기 UI
+        function getLunarSolarConverter() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            
+            // 연도 옵션 생성
+            let yearOptions = '';
+            for (let y = 1900; y <= 2100; y++) {
+                const selected = y === currentYear ? 'selected' : '';
+                yearOptions += `<option value="${y}" ${selected}>${y}년</option>`;
+            }
+            
+            // 월 옵션 생성
+            let monthOptions = '';
+            for (let m = 1; m <= 12; m++) {
+                const selected = m === (today.getMonth() + 1) ? 'selected' : '';
+                monthOptions += `<option value="${m}" ${selected}>${m}월</option>`;
+            }
+            
+            // 일 옵션 생성
+            let dayOptions = '';
+            for (let d = 1; d <= 31; d++) {
+                const selected = d === today.getDate() ? 'selected' : '';
+                dayOptions += `<option value="${d}" ${selected}>${d}일</option>`;
+            }
+
+            return `
+                <style>
+                    .lunar-converter-container {
+                        max-width: 500px;
+                        margin: 0 auto;
+                    }
+                    
+                    .converter-tabs {
+                        display: flex;
+                        margin-bottom: 25px;
+                        background: #f1f5f9;
+                        border-radius: 12px;
+                        padding: 5px;
+                    }
+                    
+                    .converter-tab {
+                        flex: 1;
+                        padding: 14px 20px;
+                        border: none;
+                        background: transparent;
+                        cursor: pointer;
+                        font-size: 15px;
+                        font-weight: 600;
+                        color: #64748b;
+                        border-radius: 10px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .converter-tab.active {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    }
+                    
+                    .converter-tab:hover:not(.active) {
+                        background: #e2e8f0;
+                    }
+                    
+                    .converter-section {
+                        display: none;
+                    }
+                    
+                    .converter-section.active {
+                        display: block;
+                        animation: fadeIn 0.3s ease;
+                    }
+                    
+                    .date-input-group {
+                        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                        padding: 25px;
+                        border-radius: 16px;
+                        margin-bottom: 20px;
+                        border: 1px solid #e2e8f0;
+                    }
+                    
+                    .date-input-title {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #667eea;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .date-input-title i {
+                        font-size: 16px;
+                    }
+                    
+                    .date-selects {
+                        display: grid;
+                        grid-template-columns: 1.2fr 1fr 1fr;
+                        gap: 12px;
+                    }
+                    
+                    .date-selects select {
+                        padding: 14px 12px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 10px;
+                        font-size: 15px;
+                        font-weight: 500;
+                        background: white;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .date-selects select:focus {
+                        outline: none;
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+                    }
+                    
+                    .leap-month-option {
+                        margin-top: 15px;
+                        padding-top: 15px;
+                        border-top: 1px dashed #e2e8f0;
+                    }
+                    
+                    .leap-month-option label {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        color: #64748b;
+                    }
+                    
+                    .leap-month-option input[type="checkbox"] {
+                        width: 20px;
+                        height: 20px;
+                        accent-color: #667eea;
+                    }
+                    
+                    .convert-btn {
+                        width: 100%;
+                        padding: 16px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                    }
+                    
+                    .convert-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+                    }
+                    
+                    .convert-btn:active {
+                        transform: translateY(0);
+                    }
+                    
+                    .result-container {
+                        margin-top: 25px;
+                        display: none;
+                    }
+                    
+                    .result-container.show {
+                        display: block;
+                        animation: slideUp 0.4s ease;
+                    }
+                    
+                    @keyframes slideUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                    
+                    .result-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border-radius: 20px;
+                        padding: 30px;
+                        color: white;
+                        text-align: center;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .result-label {
+                        font-size: 14px;
+                        opacity: 0.9;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .result-date {
+                        font-size: 32px;
+                        font-weight: 700;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .result-day {
+                        font-size: 16px;
+                        opacity: 0.9;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                    }
+                    
+                    .detail-cards {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                    }
+                    
+                    .detail-card {
+                        background: white;
+                        border-radius: 16px;
+                        padding: 20px;
+                        text-align: center;
+                        border: 1px solid #e2e8f0;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                    }
+                    
+                    .detail-icon {
+                        font-size: 28px;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .detail-label {
+                        font-size: 12px;
+                        color: #64748b;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .detail-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #1e293b;
+                    }
+                    
+                    .detail-sub {
+                        font-size: 12px;
+                        color: #94a3b8;
+                        margin-top: 4px;
+                    }
+                    
+                    .leap-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                        color: white;
+                        padding: 4px 10px;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        margin-left: 8px;
+                    }
+                    
+                    .error-message {
+                        background: #fef2f2;
+                        border: 1px solid #fecaca;
+                        color: #dc2626;
+                        padding: 15px 20px;
+                        border-radius: 12px;
+                        text-align: center;
+                        margin-top: 20px;
+                        display: none;
+                    }
+                    
+                    .error-message.show {
+                        display: block;
+                        animation: shake 0.5s ease;
+                    }
+                    
+                    @keyframes shake {
+                        0%, 100% { transform: translateX(0); }
+                        25% { transform: translateX(-5px); }
+                        75% { transform: translateX(5px); }
+                    }
+                </style>
+                
+                <div class="lunar-converter-container">
+                    <div class="converter-tabs">
+                        <button class="converter-tab active" onclick="switchConverterTab('solar-to-lunar')">
+                            <i class="fas fa-sun"></i> 양력 → 음력
+                        </button>
+                        <button class="converter-tab" onclick="switchConverterTab('lunar-to-solar')">
+                            <i class="fas fa-moon"></i> 음력 → 양력
+                        </button>
+                    </div>
+                    
+                    <!-- 양력 → 음력 -->
+                    <div id="solar-to-lunar-section" class="converter-section active">
+                        <div class="date-input-group">
+                            <div class="date-input-title">
+                                <i class="fas fa-sun"></i> 양력 날짜 입력
+                            </div>
+                            <div class="date-selects">
+                                <select id="solarYear">${yearOptions}</select>
+                                <select id="solarMonth">${monthOptions}</select>
+                                <select id="solarDay">${dayOptions}</select>
+                            </div>
+                        </div>
+                        
+                        <button class="convert-btn" onclick="convertSolarToLunar()">
+                            <i class="fas fa-exchange-alt"></i> 음력으로 변환
+                        </button>
+                        
+                        <div id="solarToLunarResult" class="result-container"></div>
+                        <div id="solarToLunarError" class="error-message">
+                            <i class="fas fa-exclamation-circle"></i> 변환할 수 없는 날짜입니다.
+                        </div>
+                    </div>
+                    
+                    <!-- 음력 → 양력 -->
+                    <div id="lunar-to-solar-section" class="converter-section">
+                        <div class="date-input-group">
+                            <div class="date-input-title">
+                                <i class="fas fa-moon"></i> 음력 날짜 입력
+                            </div>
+                            <div class="date-selects">
+                                <select id="lunarYear">${yearOptions}</select>
+                                <select id="lunarMonth">${monthOptions}</select>
+                                <select id="lunarDay">${dayOptions}</select>
+                            </div>
+                            <div class="leap-month-option">
+                                <label>
+                                    <input type="checkbox" id="isLeapMonth">
+                                    <span>윤달 (閏月)</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button class="convert-btn" onclick="convertLunarToSolar()">
+                            <i class="fas fa-exchange-alt"></i> 양력으로 변환
+                        </button>
+                        
+                        <div id="lunarToSolarResult" class="result-container"></div>
+                        <div id="lunarToSolarError" class="error-message">
+                            <i class="fas fa-exclamation-circle"></i> 변환할 수 없는 날짜입니다.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 탭 전환
+        function switchConverterTab(type) {
+            const tabs = document.querySelectorAll('.converter-tab');
+            const sections = document.querySelectorAll('.converter-section');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            sections.forEach(section => section.classList.remove('active'));
+            
+            if (type === 'solar-to-lunar') {
+                tabs[0].classList.add('active');
+                document.getElementById('solar-to-lunar-section').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('lunar-to-solar-section').classList.add('active');
+            }
+        }
+
+        // 양력 → 음력 변환 실행
+        function convertSolarToLunar() {
+            const year = parseInt(document.getElementById('solarYear').value);
+            const month = parseInt(document.getElementById('solarMonth').value);
+            const day = parseInt(document.getElementById('solarDay').value);
+            
+            const resultContainer = document.getElementById('solarToLunarResult');
+            const errorContainer = document.getElementById('solarToLunarError');
+            
+            // 날짜 유효성 검사
+            const testDate = new Date(year, month - 1, day);
+            if (testDate.getMonth() + 1 !== month || testDate.getDate() !== day) {
+                resultContainer.classList.remove('show');
+                errorContainer.classList.add('show');
+                return;
+            }
+            
+            const result = solarToLunar(year, month, day);
+            
+            if (!result) {
+                resultContainer.classList.remove('show');
+                errorContainer.classList.add('show');
+                return;
+            }
+            
+            errorContainer.classList.remove('show');
+            
+            const ganZhi = getGanZhi(result.year);
+            const dayOfWeek = getDayOfWeek(year, month, day);
+            const leapBadge = result.isLeapMonth ? '<span class="leap-badge">윤달</span>' : '';
+            
+            resultContainer.innerHTML = `
+                <div class="result-card">
+                    <div class="result-label">음력 날짜</div>
+                    <div class="result-date">
+                        ${result.year}년 ${result.isLeapMonth ? '윤' : ''}${result.month}월 ${result.day}일
+                        ${leapBadge}
+                    </div>
+                    <div class="result-day">
+                        <i class="fas fa-calendar-check"></i> ${dayOfWeek}
+                    </div>
+                </div>
+                
+                <div class="detail-cards">
+                    <div class="detail-card">
+                        <div class="detail-icon">📜</div>
+                        <div class="detail-label">간지 (천간지지)</div>
+                        <div class="detail-value">${ganZhi.stem}${ganZhi.branch}년</div>
+                        <div class="detail-sub">${ganZhi.stem}(天干) + ${ganZhi.branch}(地支)</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-icon">${ganZhi.emoji}</div>
+                        <div class="detail-label">띠</div>
+                        <div class="detail-value">${ganZhi.zodiac}띠</div>
+                        <div class="detail-sub">${result.year}년생</div>
+                    </div>
+                </div>
+            `;
+            
+            resultContainer.classList.add('show');
+        }
+
+        // 음력 → 양력 변환 실행
+        function convertLunarToSolar() {
+            const year = parseInt(document.getElementById('lunarYear').value);
+            const month = parseInt(document.getElementById('lunarMonth').value);
+            const day = parseInt(document.getElementById('lunarDay').value);
+            const isLeap = document.getElementById('isLeapMonth').checked;
+            
+            const resultContainer = document.getElementById('lunarToSolarResult');
+            const errorContainer = document.getElementById('lunarToSolarError');
+            
+            const result = lunarToSolar(year, month, day, isLeap);
+            
+            if (!result) {
+                resultContainer.classList.remove('show');
+                errorContainer.classList.add('show');
+                return;
+            }
+            
+            errorContainer.classList.remove('show');
+            
+            const ganZhi = getGanZhi(year);
+            const dayOfWeek = getDayOfWeek(result.year, result.month, result.day);
+            
+            resultContainer.innerHTML = `
+                <div class="result-card">
+                    <div class="result-label">양력 날짜</div>
+                    <div class="result-date">
+                        ${result.year}년 ${result.month}월 ${result.day}일
+                    </div>
+                    <div class="result-day">
+                        <i class="fas fa-calendar-check"></i> ${dayOfWeek}
+                    </div>
+                </div>
+                
+                <div class="detail-cards">
+                    <div class="detail-card">
+                        <div class="detail-icon">📜</div>
+                        <div class="detail-label">간지 (천간지지)</div>
+                        <div class="detail-value">${ganZhi.stem}${ganZhi.branch}년</div>
+                        <div class="detail-sub">${ganZhi.stem}(天干) + ${ganZhi.branch}(地支)</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-icon">${ganZhi.emoji}</div>
+                        <div class="detail-label">띠</div>
+                        <div class="detail-value">${ganZhi.zodiac}띠</div>
+                        <div class="detail-sub">${year}년생 (음력 기준)</div>
+                    </div>
+                </div>
+            `;
+            
+            resultContainer.classList.add('show');
+        }
+
+        // 음력양력 변환기 초기화
+        function initLunarSolarConverter() {
+            // 페이지 로드 시 오늘 날짜로 자동 변환
+            setTimeout(() => {
+                convertSolarToLunar();
+            }, 100);
         }
     </script>
 </body>
