@@ -727,6 +727,34 @@
                     </div>
                     <h3>흡연<br>계산기</h3>
                 </div>
+
+                <div class="calc-card" data-calc="family-relation">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>촌수호칭<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="golf-score">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%);">
+                        <i class="fas fa-golf-ball"></i>
+                    </div>
+                    <h3>골프점수<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="bowling-score">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
+                        <i class="fas fa-bowling-ball"></i>
+                    </div>
+                    <h3>볼링점수<br>계산기</h3>
+                </div>
+
+                <div class="calc-card" data-calc="shoe-size">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);">
+                        <i class="fas fa-shoe-prints"></i>
+                    </div>
+                    <h3>신발치수<br>계산기</h3>
+                </div>
             </div>
         </div>
 
@@ -825,7 +853,12 @@
                 'bmi': '비만도 계산기',
                 'dutch-pay': '더치페이복불복',
                 'world-time': '세계시간 변환',
-                'ovulation': '배란일 계산기'
+                'ovulation': '배란일 계산기',
+                'smoking': '흡연 계산기',
+                'family-relation': '촌수호칭 계산기',
+                'golf-score': '골프점수 계산기',
+                'bowling-score': '볼링점수 계산기',
+                'shoe-size': '신발치수 계산기'
             };
             
             document.getElementById('calcTitle').textContent = titles[type];
@@ -911,6 +944,22 @@
                     break;
                 case 'smoking':
                     calcBody.innerHTML = getSmokingCalculator();
+                    break;
+                case 'ovulation':
+                    calcBody.innerHTML = getOvulationCalculator();
+                    initOvulationCalculator();
+                    break;
+                case 'family-relation':
+                    calcBody.innerHTML = getPreparingCalculator('촌수호칭 계산기');
+                    break;
+                case 'golf-score':
+                    calcBody.innerHTML = getPreparingCalculator('골프점수 계산기');
+                    break;
+                case 'bowling-score':
+                    calcBody.innerHTML = getPreparingCalculator('볼링점수 계산기');
+                    break;
+                case 'shoe-size':
+                    calcBody.innerHTML = getPreparingCalculator('신발치수 계산기');
                     break;
                 case 'lunar-solar':
                     calcBody.innerHTML = getLunarSolarConverter();
@@ -12918,6 +12967,15 @@
                 </style>
                 
                 <div class="smoking-calculator">
+                    <!-- 상단 제목 추가 -->
+                    <div class="smoking-header" style="text-align: center; margin-bottom: 30px;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, #eb5757 0%, #f2994a 100%); border-radius: 50%; margin-bottom: 16px; box-shadow: 0 8px 25px rgba(235, 87, 87, 0.3);">
+                            <i class="fas fa-smoking" style="font-size: 36px; color: white;"></i>
+                        </div>
+                        <h2 style="font-size: 28px; font-weight: 700; color: #333; margin-bottom: 8px;">흡연 계산기</h2>
+                        <p style="font-size: 16px; color: #888;">담배에 지출한 비용과 세금을 계산해보세요</p>
+                    </div>
+                    
                     <form class="smoking-form-section" onsubmit="calculateSmoking(event)">
                         <div class="smoking-form-title">
                             <i class="fas fa-smoking"></i>
@@ -13923,6 +13981,871 @@
             setTimeout(() => {
                 convertSolarToLunar();
             }, 100);
+        }
+
+        // ===== 준비중 계산기 =====
+        function getPreparingCalculator(calcName) {
+            return `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 100px; height: 100px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 50%; margin-bottom: 24px;">
+                        <i class="fas fa-tools" style="font-size: 42px; color: #64748b;"></i>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #334155; margin-bottom: 12px;">${calcName}</h2>
+                    <p style="font-size: 18px; color: #64748b; line-height: 1.6;">이 계산기는 준비중 입니다.</p>
+                    <p style="font-size: 14px; color: #94a3b8; margin-top: 16px;">빠른 시일 내에 서비스를 제공해 드리겠습니다.</p>
+                </div>
+            `;
+        }
+
+        // ===== 배란일 계산기 =====
+        function getOvulationCalculator() {
+            return `
+                <style>
+                    .ovulation-calculator {
+                        max-width: 700px;
+                        margin: 0 auto;
+                    }
+                    
+                    .ovulation-header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                    }
+                    
+                    .ovulation-header-icon {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+                        border-radius: 50%;
+                        margin-bottom: 16px;
+                        box-shadow: 0 8px 25px rgba(236, 72, 153, 0.2);
+                    }
+                    
+                    .ovulation-header-icon i {
+                        font-size: 36px;
+                        color: #ec4899;
+                    }
+                    
+                    .ovulation-header h2 {
+                        font-size: 28px;
+                        font-weight: 700;
+                        color: #333;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .ovulation-header p {
+                        font-size: 16px;
+                        color: #888;
+                    }
+                    
+                    .ovulation-form-section {
+                        background: #fff;
+                        border-radius: 24px;
+                        padding: 30px;
+                        margin-bottom: 24px;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+                    }
+                    
+                    .ovulation-section-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #ec4899;
+                        margin-bottom: 24px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                    }
+                    
+                    .ovulation-section-title .step-num {
+                        width: 32px;
+                        height: 32px;
+                        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #ec4899;
+                    }
+                    
+                    .ovulation-form-group {
+                        margin-bottom: 24px;
+                    }
+                    
+                    .ovulation-form-group label {
+                        display: block;
+                        font-weight: 600;
+                        color: #333;
+                        margin-bottom: 10px;
+                        font-size: 15px;
+                    }
+                    
+                    .ovulation-form-group input[type="date"] {
+                        width: 100%;
+                        padding: 14px 16px;
+                        border: 2px solid #fce7f3;
+                        border-radius: 12px;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .ovulation-form-group input[type="date"]:focus {
+                        outline: none;
+                        border-color: #ec4899;
+                        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+                    }
+                    
+                    .ovulation-slider-container {
+                        margin-top: 10px;
+                    }
+                    
+                    .ovulation-slider-row {
+                        display: flex;
+                        align-items: center;
+                        gap: 16px;
+                    }
+                    
+                    .ovulation-slider-row input[type="range"] {
+                        flex: 1;
+                        height: 8px;
+                        background: #fce7f3;
+                        border-radius: 4px;
+                        appearance: none;
+                        cursor: pointer;
+                    }
+                    
+                    .ovulation-slider-row input[type="range"]::-webkit-slider-thumb {
+                        appearance: none;
+                        width: 24px;
+                        height: 24px;
+                        background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+                        border-radius: 50%;
+                        cursor: pointer;
+                        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+                    }
+                    
+                    .ovulation-slider-value {
+                        font-size: 28px;
+                        font-weight: 700;
+                        color: #ec4899;
+                        min-width: 50px;
+                        text-align: center;
+                    }
+                    
+                    .ovulation-slider-hint {
+                        font-size: 13px;
+                        color: #888;
+                        margin-top: 8px;
+                    }
+                    
+                    .ovulation-btn-calculate {
+                        width: 100%;
+                        padding: 18px;
+                        background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 16px;
+                        font-size: 18px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+                    }
+                    
+                    .ovulation-btn-calculate:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 12px 30px rgba(236, 72, 153, 0.4);
+                    }
+                    
+                    .ovulation-result-section {
+                        display: none;
+                    }
+                    
+                    .ovulation-result-section.active {
+                        display: block;
+                        animation: fadeInUp 0.5s ease;
+                    }
+                    
+                    .ovulation-result-cards {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 16px;
+                        margin-bottom: 24px;
+                    }
+                    
+                    .ovulation-result-card {
+                        background: #fff;
+                        border-radius: 20px;
+                        padding: 20px;
+                        text-align: center;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .ovulation-result-card.ovulation-date {
+                        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                    }
+                    
+                    .ovulation-result-card.fertile-window {
+                        background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%);
+                    }
+                    
+                    .ovulation-result-card.next-period {
+                        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                    }
+                    
+                    .ovulation-result-card-icon {
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 12px;
+                        font-size: 24px;
+                    }
+                    
+                    .ovulation-date .ovulation-result-card-icon {
+                        background: #f59e0b;
+                        color: white;
+                    }
+                    
+                    .fertile-window .ovulation-result-card-icon {
+                        background: #22c55e;
+                        color: white;
+                    }
+                    
+                    .next-period .ovulation-result-card-icon {
+                        background: #f87171;
+                        color: white;
+                    }
+                    
+                    .ovulation-result-card-label {
+                        font-size: 13px;
+                        color: #666;
+                        margin-bottom: 6px;
+                    }
+                    
+                    .ovulation-result-card-value {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #333;
+                    }
+                    
+                    .ovulation-date .ovulation-result-card-value {
+                        color: #d97706;
+                    }
+                    
+                    .fertile-window .ovulation-result-card-value {
+                        color: #16a34a;
+                    }
+                    
+                    .next-period .ovulation-result-card-value {
+                        color: #dc2626;
+                    }
+                    
+                    .ovulation-calendar-section {
+                        background: #fff;
+                        border-radius: 20px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .ovulation-calendar-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #333;
+                        margin-bottom: 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .ovulation-calendar {
+                        background: #f8fafc;
+                        border-radius: 16px;
+                        padding: 16px;
+                    }
+                    
+                    .ovulation-calendar-month {
+                        text-align: center;
+                        font-weight: 600;
+                        color: #333;
+                        margin-bottom: 12px;
+                        font-size: 16px;
+                    }
+                    
+                    .ovulation-calendar-grid {
+                        display: grid;
+                        grid-template-columns: repeat(7, 1fr);
+                        gap: 4px;
+                        text-align: center;
+                    }
+                    
+                    .ovulation-calendar-header {
+                        font-size: 12px;
+                        font-weight: 600;
+                        padding: 8px 4px;
+                        color: #64748b;
+                    }
+                    
+                    .ovulation-calendar-header.sunday {
+                        color: #ef4444;
+                    }
+                    
+                    .ovulation-calendar-header.saturday {
+                        color: #3b82f6;
+                    }
+                    
+                    .ovulation-calendar-day {
+                        padding: 8px 4px;
+                        font-size: 14px;
+                        border-radius: 8px;
+                        color: #333;
+                    }
+                    
+                    .ovulation-calendar-day.period-day {
+                        background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+                        color: white;
+                        font-weight: 600;
+                    }
+                    
+                    .ovulation-calendar-day.fertile-day {
+                        background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+                        color: white;
+                        font-weight: 600;
+                    }
+                    
+                    .ovulation-calendar-day.ovulation-day {
+                        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                        color: white;
+                        font-weight: 700;
+                        animation: pulse 2s infinite;
+                    }
+                    
+                    .ovulation-calendar-day.next-period-day {
+                        background: #fecaca;
+                        color: #dc2626;
+                        font-weight: 600;
+                    }
+                    
+                    .ovulation-calendar-day.today {
+                        box-shadow: 0 0 0 2px #ec4899;
+                    }
+                    
+                    .ovulation-calendar-day.sunday {
+                        color: #ef4444;
+                    }
+                    
+                    .ovulation-calendar-day.saturday {
+                        color: #3b82f6;
+                    }
+                    
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                    }
+                    
+                    .ovulation-legend {
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        gap: 16px;
+                        margin-top: 20px;
+                        padding-top: 16px;
+                        border-top: 1px solid #e2e8f0;
+                    }
+                    
+                    .ovulation-legend-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        font-size: 13px;
+                        color: #666;
+                    }
+                    
+                    .ovulation-legend-color {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 4px;
+                    }
+                    
+                    .ovulation-legend-color.period {
+                        background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+                    }
+                    
+                    .ovulation-legend-color.fertile {
+                        background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+                    }
+                    
+                    .ovulation-legend-color.ovulation {
+                        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                    }
+                    
+                    .ovulation-tips-section {
+                        background: #fff;
+                        border-radius: 20px;
+                        padding: 24px;
+                        margin-bottom: 24px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .ovulation-tips-title {
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #333;
+                        margin-bottom: 16px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    
+                    .ovulation-tip-list {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                    }
+                    
+                    .ovulation-tip-list li {
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 8px;
+                        padding: 10px 0;
+                        font-size: 14px;
+                        color: #555;
+                        line-height: 1.5;
+                    }
+                    
+                    .ovulation-tip-list li::before {
+                        content: "•";
+                        color: #ec4899;
+                        font-weight: bold;
+                    }
+                    
+                    .ovulation-info-section {
+                        background: #fff;
+                        border-radius: 20px;
+                        padding: 24px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    
+                    .ovulation-tabs {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 8px;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .ovulation-tab-btn {
+                        padding: 10px 16px;
+                        border: none;
+                        border-radius: 20px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        background: #f1f5f9;
+                        color: #64748b;
+                    }
+                    
+                    .ovulation-tab-btn.active {
+                        background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+                        color: white;
+                    }
+                    
+                    .ovulation-tab-btn:hover:not(.active) {
+                        background: #e2e8f0;
+                    }
+                    
+                    .ovulation-tab-content {
+                        display: none;
+                    }
+                    
+                    .ovulation-tab-content.active {
+                        display: block;
+                    }
+                    
+                    .ovulation-info-card {
+                        background: #fdf2f8;
+                        border-radius: 16px;
+                        padding: 16px;
+                        margin-bottom: 12px;
+                    }
+                    
+                    .ovulation-info-card:last-child {
+                        margin-bottom: 0;
+                    }
+                    
+                    .ovulation-info-card h4 {
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #be185d;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .ovulation-info-card p {
+                        font-size: 13px;
+                        color: #666;
+                        line-height: 1.6;
+                    }
+                    
+                    @media (max-width: 600px) {
+                        .ovulation-result-cards {
+                            grid-template-columns: 1fr;
+                        }
+                        
+                        .ovulation-calendar-day {
+                            padding: 6px 2px;
+                            font-size: 12px;
+                        }
+                    }
+                </style>
+                
+                <div class="ovulation-calculator">
+                    <div class="ovulation-header">
+                        <div class="ovulation-header-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h2>배란일 계산기</h2>
+                        <p>정확한 배란일과 가임기간을 계산해보세요</p>
+                    </div>
+                    
+                    <div class="ovulation-form-section">
+                        <div class="ovulation-section-title">
+                            <span class="step-num">1</span>
+                            정보 입력
+                        </div>
+                        
+                        <div class="ovulation-form-group">
+                            <label>마지막 생리 시작일</label>
+                            <input type="date" id="ovulationLastPeriod">
+                        </div>
+                        
+                        <div class="ovulation-form-group">
+                            <label>평균 생리 주기 (일)</label>
+                            <div class="ovulation-slider-container">
+                                <div class="ovulation-slider-row">
+                                    <input type="range" id="ovulationCycleLength" min="21" max="35" value="28" oninput="updateOvulationCycleValue()">
+                                    <span class="ovulation-slider-value" id="ovulationCycleValue">28</span>
+                                </div>
+                                <p class="ovulation-slider-hint">일반적으로 21일 ~ 35일 사이입니다</p>
+                            </div>
+                        </div>
+                        
+                        <div class="ovulation-form-group">
+                            <label>생리 기간 (일)</label>
+                            <div class="ovulation-slider-container">
+                                <div class="ovulation-slider-row">
+                                    <input type="range" id="ovulationPeriodLength" min="3" max="7" value="5" oninput="updateOvulationPeriodValue()">
+                                    <span class="ovulation-slider-value" id="ovulationPeriodValue">5</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="ovulation-btn-calculate" onclick="calculateOvulation()">
+                            <i class="fas fa-calculator"></i>
+                            계산하기
+                        </button>
+                    </div>
+                    
+                    <div class="ovulation-result-section" id="ovulationResults">
+                        <div class="ovulation-result-cards">
+                            <div class="ovulation-result-card ovulation-date">
+                                <div class="ovulation-result-card-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="ovulation-result-card-label">예상 배란일</div>
+                                <div class="ovulation-result-card-value" id="ovulationDateResult"></div>
+                            </div>
+                            <div class="ovulation-result-card fertile-window">
+                                <div class="ovulation-result-card-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="ovulation-result-card-label">가임기간</div>
+                                <div class="ovulation-result-card-value" id="fertileWindowResult"></div>
+                            </div>
+                            <div class="ovulation-result-card next-period">
+                                <div class="ovulation-result-card-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="ovulation-result-card-label">다음 생리 예정일</div>
+                                <div class="ovulation-result-card-value" id="nextPeriodResult"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="ovulation-calendar-section">
+                            <div class="ovulation-calendar-title">
+                                📅 월별 달력
+                            </div>
+                            <div class="ovulation-calendar" id="ovulationCalendar"></div>
+                            <div class="ovulation-legend">
+                                <div class="ovulation-legend-item">
+                                    <div class="ovulation-legend-color period"></div>
+                                    <span>생리기간</span>
+                                </div>
+                                <div class="ovulation-legend-item">
+                                    <div class="ovulation-legend-color fertile"></div>
+                                    <span>가임기간</span>
+                                </div>
+                                <div class="ovulation-legend-item">
+                                    <div class="ovulation-legend-color ovulation"></div>
+                                    <span>배란일</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ovulation-tips-section">
+                            <div class="ovulation-tips-title">
+                                💡 알아두세요
+                            </div>
+                            <ul class="ovulation-tip-list">
+                                <li>배란은 보통 다음 생리 시작 <strong>14일 전</strong>에 일어납니다.</li>
+                                <li>가임기간은 배란일 <strong>5일 전부터 배란 후 1일까지</strong>입니다.</li>
+                                <li>이 계산기는 <strong>참고용</strong>이며, 정확한 진단은 전문의와 상담하세요.</li>
+                                <li>생리 주기가 불규칙한 경우 예측이 정확하지 않을 수 있습니다.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="ovulation-info-section">
+                            <div class="ovulation-tabs">
+                                <button class="ovulation-tab-btn active" onclick="showOvulationTab('basics')">기본 상식</button>
+                                <button class="ovulation-tab-btn" onclick="showOvulationTab('symptoms')">생리 증상</button>
+                                <button class="ovulation-tab-btn" onclick="showOvulationTab('health')">건강 관리</button>
+                                <button class="ovulation-tab-btn" onclick="showOvulationTab('myths')">오해와 진실</button>
+                            </div>
+                            
+                            <div class="ovulation-tab-content active" id="ovulation-tab-basics">
+                                <div class="ovulation-info-card">
+                                    <h4>🔄 생리 주기란?</h4>
+                                    <p>생리 주기는 생리 시작일부터 다음 생리 시작 전날까지의 기간입니다. 정상적인 주기는 <strong>21~35일</strong>이며, 평균적으로 28일입니다.</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>💧 정상적인 생리량</h4>
+                                    <p>한 번의 생리 기간 동안 평균 <strong>30~80ml</strong>의 혈액이 배출됩니다. 생리대를 2시간 이내에 교체해야 할 정도면 과다월경을 의심해볼 수 있습니다.</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>🥚 배란의 원리</h4>
+                                    <p>매월 난소에서 성숙한 난자가 배출되는 현상입니다. 배란된 난자는 약 <strong>12~24시간</strong> 동안 수정 가능하며, 정자는 여성 체내에서 최대 <strong>5일</strong>까지 생존합니다.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="ovulation-tab-content" id="ovulation-tab-symptoms">
+                                <div class="ovulation-info-card">
+                                    <h4>😣 생리통 (월경통)</h4>
+                                    <p>자궁 수축으로 인해 발생하는 하복부 통증입니다. 여성의 <strong>50~90%</strong>가 경험하며, 프로스타글란딘 호르몬이 주요 원인입니다.<br>💊 완화법: 따뜻한 찜질, 가벼운 운동, 진통제 복용</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>😤 생리전증후군 (PMS)</h4>
+                                    <p>생리 1~2주 전 나타나는 신체적, 정서적 변화입니다. <strong>유방 통증, 복부 팽만감, 두통, 피로감, 감정 기복</strong> 등이 나타날 수 있습니다.<br>💊 완화법: 규칙적인 운동, 카페인·염분 줄이기, 충분한 수면</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>🎯 배란통</h4>
+                                    <p>배란 시 난포가 터지면서 발생하는 일시적인 통증입니다. 한쪽 하복부에 <strong>수 분~48시간</strong> 지속될 수 있습니다.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="ovulation-tab-content" id="ovulation-tab-health">
+                                <div class="ovulation-info-card">
+                                    <h4>🥗 영양 관리</h4>
+                                    <p>• <strong>철분</strong>: 생리로 인한 철분 손실 보충<br>• <strong>칼슘 & 마그네슘</strong>: 생리통 완화에 도움<br>• <strong>오메가-3</strong>: 염증 감소 및 기분 개선<br>• <strong>비타민 B6</strong>: PMS 증상 완화</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>🏃‍♀️ 운동</h4>
+                                    <p>규칙적인 운동은 생리통을 <strong>25%</strong>까지 줄일 수 있습니다. 생리 기간에도 가벼운 요가, 걷기, 스트레칭이 도움됩니다.</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>🩺 정기 검진</h4>
+                                    <p>20세 이상 여성은 <strong>1~2년마다</strong> 산부인과 검진을 권장합니다. 자궁경부암 검사, 초음파 검사 등을 통해 건강을 확인하세요.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="ovulation-tab-content" id="ovulation-tab-myths">
+                                <div class="ovulation-info-card">
+                                    <h4>✗ "생리 중 운동하면 안 된다"</h4>
+                                    <p>✓ 사실: 가벼운 운동은 오히려 생리통 완화에 도움이 됩니다.</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>✗ "생리 중에는 임신이 안 된다"</h4>
+                                    <p>✓ 사실: 가능성은 낮지만, 생리 주기가 짧거나 불규칙하면 임신 가능합니다.</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>✗ "생리혈 색이 검으면 문제다"</h4>
+                                    <p>✓ 사실: 짙은 갈색~검은색 혈은 오래된 혈액으로 정상입니다.</p>
+                                </div>
+                                <div class="ovulation-info-card">
+                                    <h4>✗ "생리 주기는 항상 28일이어야 정상"</h4>
+                                    <p>✓ 사실: 21~35일 사이라면 모두 정상 범위입니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function initOvulationCalculator() {
+            // 오늘 날짜를 기본값으로 설정
+            document.getElementById('ovulationLastPeriod').valueAsDate = new Date();
+        }
+        
+        function updateOvulationCycleValue() {
+            document.getElementById('ovulationCycleValue').textContent = document.getElementById('ovulationCycleLength').value;
+        }
+        
+        function updateOvulationPeriodValue() {
+            document.getElementById('ovulationPeriodValue').textContent = document.getElementById('ovulationPeriodLength').value;
+        }
+        
+        function formatOvulationDate(date) {
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            const weekday = weekdays[date.getDay()];
+            return month + '월 ' + day + '일 (' + weekday + ')';
+        }
+        
+        function formatShortOvulationDate(date) {
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return month + '/' + day;
+        }
+        
+        function addOvulationDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+        
+        function isSameOvulationDay(date1, date2) {
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
+        }
+        
+        function isInOvulationRange(date, start, end) {
+            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            return d >= s && d <= e;
+        }
+        
+        function calculateOvulation() {
+            const lastPeriodInput = document.getElementById('ovulationLastPeriod').value;
+            const cycleLength = parseInt(document.getElementById('ovulationCycleLength').value);
+            const periodLength = parseInt(document.getElementById('ovulationPeriodLength').value);
+            
+            if (!lastPeriodInput) {
+                alert('마지막 생리 시작일을 선택해주세요.');
+                return;
+            }
+            
+            const lastPeriod = new Date(lastPeriodInput);
+            
+            // 계산
+            const nextPeriod = addOvulationDays(lastPeriod, cycleLength);
+            const ovulationDate = addOvulationDays(nextPeriod, -14);
+            const fertileStart = addOvulationDays(ovulationDate, -5);
+            const fertileEnd = addOvulationDays(ovulationDate, 1);
+            const periodEnd = addOvulationDays(lastPeriod, periodLength - 1);
+            
+            // 결과 표시
+            document.getElementById('ovulationDateResult').textContent = formatOvulationDate(ovulationDate);
+            document.getElementById('fertileWindowResult').textContent = 
+                formatShortOvulationDate(fertileStart) + ' ~ ' + formatShortOvulationDate(fertileEnd);
+            document.getElementById('nextPeriodResult').textContent = formatOvulationDate(nextPeriod);
+            
+            // 달력 생성
+            generateOvulationCalendar(lastPeriod, periodEnd, fertileStart, fertileEnd, ovulationDate, nextPeriod);
+            
+            // 결과 섹션 표시
+            document.getElementById('ovulationResults').classList.add('active');
+            document.getElementById('ovulationResults').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function generateOvulationCalendar(lastPeriod, periodEnd, fertileStart, fertileEnd, ovulationDate, nextPeriod) {
+            const calendarDiv = document.getElementById('ovulationCalendar');
+            let html = '';
+            
+            for (let m = 0; m < 2; m++) {
+                const currentMonth = new Date(lastPeriod);
+                currentMonth.setMonth(currentMonth.getMonth() + m);
+                currentMonth.setDate(1);
+                
+                const monthName = currentMonth.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' });
+                
+                html += '<div style="margin-bottom: 24px;">' +
+                    '<div class="ovulation-calendar-month">' + monthName + '</div>' +
+                    '<div class="ovulation-calendar-grid">' +
+                        '<div class="ovulation-calendar-header sunday">일</div>' +
+                        '<div class="ovulation-calendar-header">월</div>' +
+                        '<div class="ovulation-calendar-header">화</div>' +
+                        '<div class="ovulation-calendar-header">수</div>' +
+                        '<div class="ovulation-calendar-header">목</div>' +
+                        '<div class="ovulation-calendar-header">금</div>' +
+                        '<div class="ovulation-calendar-header saturday">토</div>';
+                
+                // 첫째 날 전 빈 칸
+                const firstDay = currentMonth.getDay();
+                for (let i = 0; i < firstDay; i++) {
+                    html += '<div></div>';
+                }
+                
+                // 달의 일수
+                const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+                const today = new Date();
+                
+                for (let day = 1; day <= lastDay; day++) {
+                    const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                    let classes = 'ovulation-calendar-day';
+                    
+                    if (isSameOvulationDay(currentDate, ovulationDate)) {
+                        classes += ' ovulation-day';
+                    } else if (isInOvulationRange(currentDate, fertileStart, fertileEnd)) {
+                        classes += ' fertile-day';
+                    } else if (isInOvulationRange(currentDate, lastPeriod, periodEnd)) {
+                        classes += ' period-day';
+                    } else if (isSameOvulationDay(currentDate, nextPeriod)) {
+                        classes += ' next-period-day';
+                    } else {
+                        const dayOfWeek = currentDate.getDay();
+                        if (dayOfWeek === 0) classes += ' sunday';
+                        if (dayOfWeek === 6) classes += ' saturday';
+                    }
+                    
+                    if (isSameOvulationDay(currentDate, today)) {
+                        classes += ' today';
+                    }
+                    
+                    html += '<div class="' + classes + '">' + day + '</div>';
+                }
+                
+                html += '</div></div>';
+            }
+            
+            calendarDiv.innerHTML = html;
+        }
+        
+        function showOvulationTab(tabName) {
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.ovulation-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 모든 탭 콘텐츠 숨기기
+            document.querySelectorAll('.ovulation-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 선택한 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById('ovulation-tab-' + tabName).classList.add('active');
         }
     </script>
 </body>
