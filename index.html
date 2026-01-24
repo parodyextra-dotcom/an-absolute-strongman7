@@ -950,16 +950,20 @@
                     initOvulationCalculator();
                     break;
                 case 'family-relation':
-                    calcBody.innerHTML = getPreparingCalculator('촌수호칭 계산기');
+                    calcBody.innerHTML = getFamilyRelationCalculator();
+                    initFamilyRelationCalculator();
                     break;
                 case 'golf-score':
-                    calcBody.innerHTML = getPreparingCalculator('골프점수 계산기');
+                    calcBody.innerHTML = getGolfScoreCalculator();
+                    initGolfScoreCalculator();
                     break;
                 case 'bowling-score':
-                    calcBody.innerHTML = getPreparingCalculator('볼링점수 계산기');
+                    calcBody.innerHTML = getBowlingScoreCalculator();
+                    initBowlingScoreCalculator();
                     break;
                 case 'shoe-size':
-                    calcBody.innerHTML = getPreparingCalculator('신발치수 계산기');
+                    calcBody.innerHTML = getShoeSizeCalculator();
+                    initShoeSizeCalculator();
                     break;
                 case 'lunar-solar':
                     calcBody.innerHTML = getLunarSolarConverter();
@@ -14846,6 +14850,1579 @@
             // 선택한 탭 활성화
             event.target.classList.add('active');
             document.getElementById('ovulation-tab-' + tabName).classList.add('active');
+        }
+
+        // ===== 촌수호칭 계산기 =====
+        function getFamilyRelationCalculator() {
+            return `
+                <style>
+                    .fr-container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                    }
+                    .fr-header {
+                        text-align: center;
+                        margin-bottom: 24px;
+                    }
+                    .fr-header-icon {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 70px;
+                        height: 70px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border-radius: 50%;
+                        margin-bottom: 12px;
+                    }
+                    .fr-header-icon i {
+                        font-size: 32px;
+                        color: white;
+                    }
+                    .fr-header h2 {
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #333;
+                        margin-bottom: 6px;
+                    }
+                    .fr-header p {
+                        font-size: 14px;
+                        color: #888;
+                    }
+                    .fr-card {
+                        background: #fff;
+                        border-radius: 20px;
+                        padding: 24px;
+                        margin-bottom: 20px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    .fr-step {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin-bottom: 12px;
+                    }
+                    .fr-step-num {
+                        width: 26px;
+                        height: 26px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 13px;
+                        font-weight: 700;
+                    }
+                    .fr-step-num.optional {
+                        background: #cbd5e1;
+                    }
+                    .fr-step label {
+                        font-weight: 600;
+                        color: #333;
+                        font-size: 14px;
+                    }
+                    .fr-step .required {
+                        color: #ef4444;
+                        font-size: 12px;
+                        margin-left: 4px;
+                    }
+                    .fr-step .optional-text {
+                        color: #94a3b8;
+                        font-size: 12px;
+                        margin-left: 4px;
+                    }
+                    .fr-select {
+                        width: 100%;
+                        padding: 14px 16px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        font-size: 15px;
+                        background: white;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        margin-bottom: 16px;
+                    }
+                    .fr-select:focus {
+                        outline: none;
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    }
+                    .fr-btn-group {
+                        display: flex;
+                        gap: 12px;
+                        margin-top: 8px;
+                    }
+                    .fr-btn {
+                        flex: 1;
+                        padding: 14px;
+                        border: none;
+                        border-radius: 12px;
+                        font-size: 15px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .fr-btn-calculate {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }
+                    .fr-btn-calculate:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+                    }
+                    .fr-btn-reset {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                        color: white;
+                    }
+                    .fr-btn-reset:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 20px rgba(245, 87, 108, 0.3);
+                    }
+                    .fr-result {
+                        display: none;
+                    }
+                    .fr-result.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    .fr-result-path {
+                        background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+                        padding: 12px 16px;
+                        border-radius: 10px;
+                        text-align: center;
+                        font-size: 14px;
+                        color: #667eea;
+                        margin-bottom: 16px;
+                    }
+                    .fr-result-main {
+                        text-align: center;
+                        padding: 20px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border-radius: 16px;
+                        color: white;
+                        margin-bottom: 16px;
+                    }
+                    .fr-chon-number {
+                        font-size: 56px;
+                        font-weight: 800;
+                    }
+                    .fr-chon-label {
+                        font-size: 20px;
+                        opacity: 0.9;
+                    }
+                    .fr-title-box {
+                        background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+                        padding: 16px;
+                        border-radius: 12px;
+                        text-align: center;
+                        margin-bottom: 16px;
+                    }
+                    .fr-title-label {
+                        font-size: 13px;
+                        color: #666;
+                        margin-bottom: 6px;
+                    }
+                    .fr-title-value {
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #764ba2;
+                    }
+                    .fr-info-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 12px;
+                        margin-bottom: 16px;
+                    }
+                    .fr-info-item {
+                        padding: 14px;
+                        border-radius: 12px;
+                        text-align: center;
+                    }
+                    .fr-info-item.kin { background: #eff6ff; }
+                    .fr-info-item.line { background: #f0fdf4; }
+                    .fr-info-item.gen { background: #fff7ed; }
+                    .fr-info-item.side { background: #fdf2f8; }
+                    .fr-info-label {
+                        font-size: 11px;
+                        color: #666;
+                        margin-bottom: 4px;
+                    }
+                    .fr-info-value {
+                        font-size: 14px;
+                        font-weight: 700;
+                    }
+                    .fr-info-item.kin .fr-info-value { color: #2563eb; }
+                    .fr-info-item.line .fr-info-value { color: #16a34a; }
+                    .fr-info-item.gen .fr-info-value { color: #ea580c; }
+                    .fr-info-item.side .fr-info-value { color: #db2777; }
+                    .fr-description {
+                        font-size: 14px;
+                        color: #666;
+                        text-align: center;
+                        line-height: 1.6;
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 10px;
+                    }
+                    .fr-tips {
+                        background: rgba(102, 126, 234, 0.1);
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-top: 20px;
+                    }
+                    .fr-tips h4 {
+                        font-size: 14px;
+                        color: #667eea;
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    }
+                    .fr-tips ul {
+                        font-size: 13px;
+                        color: #666;
+                        line-height: 1.8;
+                        padding-left: 16px;
+                    }
+                    .fr-glossary {
+                        margin-top: 12px;
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 10px;
+                        font-size: 12px;
+                        color: #64748b;
+                        line-height: 1.6;
+                    }
+                    .fr-chon-table {
+                        margin-top: 16px;
+                    }
+                    .fr-chon-table h4 {
+                        font-size: 14px;
+                        color: #333;
+                        margin-bottom: 10px;
+                    }
+                    .fr-chon-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 6px;
+                        font-size: 12px;
+                        color: #666;
+                    }
+                </style>
+                <div class="fr-container">
+                    <div class="fr-header">
+                        <div class="fr-header-icon"><i class="fas fa-users"></i></div>
+                        <h2>촌수 호칭 계산기</h2>
+                        <p>나를 기준으로 가족 관계를 입력하세요 (8촌까지)</p>
+                    </div>
+                    <div class="fr-card">
+                        <div class="fr-step">
+                            <span class="fr-step-num">1</span>
+                            <label>첫 번째 관계<span class="required">*필수</span></label>
+                        </div>
+                        <select id="frRelation1" class="fr-select" onchange="frUpdateResult()">
+                            <option value="">-- 선택하세요 --</option>
+                            <optgroup label="👴 고조부모 (4촌 위)">
+                                <option value="고조할아버지">고조할아버지</option>
+                                <option value="고조할머니">고조할머니</option>
+                                <option value="외고조할아버지">외고조할아버지</option>
+                                <option value="외고조할머니">외고조할머니</option>
+                            </optgroup>
+                            <optgroup label="👴 증조부모 (3촌 위)">
+                                <option value="증조할아버지">증조할아버지</option>
+                                <option value="증조할머니">증조할머니</option>
+                                <option value="외증조할아버지">외증조할아버지</option>
+                                <option value="외증조할머니">외증조할머니</option>
+                            </optgroup>
+                            <optgroup label="👴 조부모 (2촌 위)">
+                                <option value="할아버지">할아버지 (친할아버지)</option>
+                                <option value="할머니">할머니 (친할머니)</option>
+                                <option value="외할아버지">외할아버지</option>
+                                <option value="외할머니">외할머니</option>
+                            </optgroup>
+                            <optgroup label="👨‍👩‍👧 부모 (1촌 위)">
+                                <option value="아버지">아버지</option>
+                                <option value="어머니">어머니</option>
+                            </optgroup>
+                            <optgroup label="👫 형제자매 (같은 세대)">
+                                <option value="형">형/오빠</option>
+                                <option value="누나">누나/언니</option>
+                                <option value="남동생">남동생</option>
+                                <option value="여동생">여동생</option>
+                            </optgroup>
+                            <optgroup label="👶 자녀 (아랫세대)">
+                                <option value="아들">아들</option>
+                                <option value="딸">딸</option>
+                            </optgroup>
+                            <optgroup label="💑 배우자">
+                                <option value="배우자">배우자</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="fr-step">
+                            <span class="fr-step-num optional">2</span>
+                            <label>두 번째 관계<span class="optional-text">(선택)</span></label>
+                        </div>
+                        <select id="frRelation2" class="fr-select" onchange="frUpdateResult()">
+                            <option value="">-- 선택 안함 --</option>
+                            <optgroup label="👫 형제자매">
+                                <option value="형">형/오빠</option>
+                                <option value="누나">누나/언니</option>
+                                <option value="남동생">남동생</option>
+                                <option value="여동생">여동생</option>
+                            </optgroup>
+                            <optgroup label="👶 자녀">
+                                <option value="아들">아들</option>
+                                <option value="딸">딸</option>
+                            </optgroup>
+                            <optgroup label="💑 배우자">
+                                <option value="배우자">배우자</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="fr-step">
+                            <span class="fr-step-num optional">3</span>
+                            <label>세 번째 관계<span class="optional-text">(선택)</span></label>
+                        </div>
+                        <select id="frRelation3" class="fr-select" onchange="frUpdateResult()">
+                            <option value="">-- 선택 안함 --</option>
+                            <optgroup label="👫 형제자매">
+                                <option value="형">형/오빠</option>
+                                <option value="누나">누나/언니</option>
+                                <option value="남동생">남동생</option>
+                                <option value="여동생">여동생</option>
+                            </optgroup>
+                            <optgroup label="👶 자녀">
+                                <option value="아들">아들</option>
+                                <option value="딸">딸</option>
+                            </optgroup>
+                            <optgroup label="💑 배우자">
+                                <option value="배우자">배우자</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="fr-step">
+                            <span class="fr-step-num optional">4</span>
+                            <label>네 번째 관계<span class="optional-text">(선택)</span></label>
+                        </div>
+                        <select id="frRelation4" class="fr-select" onchange="frUpdateResult()">
+                            <option value="">-- 선택 안함 --</option>
+                            <optgroup label="👫 형제자매">
+                                <option value="형">형/오빠</option>
+                                <option value="누나">누나/언니</option>
+                                <option value="남동생">남동생</option>
+                                <option value="여동생">여동생</option>
+                            </optgroup>
+                            <optgroup label="👶 자녀">
+                                <option value="아들">아들</option>
+                                <option value="딸">딸</option>
+                            </optgroup>
+                            <optgroup label="💑 배우자">
+                                <option value="배우자">배우자</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="fr-step">
+                            <span class="fr-step-num optional">5</span>
+                            <label>다섯 번째 관계<span class="optional-text">(선택)</span></label>
+                        </div>
+                        <select id="frRelation5" class="fr-select" onchange="frUpdateResult()">
+                            <option value="">-- 선택 안함 --</option>
+                            <optgroup label="👫 형제자매">
+                                <option value="형">형/오빠</option>
+                                <option value="누나">누나/언니</option>
+                                <option value="남동생">남동생</option>
+                                <option value="여동생">여동생</option>
+                            </optgroup>
+                            <optgroup label="👶 자녀">
+                                <option value="아들">아들</option>
+                                <option value="딸">딸</option>
+                            </optgroup>
+                            <optgroup label="💑 배우자">
+                                <option value="배우자">배우자</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="fr-step">
+                            <span class="fr-step-num optional">6</span>
+                            <label>여섯 번째 관계<span class="optional-text">(선택)</span></label>
+                        </div>
+                        <select id="frRelation6" class="fr-select" onchange="frUpdateResult()">
+                            <option value="">-- 선택 안함 --</option>
+                            <optgroup label="👫 형제자매">
+                                <option value="형">형/오빠</option>
+                                <option value="누나">누나/언니</option>
+                                <option value="남동생">남동생</option>
+                                <option value="여동생">여동생</option>
+                            </optgroup>
+                            <optgroup label="👶 자녀">
+                                <option value="아들">아들</option>
+                                <option value="딸">딸</option>
+                            </optgroup>
+                            <optgroup label="💑 배우자">
+                                <option value="배우자">배우자</option>
+                            </optgroup>
+                        </select>
+
+                        <div class="fr-btn-group">
+                            <button class="fr-btn fr-btn-calculate" onclick="frUpdateResult()"><i class="fas fa-search"></i> 촌수 계산하기</button>
+                            <button class="fr-btn fr-btn-reset" onclick="frResetAll()"><i class="fas fa-redo"></i> 다시 검색</button>
+                        </div>
+                    </div>
+
+                    <div class="fr-result" id="frResultCard">
+                        <div class="fr-card">
+                            <div id="frRelationPath" class="fr-result-path"></div>
+                            <div class="fr-result-main">
+                                <div id="frChonNumber" class="fr-chon-number">0</div>
+                                <div class="fr-chon-label">촌</div>
+                            </div>
+                            <div class="fr-title-box">
+                                <div class="fr-title-label">호칭</div>
+                                <div id="frFinalTitle" class="fr-title-value"></div>
+                            </div>
+                            <div class="fr-info-grid">
+                                <div class="fr-info-item kin">
+                                    <div class="fr-info-label">친족 유형</div>
+                                    <div id="frKinType" class="fr-info-value"></div>
+                                </div>
+                                <div class="fr-info-item line">
+                                    <div class="fr-info-label">계통</div>
+                                    <div id="frLineType" class="fr-info-value"></div>
+                                </div>
+                                <div class="fr-info-item gen">
+                                    <div class="fr-info-label">존비속</div>
+                                    <div id="frGenType" class="fr-info-value"></div>
+                                </div>
+                                <div class="fr-info-item side">
+                                    <div class="fr-info-label">부계/모계</div>
+                                    <div id="frSideType" class="fr-info-value"></div>
+                                </div>
+                            </div>
+                            <div id="frDescription" class="fr-description"></div>
+                            <div class="fr-glossary">
+                                <strong>📖 용어 설명</strong><br>
+                                <span style="color:#2563eb">혈족</span>: 피로 연결된 친족 / <span style="color:#2563eb">인척</span>: 결혼으로 맺어진 친족<br>
+                                <span style="color:#16a34a">직계</span>: 직접 이어진 조상·자손 / <span style="color:#16a34a">방계</span>: 형제에서 갈라진 친족<br>
+                                <span style="color:#ea580c">존속</span>: 윗세대 / <span style="color:#ea580c">비속</span>: 아랫세대 / <span style="color:#ea580c">동항렬</span>: 같은 세대
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fr-tips">
+                        <h4><i class="fas fa-lightbulb"></i> 사용 방법</h4>
+                        <ul>
+                            <li>1번은 필수로 선택해주세요</li>
+                            <li>2~6번은 관계를 더 구체화할 때 사용</li>
+                            <li>예: 증조할아버지 → 아들 → 아들 = 할아버지 (2촌)</li>
+                            <li>예: 고조할아버지 → 형 → 아들 → 아들 → 아들 = 6촌</li>
+                        </ul>
+                        <div class="fr-chon-table">
+                            <h4>📊 촌수 참고표</h4>
+                            <div class="fr-chon-grid">
+                                <div>• 1촌: 부모, 자녀</div>
+                                <div>• 2촌: 조부모, 손자녀, 형제</div>
+                                <div>• 3촌: 증조부모, 삼촌, 조카</div>
+                                <div>• 4촌: 고조부모, 사촌</div>
+                                <div>• 5촌: 종숙, 5촌조카</div>
+                                <div>• 6촌: 육촌 (재종형제)</div>
+                                <div>• 7촌: 재종숙, 7촌조카</div>
+                                <div>• 8촌: 팔촌 (삼종형제)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 촌수 계산기 데이터 및 함수
+        const frRelationInfo = {
+            "아버지": { genUp: 1, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "paternal" },
+            "어머니": { genUp: 1, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "maternal" },
+            "고조할아버지": { genUp: 4, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "paternal" },
+            "고조할머니": { genUp: 4, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "paternal" },
+            "외고조할아버지": { genUp: 4, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "maternal" },
+            "외고조할머니": { genUp: 4, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "maternal" },
+            "증조할아버지": { genUp: 3, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "paternal" },
+            "증조할머니": { genUp: 3, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "paternal" },
+            "외증조할아버지": { genUp: 3, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "maternal" },
+            "외증조할머니": { genUp: 3, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "maternal" },
+            "할아버지": { genUp: 2, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "paternal" },
+            "할머니": { genUp: 2, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "paternal" },
+            "외할아버지": { genUp: 2, genDown: 0, isSibling: false, isSpouse: false, gender: "male", side: "maternal" },
+            "외할머니": { genUp: 2, genDown: 0, isSibling: false, isSpouse: false, gender: "female", side: "maternal" },
+            "형": { genUp: 0, genDown: 0, isSibling: true, isSpouse: false, gender: "male", isElder: true },
+            "누나": { genUp: 0, genDown: 0, isSibling: true, isSpouse: false, gender: "female", isElder: true },
+            "남동생": { genUp: 0, genDown: 0, isSibling: true, isSpouse: false, gender: "male", isElder: false },
+            "여동생": { genUp: 0, genDown: 0, isSibling: true, isSpouse: false, gender: "female", isElder: false },
+            "아들": { genUp: 0, genDown: 1, isSibling: false, isSpouse: false, gender: "male" },
+            "딸": { genUp: 0, genDown: 1, isSibling: false, isSpouse: false, gender: "female" },
+            "배우자": { genUp: 0, genDown: 0, isSibling: false, isSpouse: true, gender: "unknown" }
+        };
+
+        const frTitleDatabase = {
+            "아버지": { chon: 1, title: "아버지" },
+            "어머니": { chon: 1, title: "어머니" },
+            "아버지-형": { chon: 3, title: "큰아버지 (백부)" },
+            "아버지-남동생": { chon: 3, title: "작은아버지 (숙부)" },
+            "아버지-누나": { chon: 3, title: "고모" },
+            "아버지-여동생": { chon: 3, title: "고모" },
+            "아버지-아들": { chon: 2, title: "형제 (나/형/남동생)" },
+            "아버지-딸": { chon: 2, title: "자매 (나/누나/여동생)" },
+            "아버지-배우자": { chon: 1, title: "어머니" },
+            "아버지-형-아들": { chon: 4, title: "사촌형/오빠 (종형)" },
+            "아버지-형-딸": { chon: 4, title: "사촌누나/언니 (종자매)" },
+            "아버지-남동생-아들": { chon: 4, title: "사촌동생 (종제)" },
+            "아버지-남동생-딸": { chon: 4, title: "사촌여동생 (종매)" },
+            "아버지-누나-아들": { chon: 4, title: "고종사촌 (남)" },
+            "아버지-누나-딸": { chon: 4, title: "고종사촌 (여)" },
+            "아버지-여동생-아들": { chon: 4, title: "고종사촌 (남)" },
+            "아버지-여동생-딸": { chon: 4, title: "고종사촌 (여)" },
+            "어머니-형": { chon: 3, title: "외삼촌" },
+            "어머니-남동생": { chon: 3, title: "외삼촌" },
+            "어머니-누나": { chon: 3, title: "이모" },
+            "어머니-여동생": { chon: 3, title: "이모" },
+            "어머니-아들": { chon: 2, title: "형제 (나/형/남동생)" },
+            "어머니-딸": { chon: 2, title: "자매 (나/누나/여동생)" },
+            "어머니-배우자": { chon: 1, title: "아버지" },
+            "어머니-형-아들": { chon: 4, title: "외사촌 (남)" },
+            "어머니-형-딸": { chon: 4, title: "외사촌 (여)" },
+            "어머니-남동생-아들": { chon: 4, title: "외사촌 (남)" },
+            "어머니-남동생-딸": { chon: 4, title: "외사촌 (여)" },
+            "어머니-누나-아들": { chon: 4, title: "이종사촌 (남)" },
+            "어머니-누나-딸": { chon: 4, title: "이종사촌 (여)" },
+            "어머니-여동생-아들": { chon: 4, title: "이종사촌 (남)" },
+            "어머니-여동생-딸": { chon: 4, title: "이종사촌 (여)" },
+            "고조할아버지": { chon: 4, title: "고조할아버지" },
+            "고조할머니": { chon: 4, title: "고조할머니" },
+            "외고조할아버지": { chon: 4, title: "외고조할아버지" },
+            "외고조할머니": { chon: 4, title: "외고조할머니" },
+            "증조할아버지": { chon: 3, title: "증조할아버지" },
+            "증조할머니": { chon: 3, title: "증조할머니" },
+            "외증조할아버지": { chon: 3, title: "외증조할아버지" },
+            "외증조할머니": { chon: 3, title: "외증조할머니" },
+            "할아버지": { chon: 2, title: "할아버지" },
+            "할머니": { chon: 2, title: "할머니" },
+            "외할아버지": { chon: 2, title: "외할아버지" },
+            "외할머니": { chon: 2, title: "외할머니" },
+            "형": { chon: 2, title: "형/오빠" },
+            "누나": { chon: 2, title: "누나/언니" },
+            "남동생": { chon: 2, title: "남동생" },
+            "여동생": { chon: 2, title: "여동생" },
+            "아들": { chon: 1, title: "아들" },
+            "딸": { chon: 1, title: "딸" },
+            "배우자": { chon: 0, title: "배우자" },
+            "증조할아버지-아들": { chon: 2, title: "할아버지" },
+            "증조할아버지-딸": { chon: 2, title: "대고모" },
+            "증조할아버지-아들-아들": { chon: 1, title: "아버지/삼촌" },
+            "증조할아버지-아들-딸": { chon: 1, title: "고모" },
+            "할아버지-형": { chon: 4, title: "종조할아버지 (큰할아버지)" },
+            "할아버지-남동생": { chon: 4, title: "종조할아버지 (작은할아버지)" },
+            "할아버지-아들": { chon: 1, title: "아버지/삼촌" },
+            "할아버지-딸": { chon: 1, title: "고모" },
+            "할아버지-형-아들": { chon: 3, title: "당숙 (종숙부)" },
+            "할아버지-형-딸": { chon: 3, title: "당고모 (종고모)" },
+            "할아버지-형-아들-아들": { chon: 4, title: "6촌형 (재종형제)" },
+            "할아버지-형-아들-딸": { chon: 4, title: "6촌누나 (재종자매)" },
+            "외할아버지-아들": { chon: 1, title: "외삼촌" },
+            "외할아버지-딸": { chon: 1, title: "어머니/이모" },
+            "형-아들": { chon: 3, title: "조카 (남)" },
+            "형-딸": { chon: 3, title: "조카 (여)" },
+            "누나-아들": { chon: 3, title: "생질" },
+            "누나-딸": { chon: 3, title: "생질녀" },
+            "남동생-아들": { chon: 3, title: "조카 (남)" },
+            "남동생-딸": { chon: 3, title: "조카 (여)" },
+            "여동생-아들": { chon: 3, title: "생질" },
+            "여동생-딸": { chon: 3, title: "생질녀" },
+            "형-배우자": { chon: 2, title: "형수/올케" },
+            "누나-배우자": { chon: 2, title: "매형/형부" },
+            "아들-아들": { chon: 2, title: "손자" },
+            "아들-딸": { chon: 2, title: "손녀" },
+            "딸-아들": { chon: 2, title: "외손자" },
+            "딸-딸": { chon: 2, title: "외손녀" },
+            "아들-배우자": { chon: 1, title: "며느리" },
+            "딸-배우자": { chon: 1, title: "사위" },
+            "아들-아들-아들": { chon: 3, title: "증손자" },
+            "아들-아들-딸": { chon: 3, title: "증손녀" },
+            "배우자-형": { chon: 2, title: "시숙/처남" },
+            "배우자-누나": { chon: 2, title: "시누이/처형" },
+            "배우자-남동생": { chon: 2, title: "시동생/처남" },
+            "배우자-여동생": { chon: 2, title: "시누이/처제" },
+            "배우자-아들": { chon: 1, title: "아들" },
+            "배우자-딸": { chon: 1, title: "딸" }
+        };
+
+        function frCalculateChon(relations) {
+            if (relations.length === 0) return { chon: 0, title: "본인" };
+            const key = relations.join("-");
+            if (frTitleDatabase[key]) return frTitleDatabase[key];
+            
+            let totalUp = 0, totalDown = 0, siblingCount = 0;
+            for (const rel of relations) {
+                const info = frRelationInfo[rel];
+                if (!info) continue;
+                if (info.isSpouse) continue;
+                if (info.isSibling) { siblingCount++; totalUp += 1; totalDown += 1; }
+                else { totalUp += info.genUp; totalDown += info.genDown; }
+            }
+            const chon = totalUp + totalDown;
+            return { chon, title: frGenerateTitle(relations, chon) };
+        }
+
+        function frAnalyzeKinType(relations) {
+            if (relations.length === 0) return { kinType: "본인", lineType: "-", genType: "-", sideType: "-" };
+            let hasSpouse = false, totalUp = 0, totalDown = 0, siblingCount = 0, side = "부계 (친가)";
+            for (let i = 0; i < relations.length; i++) {
+                const rel = relations[i], info = frRelationInfo[rel];
+                if (!info) continue;
+                if (info.isSpouse) hasSpouse = true;
+                if (i === 0 && info.side) side = info.side === "maternal" ? "모계 (외가)" : "부계 (친가)";
+                if (info.isSibling) siblingCount++;
+                else if (!info.isSpouse) { totalUp += info.genUp; totalDown += info.genDown; }
+            }
+            let kinType = hasSpouse ? (relations.length === 1 && relations[0] === "배우자" ? "배우자" : "인척 (姻戚)") : "혈족 (血族)";
+            let lineType = (siblingCount > 0 || (totalUp > 0 && totalDown > 0)) ? "방계 (傍系)" : "직계 (直系)";
+            const netGen = totalUp - totalDown;
+            let genType = netGen > 0 ? "존속 (尊屬)" : netGen < 0 ? "비속 (卑屬)" : "동항렬 (同行列)";
+            if (kinType === "배우자") { lineType = "-"; genType = "배우자"; side = "-"; }
+            return { kinType, lineType, genType, sideType: side };
+        }
+
+        function frGenerateTitle(relations, chon) {
+            if (chon === 0) return "본인/배우자";
+            const chonNames = { 1: "직계 1촌", 2: "2촌", 3: "3촌", 4: "4촌", 5: "5촌", 6: "6촌", 7: "7촌", 8: "8촌" };
+            return chonNames[chon] || `${chon}촌 관계`;
+        }
+
+        function frGetDescription(chon) {
+            const descriptions = {
+                0: "배우자는 촌수로 계산하지 않습니다.",
+                1: "직계 혈족 중 가장 가까운 관계입니다. (부모-자녀)",
+                2: "조부모/손자녀 또는 형제자매 관계입니다.",
+                3: "증조부모, 삼촌, 고모, 이모, 외삼촌 또는 조카 관계입니다.",
+                4: "고조부모 또는 사촌 관계입니다. 같은 조부모를 공유합니다.",
+                5: "5대조 또는 당숙(종숙)/당고모, 5촌 조카와의 관계입니다.",
+                6: "6촌(육촌)은 같은 증조부모를 공유하는 재종형제 관계입니다.",
+                7: "7촌은 재종숙/재종고모 또는 그 자녀와의 관계입니다.",
+                8: "8촌(팔촌)은 같은 고조부모를 공유하는 삼종형제 관계입니다."
+            };
+            return descriptions[chon] || `${chon}촌 관계입니다.`;
+        }
+
+        function frUpdateResult() {
+            const relations = [];
+            for (let i = 1; i <= 6; i++) {
+                const val = document.getElementById(`frRelation${i}`).value;
+                if (val) relations.push(val);
+            }
+            const resultCard = document.getElementById('frResultCard');
+            if (relations.length === 0) { resultCard.classList.remove('active'); return; }
+            resultCard.classList.add('active');
+            document.getElementById('frRelationPath').textContent = "나 → " + relations.join(" → ");
+            const result = frCalculateChon(relations);
+            document.getElementById('frChonNumber').textContent = result.chon;
+            document.getElementById('frFinalTitle').textContent = result.title;
+            document.getElementById('frDescription').textContent = frGetDescription(result.chon);
+            const kinAnalysis = frAnalyzeKinType(relations);
+            document.getElementById('frKinType').textContent = kinAnalysis.kinType;
+            document.getElementById('frLineType').textContent = kinAnalysis.lineType;
+            document.getElementById('frGenType').textContent = kinAnalysis.genType;
+            document.getElementById('frSideType').textContent = kinAnalysis.sideType;
+        }
+
+        function frResetAll() {
+            for (let i = 1; i <= 6; i++) document.getElementById(`frRelation${i}`).value = "";
+            document.getElementById('frResultCard').classList.remove('active');
+        }
+
+        function initFamilyRelationCalculator() {
+            // 초기화 완료
+        }
+
+        // ===== 신발치수 계산기 =====
+        function getShoeSizeCalculator() {
+            return `
+                <style>
+                    .shoe-container { max-width: 700px; margin: 0 auto; }
+                    .shoe-header { text-align: center; margin-bottom: 24px; }
+                    .shoe-header-icon { display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); border-radius: 50%; margin-bottom: 12px; }
+                    .shoe-header-icon i { font-size: 32px; color: white; }
+                    .shoe-header h2 { font-size: 24px; font-weight: 700; color: #333; margin-bottom: 6px; }
+                    .shoe-header p { font-size: 14px; color: #888; }
+                    .shoe-gender-toggle { display: flex; justify-content: center; margin-bottom: 20px; }
+                    .shoe-gender-toggle button { padding: 12px 24px; border: none; background: #e2e8f0; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+                    .shoe-gender-toggle button:first-child { border-radius: 12px 0 0 12px; }
+                    .shoe-gender-toggle button:last-child { border-radius: 0 12px 12px 0; }
+                    .shoe-gender-toggle button.active { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); color: white; }
+                    .shoe-gender-toggle button.active.female { background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); }
+                    .shoe-card { background: #fff; border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+                    .shoe-card h3 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 16px; text-align: center; }
+                    .shoe-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+                    @media (min-width: 640px) { .shoe-grid { grid-template-columns: repeat(3, 1fr); } }
+                    .shoe-input-box { padding: 16px; border-radius: 14px; border: 2px solid #e2e8f0; transition: all 0.3s ease; }
+                    .shoe-input-box:focus-within { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+                    .shoe-input-box.kr { background: linear-gradient(135deg, #fef2f2 0%, #fce7f3 100%); border-color: #fca5a5; }
+                    .shoe-input-box.us { background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); border-color: #93c5fd; }
+                    .shoe-input-box.uk { background: linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%); border-color: #c4b5fd; }
+                    .shoe-input-box.eu { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac; }
+                    .shoe-input-box.cn { background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%); border-color: #fcd34d; }
+                    .shoe-input-box.cm { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-color: #cbd5e1; }
+                    .shoe-flag { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #555; }
+                    .shoe-flag span { font-size: 18px; }
+                    .shoe-input { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 20px; font-weight: 700; text-align: center; background: rgba(255,255,255,0.8); }
+                    .shoe-input:focus { outline: none; }
+                    .shoe-unit { font-size: 12px; color: #888; text-align: center; margin-top: 4px; }
+                    .shoe-reset-btn { display: block; margin: 16px auto 0; padding: 10px 24px; background: #e2e8f0; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+                    .shoe-reset-btn:hover { background: #cbd5e1; }
+                    .shoe-tips { background: #f8fafc; border-radius: 16px; padding: 20px; }
+                    .shoe-tips h3 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 16px; text-align: center; }
+                    .shoe-tips-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 12px; }
+                    @media (min-width: 640px) { .shoe-tips-grid { grid-template-columns: repeat(2, 1fr); } }
+                    .shoe-tip { padding: 16px; border-radius: 12px; background: white; border: 1px solid #e2e8f0; transition: all 0.3s ease; }
+                    .shoe-tip:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+                    .shoe-tip-icon { font-size: 28px; margin-bottom: 8px; }
+                    .shoe-tip h4 { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 6px; }
+                    .shoe-tip p { font-size: 12px; color: #666; line-height: 1.5; }
+                </style>
+                <div class="shoe-container">
+                    <div class="shoe-header">
+                        <div class="shoe-header-icon"><i class="fas fa-shoe-prints"></i></div>
+                        <h2>국제 신발 치수 계산기</h2>
+                        <p>전 세계 신발 사이즈를 실시간으로 변환하세요</p>
+                    </div>
+                    <div class="shoe-gender-toggle">
+                        <button id="shoeMaleBtn" class="active" onclick="shoeSetGender('male')">👨 남성</button>
+                        <button id="shoeFemaleBtn" onclick="shoeSetGender('female')">👩 여성</button>
+                    </div>
+                    <div class="shoe-card">
+                        <h3>🔄 아무 칸에나 입력하면 자동 변환됩니다</h3>
+                        <div class="shoe-grid">
+                            <div class="shoe-input-box kr">
+                                <div class="shoe-flag"><span>🇰🇷</span><span>🇯🇵</span> 한국/일본</div>
+                                <input type="number" id="shoeKr" class="shoe-input" placeholder="260" oninput="shoeConvert('kr', this.value)">
+                                <div class="shoe-unit">mm</div>
+                            </div>
+                            <div class="shoe-input-box us">
+                                <div class="shoe-flag"><span>🇺🇸</span> 미국 (US)</div>
+                                <input type="number" id="shoeUs" class="shoe-input" placeholder="8" step="0.5" oninput="shoeConvert('us', this.value)">
+                            </div>
+                            <div class="shoe-input-box uk">
+                                <div class="shoe-flag"><span>🇬🇧</span> 영국 (UK)</div>
+                                <input type="number" id="shoeUk" class="shoe-input" placeholder="7.5" step="0.5" oninput="shoeConvert('uk', this.value)">
+                            </div>
+                            <div class="shoe-input-box eu">
+                                <div class="shoe-flag"><span>🇪🇺</span> 유럽 (EU)</div>
+                                <input type="number" id="shoeEu" class="shoe-input" placeholder="42" step="0.5" oninput="shoeConvert('eu', this.value)">
+                            </div>
+                            <div class="shoe-input-box cn">
+                                <div class="shoe-flag"><span>🇨🇳</span> 중국 (CN)</div>
+                                <input type="number" id="shoeCn" class="shoe-input" placeholder="42" step="0.5" oninput="shoeConvert('cn', this.value)">
+                            </div>
+                            <div class="shoe-input-box cm">
+                                <div class="shoe-flag"><span>📏</span> 발 길이</div>
+                                <input type="number" id="shoeCm" class="shoe-input" placeholder="26.0" step="0.1" oninput="shoeConvert('cm', this.value)">
+                                <div class="shoe-unit">cm</div>
+                            </div>
+                        </div>
+                        <button class="shoe-reset-btn" onclick="shoeResetAll()">🔄 초기화</button>
+                    </div>
+                    <div class="shoe-tips">
+                        <h3>💡 신발 관리 팁</h3>
+                        <div class="shoe-tips-grid">
+                            <div class="shoe-tip"><div class="shoe-tip-icon">👃</div><h4>냄새 제거</h4><p>베이킹 소다를 신발 안에 뿌려두면 냄새를 흡수합니다.</p></div>
+                            <div class="shoe-tip"><div class="shoe-tip-icon">🧽</div><h4>가죽 신발 관리</h4><p>가죽 전용 크림으로 정기적으로 관리하세요.</p></div>
+                            <div class="shoe-tip"><div class="shoe-tip-icon">👟</div><h4>운동화 세탁</h4><p>중성 세제로 손세탁이 가장 좋습니다.</p></div>
+                            <div class="shoe-tip"><div class="shoe-tip-icon">📦</div><h4>올바른 보관법</h4><p>습기 제거제와 함께 통풍이 되는 곳에 보관하세요.</p></div>
+                            <div class="shoe-tip"><div class="shoe-tip-icon">🎯</div><h4>올바른 사이즈 선택</h4><p>발은 저녁에 가장 붓기 때문에 저녁에 신어보고 구매하세요.</p></div>
+                            <div class="shoe-tip"><div class="shoe-tip-icon">⏰</div><h4>교대로 신기</h4><p>같은 신발을 매일 신지 마세요. 2~3켤레를 교대로 신으면 수명이 늘어납니다.</p></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let shoeCurrentGender = 'male';
+        const shoeSizeData = {
+            male: {
+                220: [4, 3.5, 35], 225: [4.5, 4, 35.5], 230: [5, 4.5, 36], 235: [5.5, 5, 37], 240: [6, 5.5, 38],
+                245: [6.5, 6, 38.5], 250: [7, 6.5, 39], 255: [7.5, 7, 40], 260: [8, 7.5, 41], 265: [8.5, 8, 42],
+                270: [9, 8.5, 42.5], 275: [9.5, 9, 43], 280: [10, 9.5, 44], 285: [10.5, 10, 44.5], 290: [11, 10.5, 45],
+                295: [11.5, 11, 46], 300: [12, 11.5, 46.5], 305: [12.5, 12, 47], 310: [13, 12.5, 48], 315: [13.5, 13, 48.5], 320: [14, 13.5, 49]
+            },
+            female: {
+                220: [5, 2.5, 35], 225: [5.5, 3, 35.5], 230: [6, 3.5, 36], 235: [6.5, 4, 37], 240: [7, 4.5, 38],
+                245: [7.5, 5, 38.5], 250: [8, 5.5, 39], 255: [8.5, 6, 40], 260: [9, 6.5, 41], 265: [9.5, 7, 42],
+                270: [10, 7.5, 42.5], 275: [10.5, 8, 43], 280: [11, 8.5, 44], 285: [11.5, 9, 44.5], 290: [12, 9.5, 45]
+            }
+        };
+
+        function shoeSetGender(gender) {
+            shoeCurrentGender = gender;
+            const maleBtn = document.getElementById('shoeMaleBtn');
+            const femaleBtn = document.getElementById('shoeFemaleBtn');
+            maleBtn.classList.toggle('active', gender === 'male');
+            femaleBtn.classList.toggle('active', gender === 'female');
+            femaleBtn.classList.toggle('female', gender === 'female');
+            shoeResetAll();
+        }
+
+        function shoeFindClosestMM(value, type) {
+            const data = shoeSizeData[shoeCurrentGender];
+            const mmSizes = Object.keys(data).map(Number);
+            if (type === 'kr' || type === 'cm') {
+                const mm = type === 'cm' ? value * 10 : value;
+                return mmSizes.reduce((prev, curr) => Math.abs(curr - mm) < Math.abs(prev - mm) ? curr : prev);
+            }
+            const indices = { us: 0, uk: 1, eu: 2 };
+            const idx = indices[type];
+            let closestMM = mmSizes[0], minDiff = Infinity;
+            for (const mm of mmSizes) {
+                const diff = Math.abs(data[mm][idx] - value);
+                if (diff < minDiff) { minDiff = diff; closestMM = mm; }
+            }
+            return closestMM;
+        }
+
+        function shoeConvert(type, value) {
+            if (!value || value === '') { shoeResetAll(); return; }
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) return;
+            const data = shoeSizeData[shoeCurrentGender];
+            let mm;
+            if (type === 'kr') mm = shoeFindClosestMM(numValue, 'kr');
+            else if (type === 'cm') mm = shoeFindClosestMM(numValue, 'cm');
+            else if (type === 'cn') mm = shoeFindClosestMM(numValue, 'eu');
+            else mm = shoeFindClosestMM(numValue, type);
+            const sizes = data[mm];
+            if (!sizes) return;
+            if (type !== 'kr') document.getElementById('shoeKr').value = mm;
+            if (type !== 'us') document.getElementById('shoeUs').value = sizes[0];
+            if (type !== 'uk') document.getElementById('shoeUk').value = sizes[1];
+            if (type !== 'eu') document.getElementById('shoeEu').value = sizes[2];
+            if (type !== 'cn') document.getElementById('shoeCn').value = sizes[2];
+            if (type !== 'cm') document.getElementById('shoeCm').value = (mm / 10).toFixed(1);
+        }
+
+        function shoeResetAll() {
+            ['shoeKr', 'shoeUs', 'shoeUk', 'shoeEu', 'shoeCn', 'shoeCm'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+
+        function initShoeSizeCalculator() {
+            // 초기화 완료
+        }
+
+        // ===== 골프점수 계산기 =====
+        function getGolfScoreCalculator() {
+            return `
+                <style>
+                    .golf-container { max-width: 900px; margin: 0 auto; }
+                    .golf-header { text-align: center; margin-bottom: 20px; }
+                    .golf-header-icon { display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); border-radius: 50%; margin-bottom: 12px; }
+                    .golf-header-icon i { font-size: 32px; color: white; }
+                    .golf-header h2 { font-size: 24px; font-weight: 700; color: #333; margin-bottom: 6px; }
+                    .golf-header p { font-size: 14px; color: #888; }
+                    .golf-card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+                    .golf-setup-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+                    .golf-setup-row label { font-weight: 600; color: #555; font-size: 14px; }
+                    .golf-setup-row input { padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
+                    .golf-setup-row input:focus { outline: none; border-color: #10b981; }
+                    .golf-btn { padding: 10px 18px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+                    .golf-btn-primary { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; }
+                    .golf-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+                    .golf-btn-secondary { background: #e2e8f0; color: #555; }
+                    .golf-btn-danger { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; }
+                    .golf-player-section { margin-bottom: 16px; }
+                    .golf-player-section h3 { font-size: 16px; font-weight: 700; color: #10b981; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+                    .golf-player-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+                    .golf-player-tab { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-size: 14px; font-weight: 500; }
+                    .golf-player-tab:hover { border-color: #10b981; background: #f0fdf4; }
+                    .golf-player-tab.active { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border-color: #10b981; }
+                    .golf-player-tab .remove-btn { background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; margin-left: 4px; }
+                    .golf-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+                    @media (max-width: 640px) { .golf-summary { grid-template-columns: repeat(2, 1fr); } }
+                    .golf-summary-item { padding: 16px; border-radius: 14px; text-align: center; }
+                    .golf-summary-item.par { background: #f0fdf4; }
+                    .golf-summary-item.score { background: #eff6ff; }
+                    .golf-summary-item.over { background: #faf5ff; }
+                    .golf-summary-item.holes { background: #fffbeb; }
+                    .golf-summary-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+                    .golf-summary-value { font-size: 28px; font-weight: 800; }
+                    .golf-summary-item.par .golf-summary-value { color: #10b981; }
+                    .golf-summary-item.score .golf-summary-value { color: #3b82f6; }
+                    .golf-summary-item.over .golf-summary-value { color: #8b5cf6; }
+                    .golf-summary-item.holes .golf-summary-value { color: #f59e0b; }
+                    .golf-scorecard { overflow-x: auto; }
+                    .golf-scorecard h3 { font-size: 16px; font-weight: 700; color: #10b981; margin-bottom: 12px; }
+                    .golf-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+                    .golf-table th { background: #f0fdf4; padding: 10px 8px; text-align: center; font-weight: 600; color: #10b981; }
+                    .golf-table td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+                    .golf-table tr:hover { background: #f8fafc; }
+                    .golf-table select, .golf-table input { padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; width: 60px; text-align: center; font-size: 14px; }
+                    .golf-table select:focus, .golf-table input:focus { outline: none; border-color: #10b981; }
+                    .golf-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+                    .golf-badge.eagle { background: #3b82f6; color: white; }
+                    .golf-badge.birdie { background: #10b981; color: white; }
+                    .golf-badge.par { background: #e2e8f0; color: #555; }
+                    .golf-badge.bogey { background: #f97316; color: white; }
+                    .golf-badge.double { background: #ef4444; color: white; }
+                    .golf-badge.triple { background: #991b1b; color: white; }
+                    .golf-table tfoot td { background: #f0fdf4; font-weight: 700; }
+                    .golf-tips { background: #fffbeb; border-radius: 16px; padding: 20px; margin-top: 16px; }
+                    .golf-tips h3 { font-size: 16px; font-weight: 700; color: #f59e0b; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+                    .golf-tips-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+                    @media (max-width: 640px) { .golf-tips-content { grid-template-columns: 1fr; } }
+                    .golf-tip-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: white; border-radius: 10px; border-left: 4px solid; }
+                    .golf-tip-item.good { border-color: #10b981; }
+                    .golf-tip-item.bad { border-color: #ef4444; }
+                    .golf-tip-item .tip-icon { font-size: 20px; }
+                    .golf-tip-item .tip-content h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+                    .golf-tip-item .tip-content p { font-size: 11px; color: #666; }
+                    .golf-tip-item.good .tip-content h4 { color: #10b981; }
+                    .golf-tip-item.bad .tip-content h4 { color: #ef4444; }
+                    .golf-tips-hidden { display: none; }
+                </style>
+                <div class="golf-container">
+                    <div class="golf-header">
+                        <div class="golf-header-icon"><i class="fas fa-golf-ball"></i></div>
+                        <h2>골프 점수 계산기</h2>
+                        <p>팀별/개인별 스코어를 기록하고 관리하세요</p>
+                    </div>
+                    <div class="golf-card">
+                        <div class="golf-setup-row">
+                            <label>📅 날짜:</label><input type="date" id="golfDate">
+                            <label>📍 장소:</label><input type="text" id="golfLocation" placeholder="골프장">
+                            <button class="golf-btn golf-btn-danger" onclick="golfResetAll()">🔄 초기화</button>
+                        </div>
+                    </div>
+                    <div class="golf-card">
+                        <div class="golf-player-section">
+                            <h3>👥 플레이어</h3>
+                            <div class="golf-setup-row">
+                                <input type="text" id="golfNewPlayer" placeholder="이름 입력">
+                                <button class="golf-btn golf-btn-primary" onclick="golfAddPlayer()">+ 추가</button>
+                            </div>
+                            <div class="golf-player-tabs" id="golfPlayerTabs"></div>
+                        </div>
+                    </div>
+                    <div class="golf-card">
+                        <div id="golfCurrentPlayerName" style="font-size:18px; font-weight:700; color:#10b981; margin-bottom:16px;">플레이어를 추가하세요</div>
+                        <div class="golf-summary">
+                            <div class="golf-summary-item par"><div class="golf-summary-label">총 파</div><div id="golfTotalPar" class="golf-summary-value">72</div></div>
+                            <div class="golf-summary-item score"><div class="golf-summary-label">총 스코어</div><div id="golfTotalScore" class="golf-summary-value">0</div></div>
+                            <div class="golf-summary-item over"><div class="golf-summary-label">오버/언더</div><div id="golfOverUnder" class="golf-summary-value">E</div></div>
+                            <div class="golf-summary-item holes"><div class="golf-summary-label">진행 홀</div><div id="golfPlayedHoles" class="golf-summary-value">0/18</div></div>
+                        </div>
+                    </div>
+                    <div class="golf-card">
+                        <div class="golf-scorecard">
+                            <h3>📋 전반 (Front 9)</h3>
+                            <table class="golf-table">
+                                <thead><tr><th>홀</th><th>파</th><th>스코어</th><th>결과</th></tr></thead>
+                                <tbody id="golfFrontNine"></tbody>
+                                <tfoot><tr><td>합계</td><td id="golfFrontPar">36</td><td id="golfFrontScore">0</td><td id="golfFrontResult">-</td></tr></tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="golf-card">
+                        <div class="golf-scorecard">
+                            <h3>📋 후반 (Back 9)</h3>
+                            <table class="golf-table">
+                                <thead><tr><th>홀</th><th>파</th><th>스코어</th><th>결과</th></tr></thead>
+                                <tbody id="golfBackNine"></tbody>
+                                <tfoot><tr><td>합계</td><td id="golfBackPar">36</td><td id="golfBackScore">0</td><td id="golfBackResult">-</td></tr></tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="golf-tips">
+                        <h3 onclick="golfToggleTips()">💡 골프 용어 가이드 <span id="golfTipToggle">▼</span></h3>
+                        <div id="golfTipsContent" class="golf-tips-content">
+                            <div class="golf-tip-item good"><span class="tip-icon">🦅</span><div class="tip-content"><h4>이글 (Eagle)</h4><p>파보다 2타 적음 (-2)</p></div></div>
+                            <div class="golf-tip-item good"><span class="tip-icon">🐦</span><div class="tip-content"><h4>버디 (Birdie)</h4><p>파보다 1타 적음 (-1)</p></div></div>
+                            <div class="golf-tip-item good"><span class="tip-icon">✅</span><div class="tip-content"><h4>파 (Par)</h4><p>기준 타수로 완료</p></div></div>
+                            <div class="golf-tip-item bad"><span class="tip-icon">➕</span><div class="tip-content"><h4>보기 (Bogey)</h4><p>파보다 1타 많음 (+1)</p></div></div>
+                            <div class="golf-tip-item bad"><span class="tip-icon">➕➕</span><div class="tip-content"><h4>더블보기</h4><p>파보다 2타 많음 (+2)</p></div></div>
+                            <div class="golf-tip-item bad"><span class="tip-icon">➕➕➕</span><div class="tip-content"><h4>트리플보기</h4><p>파보다 3타 많음 (+3)</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const golfDefaultPars = [4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 3, 5, 4, 4, 3, 4, 5, 4];
+        let golfRound = { date: '', location: '', players: [], pars: [...golfDefaultPars] };
+        let golfCurrentPlayerIndex = -1;
+
+        function golfAddPlayer() {
+            const nameInput = document.getElementById('golfNewPlayer');
+            const name = nameInput.value.trim();
+            if (!name) { alert('이름을 입력하세요'); return; }
+            if (golfRound.players.length >= 8) { alert('최대 8명까지 추가 가능'); return; }
+            golfRound.players.push({ name: name, scores: new Array(18).fill(0) });
+            nameInput.value = '';
+            golfCurrentPlayerIndex = golfRound.players.length - 1;
+            golfRenderPlayerTabs();
+            golfRenderScorecard();
+            golfCalculateTotals();
+        }
+
+        function golfSelectPlayer(index) {
+            golfCurrentPlayerIndex = index;
+            golfRenderPlayerTabs();
+            golfRenderScorecard();
+            golfCalculateTotals();
+        }
+
+        function golfRemovePlayer(index) {
+            if (confirm(`${golfRound.players[index].name}을(를) 삭제하시겠습니까?`)) {
+                golfRound.players.splice(index, 1);
+                if (golfCurrentPlayerIndex >= golfRound.players.length) golfCurrentPlayerIndex = golfRound.players.length - 1;
+                golfRenderPlayerTabs();
+                golfRenderScorecard();
+                golfCalculateTotals();
+            }
+        }
+
+        function golfRenderPlayerTabs() {
+            const container = document.getElementById('golfPlayerTabs');
+            container.innerHTML = '';
+            golfRound.players.forEach((player, index) => {
+                const tab = document.createElement('div');
+                tab.className = `golf-player-tab ${index === golfCurrentPlayerIndex ? 'active' : ''}`;
+                tab.innerHTML = `<span onclick="golfSelectPlayer(${index})">${player.name}</span><button class="remove-btn" onclick="event.stopPropagation(); golfRemovePlayer(${index})">×</button>`;
+                container.appendChild(tab);
+            });
+            const nameDisplay = document.getElementById('golfCurrentPlayerName');
+            if (golfCurrentPlayerIndex >= 0 && golfRound.players[golfCurrentPlayerIndex]) {
+                nameDisplay.textContent = `🏌️ ${golfRound.players[golfCurrentPlayerIndex].name}`;
+            } else {
+                nameDisplay.textContent = '플레이어를 추가하세요';
+            }
+        }
+
+        function golfRenderScorecard() {
+            const frontNine = document.getElementById('golfFrontNine');
+            const backNine = document.getElementById('golfBackNine');
+            frontNine.innerHTML = '';
+            backNine.innerHTML = '';
+            for (let i = 0; i < 18; i++) {
+                const row = golfCreateHoleRow(i);
+                if (i < 9) frontNine.appendChild(row);
+                else backNine.appendChild(row);
+            }
+        }
+
+        function golfCreateHoleRow(index) {
+            const row = document.createElement('tr');
+            const currentScore = golfCurrentPlayerIndex >= 0 && golfRound.players[golfCurrentPlayerIndex] ? golfRound.players[golfCurrentPlayerIndex].scores[index] : 0;
+            row.innerHTML = `
+                <td style="font-weight:600; color:#10b981;">${index + 1}</td>
+                <td><select onchange="golfUpdatePar(${index}, this.value)">
+                    <option value="3" ${golfRound.pars[index] === 3 ? 'selected' : ''}>3</option>
+                    <option value="4" ${golfRound.pars[index] === 4 ? 'selected' : ''}>4</option>
+                    <option value="5" ${golfRound.pars[index] === 5 ? 'selected' : ''}>5</option>
+                </select></td>
+                <td><input type="number" min="1" max="15" value="${currentScore || ''}" onchange="golfUpdateScore(${index}, this.value)" placeholder="-" ${golfCurrentPlayerIndex < 0 ? 'disabled' : ''}></td>
+                <td><span id="golfResult-${index}" class="golf-badge par">-</span></td>
+            `;
+            return row;
+        }
+
+        function golfUpdatePar(index, value) {
+            golfRound.pars[index] = parseInt(value);
+            golfCalculateTotals();
+            golfUpdateResultBadge(index);
+        }
+
+        function golfUpdateScore(index, value) {
+            if (golfCurrentPlayerIndex < 0) return;
+            golfRound.players[golfCurrentPlayerIndex].scores[index] = value ? parseInt(value) : 0;
+            golfCalculateTotals();
+            golfUpdateResultBadge(index);
+        }
+
+        function golfUpdateResultBadge(index) {
+            const badge = document.getElementById(`golfResult-${index}`);
+            if (!badge) return;
+            const score = golfCurrentPlayerIndex >= 0 && golfRound.players[golfCurrentPlayerIndex] ? golfRound.players[golfCurrentPlayerIndex].scores[index] : 0;
+            const par = golfRound.pars[index];
+            if (!score) { badge.textContent = '-'; badge.className = 'golf-badge par'; return; }
+            const diff = score - par;
+            let text, cls;
+            if (diff <= -2) { text = '이글!'; cls = 'eagle'; }
+            else if (diff === -1) { text = '버디'; cls = 'birdie'; }
+            else if (diff === 0) { text = '파'; cls = 'par'; }
+            else if (diff === 1) { text = '보기'; cls = 'bogey'; }
+            else if (diff === 2) { text = '더블'; cls = 'double'; }
+            else { text = `+${diff}`; cls = 'triple'; }
+            badge.textContent = text;
+            badge.className = `golf-badge ${cls}`;
+        }
+
+        function golfCalculateTotals() {
+            const scores = golfCurrentPlayerIndex >= 0 && golfRound.players[golfCurrentPlayerIndex] ? golfRound.players[golfCurrentPlayerIndex].scores : new Array(18).fill(0);
+            let frontPar = 0, frontScore = 0, frontPlayed = 0;
+            for (let i = 0; i < 9; i++) { frontPar += golfRound.pars[i]; if (scores[i]) { frontScore += scores[i]; frontPlayed++; } golfUpdateResultBadge(i); }
+            let backPar = 0, backScore = 0, backPlayed = 0;
+            for (let i = 9; i < 18; i++) { backPar += golfRound.pars[i]; if (scores[i]) { backScore += scores[i]; backPlayed++; } golfUpdateResultBadge(i); }
+            document.getElementById('golfFrontPar').textContent = frontPar;
+            document.getElementById('golfFrontScore').textContent = frontScore || '-';
+            document.getElementById('golfFrontResult').textContent = frontPlayed ? golfFormatDiff(frontScore - frontPar) : '-';
+            document.getElementById('golfBackPar').textContent = backPar;
+            document.getElementById('golfBackScore').textContent = backScore || '-';
+            document.getElementById('golfBackResult').textContent = backPlayed ? golfFormatDiff(backScore - backPar) : '-';
+            const totalPar = frontPar + backPar;
+            const totalScore = frontScore + backScore;
+            const totalPlayed = frontPlayed + backPlayed;
+            document.getElementById('golfTotalPar').textContent = totalPar;
+            document.getElementById('golfTotalScore').textContent = totalScore || 0;
+            document.getElementById('golfPlayedHoles').textContent = `${totalPlayed}/18`;
+            const overUnderEl = document.getElementById('golfOverUnder');
+            if (totalPlayed > 0) {
+                let playedPar = 0;
+                for (let i = 0; i < 18; i++) { if (scores[i]) playedPar += golfRound.pars[i]; }
+                const actualDiff = totalScore - playedPar;
+                overUnderEl.textContent = golfFormatDiff(actualDiff);
+                overUnderEl.style.color = actualDiff < 0 ? '#10b981' : actualDiff > 0 ? '#ef4444' : '#8b5cf6';
+            } else {
+                overUnderEl.textContent = 'E';
+                overUnderEl.style.color = '#8b5cf6';
+            }
+        }
+
+        function golfFormatDiff(diff) { return diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `${diff}`; }
+
+        function golfResetAll() {
+            if (confirm('모든 데이터를 초기화하시겠습니까?')) {
+                golfRound = { date: '', location: '', players: [], pars: [...golfDefaultPars] };
+                golfCurrentPlayerIndex = -1;
+                document.getElementById('golfDate').value = '';
+                document.getElementById('golfLocation').value = '';
+                golfRenderPlayerTabs();
+                golfRenderScorecard();
+                golfCalculateTotals();
+            }
+        }
+
+        function golfToggleTips() {
+            const content = document.getElementById('golfTipsContent');
+            const toggle = document.getElementById('golfTipToggle');
+            content.classList.toggle('golf-tips-hidden');
+            toggle.textContent = content.classList.contains('golf-tips-hidden') ? '▶' : '▼';
+        }
+
+        function initGolfScoreCalculator() {
+            document.getElementById('golfDate').value = new Date().toISOString().split('T')[0];
+            golfRenderPlayerTabs();
+            golfRenderScorecard();
+            golfCalculateTotals();
+        }
+
+        // ===== 볼링점수 계산기 =====
+        function getBowlingScoreCalculator() {
+            return `
+                <style>
+                    .bowling-container { max-width: 900px; margin: 0 auto; }
+                    .bowling-header { text-align: center; margin-bottom: 20px; }
+                    .bowling-header-icon { display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); border-radius: 50%; margin-bottom: 12px; }
+                    .bowling-header-icon i { font-size: 32px; color: white; }
+                    .bowling-header h2 { font-size: 24px; font-weight: 700; color: #333; margin-bottom: 6px; }
+                    .bowling-header p { font-size: 14px; color: #888; }
+                    .bowling-card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+                    .bowling-setup-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+                    .bowling-btn { padding: 10px 18px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+                    .bowling-btn-primary { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white; }
+                    .bowling-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+                    .bowling-btn-secondary { background: #e2e8f0; color: #555; }
+                    .bowling-btn-danger { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; }
+                    .bowling-btn-strike { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #333; }
+                    .bowling-btn-spare { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); color: white; }
+                    .bowling-btn-gutter { background: #6b7280; color: white; }
+                    .bowling-player-section h3 { font-size: 16px; font-weight: 700; color: #f59e0b; margin-bottom: 12px; }
+                    .bowling-player-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+                    .bowling-player-tab { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; font-size: 14px; font-weight: 500; }
+                    .bowling-player-tab:hover { border-color: #f59e0b; background: #fffbeb; }
+                    .bowling-player-tab.active { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white; border-color: #f59e0b; }
+                    .bowling-player-tab .remove-btn { background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; margin-left: 4px; }
+                    .bowling-scoreboard { overflow-x: auto; margin-bottom: 16px; }
+                    .bowling-frames { display: flex; min-width: max-content; }
+                    .bowling-frame { border: 2px solid #1e3a5f; background: #fef3c7; overflow: hidden; }
+                    .bowling-frame-header { background: #1e3a5f; color: white; text-align: center; padding: 6px; font-size: 12px; font-weight: 700; }
+                    .bowling-frame-header.tenth { background: #dc2626; }
+                    .bowling-frame-rolls { display: flex; }
+                    .bowling-roll { width: 36px; height: 36px; border-right: 1px solid #1e3a5f; border-bottom: 1px solid #1e3a5f; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+                    .bowling-roll:last-child { border-right: none; }
+                    .bowling-frame-score { height: 44px; border-top: 1px solid #1e3a5f; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #1e3a5f; }
+                    .bowling-total-score { text-align: center; margin: 16px 0; }
+                    .bowling-total-score span { font-size: 14px; color: #666; }
+                    .bowling-total-score .score { font-size: 40px; font-weight: 800; color: #1e3a5f; }
+                    .bowling-input-section { text-align: center; padding: 20px; background: #f8fafc; border-radius: 12px; }
+                    .bowling-current-frame { font-size: 16px; font-weight: 600; color: #f59e0b; margin-bottom: 16px; }
+                    .bowling-pin-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; }
+                    .bowling-pin-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: white; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s ease; }
+                    .bowling-pin-btn:hover:not(:disabled) { transform: scale(1.1); background: #fbbf24; }
+                    .bowling-pin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+                    .bowling-special-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+                    .bowling-game-over { text-align: center; padding: 24px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 16px; margin-top: 16px; }
+                    .bowling-game-over h3 { font-size: 24px; font-weight: 800; color: #333; margin-bottom: 12px; }
+                    .bowling-tips { background: #f8fafc; border-radius: 16px; padding: 20px; margin-top: 16px; }
+                    .bowling-tips h3 { font-size: 16px; font-weight: 700; color: #333; margin-bottom: 16px; }
+                    .bowling-tips-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+                    @media (max-width: 640px) { .bowling-tips-grid { grid-template-columns: 1fr; } }
+                    .bowling-tip { background: white; padding: 14px; border-radius: 10px; border-left: 4px solid #f59e0b; }
+                    .bowling-tip h4 { font-size: 13px; font-weight: 700; color: #f59e0b; margin-bottom: 4px; }
+                    .bowling-tip p { font-size: 12px; color: #666; line-height: 1.5; }
+                    .bowling-hidden { display: none; }
+                </style>
+                <div class="bowling-container">
+                    <div class="bowling-header">
+                        <div class="bowling-header-icon"><i class="fas fa-bowling-ball"></i></div>
+                        <h2>볼링 점수 계산기</h2>
+                        <p>팀별, 인원별 점수를 기록하고 저장하세요!</p>
+                    </div>
+                    <div class="bowling-card">
+                        <div class="bowling-player-section">
+                            <h3>👥 플레이어</h3>
+                            <div class="bowling-setup-row">
+                                <input type="text" id="bowlingNewPlayer" placeholder="이름 입력" style="padding:10px 14px; border:2px solid #e2e8f0; border-radius:10px; font-size:14px;">
+                                <button class="bowling-btn bowling-btn-primary" onclick="bowlingAddPlayer()">+ 추가</button>
+                                <button class="bowling-btn bowling-btn-danger" onclick="bowlingResetAll()">🔄 새 게임</button>
+                            </div>
+                            <div class="bowling-player-tabs" id="bowlingPlayerTabs"></div>
+                        </div>
+                    </div>
+                    <div class="bowling-card">
+                        <h3 style="font-size:16px; font-weight:700; color:#1e3a5f; margin-bottom:12px;">🎯 <span id="bowlingCurrentPlayerName">플레이어 1</span>의 스코어보드</h3>
+                        <div class="bowling-scoreboard">
+                            <div class="bowling-frames" id="bowlingScoreBoard"></div>
+                        </div>
+                        <div class="bowling-total-score">
+                            <span>총 점수: </span><span id="bowlingTotalScore" class="score">0</span><span> / 300</span>
+                        </div>
+                    </div>
+                    <div class="bowling-card">
+                        <div class="bowling-input-section">
+                            <div class="bowling-current-frame">
+                                🎯 <span id="bowlingCurrentFrameDisplay">프레임 1</span> - <span id="bowlingCurrentRollDisplay">1번째 투구</span>
+                            </div>
+                            <div class="bowling-pin-buttons" id="bowlingPinButtons"></div>
+                            <div class="bowling-special-btns">
+                                <button class="bowling-btn bowling-btn-strike" id="bowlingStrikeBtn" onclick="bowlingRecordRoll('strike')">⚡ 스트라이크</button>
+                                <button class="bowling-btn bowling-btn-spare bowling-hidden" id="bowlingSpareBtn" onclick="bowlingRecordRoll('spare')">🎯 스페어</button>
+                                <button class="bowling-btn bowling-btn-gutter" id="bowlingGutterBtn" onclick="bowlingRecordRoll('gutter')">❌ 거터</button>
+                            </div>
+                        </div>
+                        <div class="bowling-game-over bowling-hidden" id="bowlingGameOver">
+                            <h3>🎉 게임 종료!</h3>
+                            <div id="bowlingFinalScore"></div>
+                        </div>
+                    </div>
+                    <div class="bowling-tips">
+                        <h3>📚 볼링 용어</h3>
+                        <div class="bowling-tips-grid">
+                            <div class="bowling-tip"><h4>⚡ 스트라이크 (Strike)</h4><p>첫 투구에서 10개 핀 모두 쓰러뜨림. 10점 + 다음 2투구 점수 보너스</p></div>
+                            <div class="bowling-tip"><h4>🎯 스페어 (Spare)</h4><p>두 번째 투구로 나머지 핀 모두 쓰러뜨림. 10점 + 다음 1투구 점수 보너스</p></div>
+                            <div class="bowling-tip"><h4>🦃 터키 (Turkey)</h4><p>연속 3번 스트라이크. 첫 번째 프레임은 30점!</p></div>
+                            <div class="bowling-tip"><h4>👑 퍼펙트 게임</h4><p>12번 연속 스트라이크로 300점 달성</p></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let bowlingPlayers = [];
+        let bowlingCurrentPlayerIndex = 0;
+
+        function bowlingCreateEmptyFrames() {
+            const frames = [];
+            for (let i = 0; i < 10; i++) frames.push({ rolls: [], score: null, cumulative: null });
+            return frames;
+        }
+
+        function bowlingAddPlayer() {
+            const nameInput = document.getElementById('bowlingNewPlayer');
+            const name = nameInput.value.trim() || `플레이어 ${bowlingPlayers.length + 1}`;
+            bowlingPlayers.push({
+                name: name,
+                frames: bowlingCreateEmptyFrames(),
+                currentFrame: 0,
+                currentRoll: 0,
+                pinsRemaining: 10,
+                gameOver: false
+            });
+            nameInput.value = '';
+            bowlingCurrentPlayerIndex = bowlingPlayers.length - 1;
+            bowlingRenderPlayerTabs();
+            bowlingRenderScoreBoard();
+            bowlingRenderPinButtons();
+            bowlingUpdateDisplay();
+        }
+
+        function bowlingSelectPlayer(index) {
+            bowlingCurrentPlayerIndex = index;
+            bowlingRenderPlayerTabs();
+            bowlingRenderScoreBoard();
+            bowlingRenderPinButtons();
+            bowlingUpdateDisplay();
+        }
+
+        function bowlingRemovePlayer(index) {
+            if (bowlingPlayers.length <= 1) { alert('최소 1명의 플레이어가 필요합니다.'); return; }
+            bowlingPlayers.splice(index, 1);
+            if (bowlingCurrentPlayerIndex >= bowlingPlayers.length) bowlingCurrentPlayerIndex = bowlingPlayers.length - 1;
+            bowlingRenderPlayerTabs();
+            bowlingRenderScoreBoard();
+            bowlingRenderPinButtons();
+            bowlingUpdateDisplay();
+        }
+
+        function bowlingRenderPlayerTabs() {
+            const container = document.getElementById('bowlingPlayerTabs');
+            container.innerHTML = '';
+            bowlingPlayers.forEach((player, index) => {
+                const score = bowlingGetPlayerScore(player);
+                const tab = document.createElement('div');
+                tab.className = `bowling-player-tab ${index === bowlingCurrentPlayerIndex ? 'active' : ''}`;
+                tab.innerHTML = `
+                    <span onclick="bowlingSelectPlayer(${index})">${player.gameOver ? '✅' : '🎳'} ${player.name} (${score}점)</span>
+                    <button class="remove-btn" onclick="event.stopPropagation(); bowlingRemovePlayer(${index})">×</button>
+                `;
+                container.appendChild(tab);
+            });
+            const nameDisplay = document.getElementById('bowlingCurrentPlayerName');
+            if (bowlingPlayers[bowlingCurrentPlayerIndex]) {
+                nameDisplay.textContent = bowlingPlayers[bowlingCurrentPlayerIndex].name;
+            }
+        }
+
+        function bowlingGetPlayerScore(player) {
+            const lastFrame = player.frames.slice().reverse().find(f => f.cumulative !== null);
+            return lastFrame ? lastFrame.cumulative : 0;
+        }
+
+        function bowlingRenderScoreBoard() {
+            const board = document.getElementById('bowlingScoreBoard');
+            board.innerHTML = '';
+            const player = bowlingPlayers[bowlingCurrentPlayerIndex];
+            if (!player) return;
+            for (let i = 0; i < 9; i++) {
+                const frame = player.frames[i];
+                const roll1 = bowlingGetRollDisplay(frame, 0);
+                const roll2 = bowlingGetRollDisplay(frame, 1);
+                const score = frame.cumulative !== null ? frame.cumulative : '-';
+                const frameDiv = document.createElement('div');
+                frameDiv.className = 'bowling-frame';
+                frameDiv.innerHTML = `
+                    <div class="bowling-frame-header">${i + 1}</div>
+                    <div class="bowling-frame-rolls">
+                        <div class="bowling-roll">${roll1}</div>
+                        <div class="bowling-roll">${roll2}</div>
+                    </div>
+                    <div class="bowling-frame-score">${score}</div>
+                `;
+                board.appendChild(frameDiv);
+            }
+            const frame10 = player.frames[9];
+            const r1 = bowlingGetFrame10RollDisplay(frame10, 0);
+            const r2 = bowlingGetFrame10RollDisplay(frame10, 1);
+            const r3 = bowlingGetFrame10RollDisplay(frame10, 2);
+            const score10 = frame10.cumulative !== null ? frame10.cumulative : '-';
+            const frame10Div = document.createElement('div');
+            frame10Div.className = 'bowling-frame';
+            frame10Div.innerHTML = `
+                <div class="bowling-frame-header tenth">10</div>
+                <div class="bowling-frame-rolls">
+                    <div class="bowling-roll">${r1}</div>
+                    <div class="bowling-roll">${r2}</div>
+                    <div class="bowling-roll">${r3}</div>
+                </div>
+                <div class="bowling-frame-score">${score10}</div>
+            `;
+            board.appendChild(frame10Div);
+            document.getElementById('bowlingTotalScore').textContent = bowlingGetPlayerScore(player);
+        }
+
+        function bowlingGetRollDisplay(frame, rollIndex) {
+            if (!frame.rolls[rollIndex] && frame.rolls[rollIndex] !== 0) return '-';
+            const pins = frame.rolls[rollIndex];
+            if (rollIndex === 0 && pins === 10) return 'X';
+            if (rollIndex === 1 && frame.rolls[0] + pins === 10) return '/';
+            if (pins === 0) return 'G';
+            return pins.toString();
+        }
+
+        function bowlingGetFrame10RollDisplay(frame, rollIndex) {
+            if (!frame.rolls[rollIndex] && frame.rolls[rollIndex] !== 0) return '-';
+            const pins = frame.rolls[rollIndex];
+            const rolls = frame.rolls;
+            if (rollIndex === 0) return pins === 10 ? 'X' : (pins === 0 ? 'G' : pins.toString());
+            if (rollIndex === 1) {
+                if (rolls[0] === 10) return pins === 10 ? 'X' : (pins === 0 ? 'G' : pins.toString());
+                if (rolls[0] + pins === 10) return '/';
+                return pins === 0 ? 'G' : pins.toString();
+            }
+            if (rollIndex === 2) {
+                if (rolls[1] === 10 || (rolls[0] === 10 && rolls[1] === 10)) return pins === 10 ? 'X' : (pins === 0 ? 'G' : pins.toString());
+                if (rolls[0] === 10 && rolls[1] + pins === 10) return '/';
+                if (rolls[0] + rolls[1] === 10) return pins === 10 ? 'X' : (pins === 0 ? 'G' : pins.toString());
+                return pins === 0 ? 'G' : pins.toString();
+            }
+            return '-';
+        }
+
+        function bowlingRenderPinButtons() {
+            const container = document.getElementById('bowlingPinButtons');
+            container.innerHTML = '';
+            const player = bowlingPlayers[bowlingCurrentPlayerIndex];
+            if (!player) return;
+            for (let i = 0; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'bowling-pin-btn';
+                btn.textContent = i;
+                btn.onclick = () => bowlingRecordRoll(i);
+                btn.disabled = i > player.pinsRemaining || player.gameOver;
+                container.appendChild(btn);
+            }
+            bowlingUpdateSpecialButtons();
+        }
+
+        function bowlingUpdateSpecialButtons() {
+            const player = bowlingPlayers[bowlingCurrentPlayerIndex];
+            if (!player) return;
+            const strikeBtn = document.getElementById('bowlingStrikeBtn');
+            const spareBtn = document.getElementById('bowlingSpareBtn');
+            const gutterBtn = document.getElementById('bowlingGutterBtn');
+            strikeBtn.disabled = player.gameOver;
+            spareBtn.disabled = player.gameOver;
+            gutterBtn.disabled = player.gameOver;
+            if (player.gameOver) { strikeBtn.classList.add('bowling-hidden'); spareBtn.classList.add('bowling-hidden'); return; }
+            if (player.currentFrame < 9) {
+                if (player.currentRoll === 0) { strikeBtn.classList.remove('bowling-hidden'); spareBtn.classList.add('bowling-hidden'); }
+                else { strikeBtn.classList.add('bowling-hidden'); spareBtn.classList.toggle('bowling-hidden', player.pinsRemaining === 0); }
+            } else {
+                if (player.pinsRemaining === 10) { strikeBtn.classList.remove('bowling-hidden'); spareBtn.classList.add('bowling-hidden'); }
+                else if (player.pinsRemaining > 0) { strikeBtn.classList.add('bowling-hidden'); spareBtn.classList.remove('bowling-hidden'); }
+                else { strikeBtn.classList.add('bowling-hidden'); spareBtn.classList.add('bowling-hidden'); }
+            }
+        }
+
+        function bowlingRecordRoll(pins) {
+            const player = bowlingPlayers[bowlingCurrentPlayerIndex];
+            if (!player || player.gameOver) return;
+            let pinsKnocked;
+            if (pins === 'strike') pinsKnocked = 10;
+            else if (pins === 'spare') pinsKnocked = player.pinsRemaining;
+            else if (pins === 'gutter') pinsKnocked = 0;
+            else pinsKnocked = pins;
+            if (pinsKnocked > player.pinsRemaining) return;
+            player.frames[player.currentFrame].rolls.push(pinsKnocked);
+            bowlingCalculatePlayerScores(player);
+            if (player.currentFrame < 9) {
+                if (pinsKnocked === 10 || player.currentRoll === 1) { player.currentFrame++; player.currentRoll = 0; player.pinsRemaining = 10; }
+                else { player.currentRoll = 1; player.pinsRemaining -= pinsKnocked; }
+            } else {
+                const rollCount = player.frames[9].rolls.length;
+                if (rollCount === 1) { player.pinsRemaining = pinsKnocked === 10 ? 10 : player.pinsRemaining - pinsKnocked; player.currentRoll = 1; }
+                else if (rollCount === 2) {
+                    const r0 = player.frames[9].rolls[0], r1 = player.frames[9].rolls[1];
+                    if (r0 === 10) { player.pinsRemaining = r1 === 10 ? 10 : 10 - r1; player.currentRoll = 2; }
+                    else if (r0 + r1 === 10) { player.pinsRemaining = 10; player.currentRoll = 2; }
+                    else { player.gameOver = true; }
+                } else if (rollCount === 3) { player.gameOver = true; }
+            }
+            if (player.currentFrame >= 10) player.gameOver = true;
+            bowlingRenderScoreBoard();
+            bowlingRenderPinButtons();
+            bowlingUpdateDisplay();
+            bowlingRenderPlayerTabs();
+            if (player.gameOver) bowlingShowGameOver();
+        }
+
+        function bowlingCalculatePlayerScores(player) {
+            let cumulative = 0;
+            for (let i = 0; i < 10; i++) {
+                const frame = player.frames[i];
+                if (frame.rolls.length === 0) { frame.score = null; frame.cumulative = null; continue; }
+                if (i < 9) {
+                    if (frame.rolls[0] === 10) {
+                        const bonus = bowlingGetNextTwoRolls(player, i);
+                        if (bonus !== null) { frame.score = 10 + bonus; cumulative += frame.score; frame.cumulative = cumulative; }
+                        else { frame.score = null; frame.cumulative = null; }
+                    } else if (frame.rolls.length === 2) {
+                        if (frame.rolls[0] + frame.rolls[1] === 10) {
+                            const bonus = bowlingGetNextOneRoll(player, i);
+                            if (bonus !== null) { frame.score = 10 + bonus; cumulative += frame.score; frame.cumulative = cumulative; }
+                            else { frame.score = null; frame.cumulative = null; }
+                        } else { frame.score = frame.rolls[0] + frame.rolls[1]; cumulative += frame.score; frame.cumulative = cumulative; }
+                    } else { frame.score = null; frame.cumulative = null; }
+                } else {
+                    const rolls = frame.rolls;
+                    if (rolls.length >= 2) {
+                        if (rolls[0] === 10 || rolls[0] + rolls[1] === 10) {
+                            if (rolls.length === 3) { frame.score = rolls[0] + rolls[1] + rolls[2]; cumulative += frame.score; frame.cumulative = cumulative; }
+                            else { frame.score = null; frame.cumulative = null; }
+                        } else { frame.score = rolls[0] + rolls[1]; cumulative += frame.score; frame.cumulative = cumulative; }
+                    } else { frame.score = null; frame.cumulative = null; }
+                }
+            }
+        }
+
+        function bowlingGetNextTwoRolls(player, frameIndex) {
+            let rolls = [];
+            for (let i = frameIndex + 1; i < 10 && rolls.length < 2; i++) {
+                for (let r of player.frames[i].rolls) { rolls.push(r); if (rolls.length === 2) break; }
+            }
+            return rolls.length === 2 ? rolls[0] + rolls[1] : null;
+        }
+
+        function bowlingGetNextOneRoll(player, frameIndex) {
+            for (let i = frameIndex + 1; i < 10; i++) {
+                if (player.frames[i].rolls.length > 0) return player.frames[i].rolls[0];
+            }
+            return null;
+        }
+
+        function bowlingUpdateDisplay() {
+            const player = bowlingPlayers[bowlingCurrentPlayerIndex];
+            if (!player) return;
+            if (player.gameOver) {
+                document.getElementById('bowlingCurrentFrameDisplay').textContent = '게임 종료';
+                document.getElementById('bowlingCurrentRollDisplay').textContent = '';
+                return;
+            }
+            document.getElementById('bowlingCurrentFrameDisplay').textContent = `프레임 ${player.currentFrame + 1}`;
+            document.getElementById('bowlingCurrentRollDisplay').textContent = `${player.currentRoll + 1}번째 투구`;
+        }
+
+        function bowlingShowGameOver() {
+            const gameOverDiv = document.getElementById('bowlingGameOver');
+            const player = bowlingPlayers[bowlingCurrentPlayerIndex];
+            if (!player) return;
+            gameOverDiv.classList.remove('bowling-hidden');
+            document.getElementById('bowlingFinalScore').innerHTML = `<p style="font-size:20px; font-weight:700;">${player.name}: ${bowlingGetPlayerScore(player)}점</p>`;
+        }
+
+        function bowlingResetAll() {
+            bowlingPlayers = [{
+                name: '플레이어 1',
+                frames: bowlingCreateEmptyFrames(),
+                currentFrame: 0,
+                currentRoll: 0,
+                pinsRemaining: 10,
+                gameOver: false
+            }];
+            bowlingCurrentPlayerIndex = 0;
+            document.getElementById('bowlingGameOver').classList.add('bowling-hidden');
+            bowlingRenderPlayerTabs();
+            bowlingRenderScoreBoard();
+            bowlingRenderPinButtons();
+            bowlingUpdateDisplay();
+        }
+
+        function initBowlingScoreCalculator() {
+            bowlingResetAll();
         }
     </script>
 </body>
