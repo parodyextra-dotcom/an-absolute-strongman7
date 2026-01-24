@@ -281,86 +281,137 @@
         }
 
         .calculator-main {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4), 0 8px 16px rgba(0, 0, 0, 0.1);
             min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calculator-main::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: shimmer 15s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(20%, 20%) rotate(180deg); }
         }
 
         .calculator-display {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(15px);
             color: white;
-            padding: 20px;
-            border-radius: 15px;
+            padding: 24px;
+            border-radius: 18px;
             text-align: right;
-            font-size: clamp(24px, 5vw, 42px);
-            font-weight: 300;
-            min-height: 80px;
+            font-size: clamp(26px, 5vw, 48px);
+            font-weight: 400;
+            letter-spacing: 1px;
+            min-height: 90px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             word-break: break-all;
-            margin-bottom: 20px;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 24px;
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(255, 255, 255, 0.1);
             overflow: hidden;
             overflow-wrap: break-word;
+            position: relative;
+            z-index: 1;
+            font-family: 'Segoe UI', 'SF Pro Display', -apple-system, sans-serif;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .calculator-buttons {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            position: relative;
+            z-index: 1;
         }
 
         .calc-btn {
-            padding: 20px 10px;
+            padding: 18px 8px;
             border: none;
-            border-radius: 12px;
-            font-size: clamp(16px, 3vw, 22px);
+            border-radius: 16px;
+            font-size: clamp(16px, 3vw, 20px);
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.95);
             color: #2d3748;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
             min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calc-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
 
         .calc-btn:hover {
             background: white;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .calc-btn:hover::after {
+            opacity: 1;
+        }
+
+        .calc-btn:active {
+            transform: translateY(-1px) scale(0.98);
         }
 
         .calc-btn.operator {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            font-weight: 700;
+            font-size: clamp(18px, 3.5vw, 24px);
+            backdrop-filter: blur(5px);
+        }
+
+        .calc-btn.operator:hover {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        }
+
+        .calc-btn.clear {
+            background: linear-gradient(145deg, #ff6b6b 0%, #ee5a5a 100%);
             color: white;
             font-weight: 700;
         }
 
-        .calc-btn.operator:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .calc-btn.clear {
-            background: #fc8181;
-            color: white;
-        }
-
         .calc-btn.clear:hover {
-            background: #f56565;
+            background: linear-gradient(145deg, #ff5252 0%, #e53935 100%);
+            box-shadow: 0 8px 25px rgba(255, 82, 82, 0.4);
         }
 
         .calc-btn.equals {
-            background: #48bb78;
+            background: linear-gradient(145deg, #4ade80 0%, #22c55e 100%);
             color: white;
-            font-size: 28px;
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 700;
         }
 
         .calc-btn.equals:hover {
-            background: #38a169;
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
         }
 
         .calc-btn.zero {
@@ -368,13 +419,15 @@
         }
 
         .calculator-history {
-            background: #f7fafc;
-            border-radius: 20px;
-            padding: 20px;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 24px;
+            padding: 24px;
             max-height: 500px;
             display: flex;
             flex-direction: column;
             min-width: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
         .history-header {
@@ -382,32 +435,41 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 16px;
+            border-bottom: 2px solid transparent;
+            background: linear-gradient(90deg, #667eea, #764ba2) border-box;
+            background-clip: padding-box, border-box;
+            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+            border-image-slice: 0 0 1 0;
         }
 
         .history-header h3 {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-dark);
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin: 0;
         }
 
         .clear-history-btn {
-            background: #fc8181;
+            background: linear-gradient(145deg, #ff6b6b 0%, #ee5a5a 100%);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
         }
 
         .clear-history-btn:hover {
-            background: #f56565;
-            transform: translateY(-2px);
+            background: linear-gradient(145deg, #ff5252 0%, #e53935 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 82, 82, 0.4);
         }
 
         .history-list {
@@ -415,42 +477,70 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            padding-right: 4px;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
         }
 
         .history-item {
             background: white;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 2px solid transparent;
         }
 
         .history-item:hover {
             border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-            transform: translateX(-5px);
+            background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+            transform: translateX(-6px) scale(1.01);
         }
 
         .history-expression {
             font-size: 14px;
-            color: #718096;
-            margin-bottom: 5px;
+            color: #64748b;
+            margin-bottom: 6px;
+            font-weight: 500;
         }
 
         .history-result {
-            font-size: 20px;
-            font-weight: 600;
-            color: #2d3748;
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .history-empty {
             text-align: center;
-            color: #a0aec0;
-            padding: 40px 20px;
-            font-size: 16px;
+            color: #94a3b8;
+            padding: 50px 20px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .history-empty::before {
+            content: '📝';
+            display: block;
+            font-size: 40px;
+            margin-bottom: 12px;
         }
 
         @keyframes fadeIn {
@@ -984,6 +1074,7 @@
                         <div class="calculator-display" id="display">0</div>
                         <div class="calculator-buttons">
                             <button class="calc-btn clear" onclick="clearDisplay()">C</button>
+                            <button class="calc-btn operator" onclick="appendPercent()">%</button>
                             <button class="calc-btn operator" onclick="appendOperator('/')">/</button>
                             <button class="calc-btn operator" onclick="appendOperator('*')">×</button>
                             <button class="calc-btn operator" onclick="deleteChar()">⌫</button>
@@ -992,19 +1083,22 @@
                             <button class="calc-btn" onclick="appendNumber('8')">8</button>
                             <button class="calc-btn" onclick="appendNumber('9')">9</button>
                             <button class="calc-btn operator" onclick="appendOperator('-')">-</button>
+                            <button class="calc-btn operator" onclick="appendOperator('+')">+</button>
                             
                             <button class="calc-btn" onclick="appendNumber('4')">4</button>
                             <button class="calc-btn" onclick="appendNumber('5')">5</button>
                             <button class="calc-btn" onclick="appendNumber('6')">6</button>
-                            <button class="calc-btn operator" onclick="appendOperator('+')">+</button>
+                            <button class="calc-btn" onclick="appendNumber('00')">00</button>
+                            <button class="calc-btn equals" onclick="calculate()" style="grid-row: span 2;">=</button>
                             
                             <button class="calc-btn" onclick="appendNumber('1')">1</button>
                             <button class="calc-btn" onclick="appendNumber('2')">2</button>
                             <button class="calc-btn" onclick="appendNumber('3')">3</button>
-                            <button class="calc-btn equals" onclick="calculate()" style="grid-row: span 2;">=</button>
+                            <button class="calc-btn" onclick="appendNumber('000')">000</button>
                             
-                            <button class="calc-btn zero" onclick="appendNumber('0')">0</button>
+                            <button class="calc-btn zero" style="grid-column: span 2;" onclick="appendNumber('0')">0</button>
                             <button class="calc-btn" onclick="appendNumber('.')">.</button>
+                            <button class="calc-btn" onclick="toggleSign()">±</button>
                         </div>
                     </div>
                     <div class="calculator-history">
@@ -1062,25 +1156,47 @@
         }
 
         function appendOperator(op) {
+            const displayOp = (op === '*' ? '×' : op);
+            
+            // 현재 입력된 숫자가 있으면 수식에 추가
             if (rawCurrentInput !== '' && rawCurrentInput !== '0') {
-                expression = formatCalcNumber(rawCurrentInput) + ' ' + (op === '*' ? '×' : op) + ' ';
+                expression += formatCalcNumber(rawCurrentInput) + ' ' + displayOp + ' ';
                 rawCurrentInput = '';
                 currentInput = '';
-            } else if (currentInput !== '') {
-                expression = currentInput + ' ' + (op === '*' ? '×' : op) + ' ';
+            } else if (currentInput !== '' && currentInput !== '0') {
+                expression += currentInput + ' ' + displayOp + ' ';
                 rawCurrentInput = '';
                 currentInput = '';
+            } else if (expression !== '') {
+                // 이미 연산자가 있으면 마지막 연산자를 교체
+                expression = expression.replace(/[+\-×/] $/, displayOp + ' ');
             }
             updateDisplay();
+        }
+
+        function appendPercent() {
+            if (rawCurrentInput !== '' && rawCurrentInput !== '0') {
+                const percentValue = parseFloat(rawCurrentInput) / 100;
+                rawCurrentInput = percentValue.toString();
+                currentInput = formatCalcNumber(rawCurrentInput);
+                updateDisplay();
+            }
         }
 
         function deleteChar() {
             if (rawCurrentInput.length > 1) {
                 rawCurrentInput = rawCurrentInput.slice(0, -1);
                 currentInput = formatCalcNumber(rawCurrentInput);
-            } else {
+            } else if (rawCurrentInput.length === 1 && rawCurrentInput !== '0') {
                 rawCurrentInput = '0';
                 currentInput = '0';
+            } else if (expression !== '') {
+                // expression에서 마지막 연산자와 숫자 제거
+                expression = expression.replace(/\d[\d,]*\.?\d*\s*[+\-×/]\s*$/, '').replace(/\s*[+\-×/]\s*$/, '');
+                if (expression === '') {
+                    rawCurrentInput = '0';
+                    currentInput = '0';
+                }
             }
             updateDisplay();
         }
@@ -1090,6 +1206,18 @@
             currentInput = '0';
             expression = '';
             updateDisplay();
+        }
+
+        function toggleSign() {
+            if (rawCurrentInput !== '0' && rawCurrentInput !== '') {
+                if (rawCurrentInput.startsWith('-')) {
+                    rawCurrentInput = rawCurrentInput.slice(1);
+                } else {
+                    rawCurrentInput = '-' + rawCurrentInput;
+                }
+                currentInput = formatCalcNumber(rawCurrentInput);
+                updateDisplay();
+            }
         }
 
         function updateDisplay() {
@@ -14853,481 +14981,523 @@
         }
 
         // ===== 촌수호칭 계산기 =====
+        // 관계 경로를 저장하는 배열
+        let frRelationPath = [];
+        let frCurrentSide = 'paternal'; // 'paternal' or 'maternal'
+
         function getFamilyRelationCalculator() {
             return `
                 <style>
                     .fr-container {
-                        max-width: 600px;
+                        max-width: 500px;
                         margin: 0 auto;
+                        padding: 0 16px;
                     }
-                    .fr-header {
+                    .fr-title-header {
                         text-align: center;
-                        margin-bottom: 24px;
+                        padding: 24px 0 20px;
                     }
-                    .fr-header-icon {
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 70px;
-                        height: 70px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        border-radius: 50%;
-                        margin-bottom: 12px;
-                    }
-                    .fr-header-icon i {
-                        font-size: 32px;
-                        color: white;
-                    }
-                    .fr-header h2 {
-                        font-size: 24px;
+                    .fr-title-header h1 {
+                        font-size: 22px;
                         font-weight: 700;
-                        color: #333;
+                        color: #1a1a2e;
                         margin-bottom: 6px;
                     }
-                    .fr-header p {
+                    .fr-title-header p {
                         font-size: 14px;
                         color: #888;
                     }
-                    .fr-card {
+                    /* 나 태그 카드 */
+                    .fr-me-card {
                         background: #fff;
-                        border-radius: 20px;
-                        padding: 24px;
-                        margin-bottom: 20px;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                    }
-                    .fr-step {
+                        border-radius: 16px;
+                        padding: 16px 20px;
+                        margin-bottom: 16px;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
                         display: flex;
                         align-items: center;
-                        gap: 10px;
-                        margin-bottom: 12px;
+                        justify-content: space-between;
                     }
-                    .fr-step-num {
-                        width: 26px;
-                        height: 26px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        border-radius: 50%;
-                        display: flex;
+                    .fr-me-tag {
+                        display: inline-flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 13px;
-                        font-weight: 700;
-                    }
-                    .fr-step-num.optional {
-                        background: #cbd5e1;
-                    }
-                    .fr-step label {
-                        font-weight: 600;
-                        color: #333;
+                        background: #4f8cff;
+                        color: white;
                         font-size: 14px;
+                        font-weight: 600;
+                        padding: 6px 14px;
+                        border-radius: 20px;
                     }
-                    .fr-step .required {
-                        color: #ef4444;
-                        font-size: 12px;
-                        margin-left: 4px;
-                    }
-                    .fr-step .optional-text {
-                        color: #94a3b8;
-                        font-size: 12px;
-                        margin-left: 4px;
-                    }
-                    .fr-select {
-                        width: 100%;
-                        padding: 14px 16px;
-                        border: 2px solid #e2e8f0;
-                        border-radius: 12px;
-                        font-size: 15px;
-                        background: white;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        margin-bottom: 16px;
-                    }
-                    .fr-select:focus {
-                        outline: none;
-                        border-color: #667eea;
-                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-                    }
-                    .fr-btn-group {
+                    .fr-reset-btn {
                         display: flex;
-                        gap: 12px;
+                        align-items: center;
+                        gap: 6px;
+                        font-size: 13px;
+                        color: #888;
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        transition: color 0.2s;
+                    }
+                    .fr-reset-btn:hover {
+                        color: #667eea;
+                    }
+                    .fr-reset-btn i {
+                        font-size: 12px;
+                    }
+                    /* 경로 표시 */
+                    .fr-path-display {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        flex-wrap: wrap;
+                        margin-top: 10px;
+                    }
+                    .fr-path-item {
+                        display: inline-flex;
+                        align-items: center;
+                        background: #f0f4ff;
+                        color: #667eea;
+                        font-size: 13px;
+                        font-weight: 500;
+                        padding: 4px 12px;
+                        border-radius: 14px;
+                    }
+                    .fr-path-arrow {
+                        color: #ccc;
+                        font-size: 12px;
+                    }
+                    /* 촌수 표시 카드 */
+                    .fr-chon-card {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border-radius: 20px;
+                        padding: 40px 20px;
+                        text-align: center;
+                        margin-bottom: 16px;
+                        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.35);
+                    }
+                    .fr-chon-number {
+                        font-size: 72px;
+                        font-weight: 800;
+                        color: white;
+                        line-height: 1;
+                        text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                    }
+                    .fr-chon-label {
+                        font-size: 28px;
+                        font-weight: 600;
+                        color: rgba(255,255,255,0.9);
                         margin-top: 8px;
                     }
-                    .fr-btn {
-                        flex: 1;
-                        padding: 14px;
+                    /* 호칭 표시 */
+                    .fr-title-card {
+                        background: #fff;
+                        border-radius: 16px;
+                        padding: 20px;
+                        margin-bottom: 16px;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                        text-align: center;
+                    }
+                    .fr-title-label {
+                        font-size: 13px;
+                        color: #888;
+                        margin-bottom: 8px;
+                    }
+                    .fr-title-value {
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                    }
+                    /* 정보 그리드 */
+                    .fr-info-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 10px;
+                        margin-bottom: 16px;
+                    }
+                    .fr-info-item {
+                        background: #fff;
+                        border-radius: 14px;
+                        padding: 16px;
+                        text-align: center;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                    }
+                    .fr-info-label {
+                        font-size: 12px;
+                        color: #888;
+                        margin-bottom: 6px;
+                    }
+                    .fr-info-value {
+                        font-size: 15px;
+                        font-weight: 700;
+                    }
+                    .fr-info-value.blue { color: #4f8cff; }
+                    .fr-info-value.green { color: #22c55e; }
+                    .fr-info-value.orange { color: #f59e0b; }
+                    .fr-info-value.pink { color: #ec4899; }
+                    /* 안내 메시지 */
+                    .fr-guide-msg {
+                        background: linear-gradient(135deg, #e8f0fe 0%, #f0e8fe 100%);
+                        border-radius: 14px;
+                        padding: 16px 20px;
+                        text-align: center;
+                        font-size: 14px;
+                        color: #667eea;
+                        margin-bottom: 20px;
+                        font-weight: 500;
+                    }
+                    /* 관계 선택 섹션 */
+                    .fr-select-section {
+                        background: #fff;
+                        border-radius: 20px;
+                        padding: 20px;
+                        margin-bottom: 16px;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                    }
+                    .fr-section-title {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                        margin-bottom: 14px;
+                    }
+                    .fr-section-title .emoji {
+                        font-size: 18px;
+                    }
+                    .fr-btn-row {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 10px;
+                    }
+                    .fr-relation-btn {
+                        padding: 14px 16px;
                         border: none;
                         border-radius: 12px;
                         font-size: 15px;
                         font-weight: 600;
                         cursor: pointer;
-                        transition: all 0.3s ease;
+                        transition: all 0.2s ease;
                     }
-                    .fr-btn-calculate {
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    .fr-relation-btn:active {
+                        transform: scale(0.97);
+                    }
+                    /* 색상별 버튼 */
+                    .fr-btn-orange {
+                        background: #fb923c;
                         color: white;
                     }
-                    .fr-btn-calculate:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-                    }
-                    .fr-btn-reset {
-                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    .fr-btn-orange:hover { background: #f97316; }
+                    .fr-btn-green {
+                        background: #22c55e;
                         color: white;
                     }
-                    .fr-btn-reset:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 6px 20px rgba(245, 87, 108, 0.3);
+                    .fr-btn-green:hover { background: #16a34a; }
+                    .fr-btn-purple {
+                        background: #a855f7;
+                        color: white;
                     }
-                    .fr-result {
-                        display: none;
+                    .fr-btn-purple:hover { background: #9333ea; }
+                    .fr-btn-blue {
+                        background: #3b82f6;
+                        color: white;
                     }
-                    .fr-result.active {
-                        display: block;
-                        animation: fadeIn 0.5s ease;
+                    .fr-btn-blue:hover { background: #2563eb; }
+                    .fr-btn-pink {
+                        background: #f472b6;
+                        color: white;
                     }
-                    .fr-result-path {
-                        background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
-                        padding: 12px 16px;
-                        border-radius: 10px;
-                        text-align: center;
-                        font-size: 14px;
-                        color: #667eea;
-                        margin-bottom: 16px;
+                    .fr-btn-pink:hover { background: #ec4899; }
+                    .fr-btn-teal {
+                        background: #2dd4bf;
+                        color: white;
                     }
-                    .fr-result-main {
-                        text-align: center;
-                        padding: 20px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    .fr-btn-teal:hover { background: #14b8a6; }
+                    /* 용어 설명 */
+                    .fr-glossary {
+                        background: #fff;
                         border-radius: 16px;
-                        color: white;
-                        margin-bottom: 16px;
+                        padding: 20px;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
                     }
-                    .fr-chon-number {
-                        font-size: 56px;
-                        font-weight: 800;
-                    }
-                    .fr-chon-label {
-                        font-size: 20px;
-                        opacity: 0.9;
-                    }
-                    .fr-title-box {
-                        background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
-                        padding: 16px;
-                        border-radius: 12px;
-                        text-align: center;
-                        margin-bottom: 16px;
-                    }
-                    .fr-title-label {
-                        font-size: 13px;
-                        color: #666;
-                        margin-bottom: 6px;
-                    }
-                    .fr-title-value {
-                        font-size: 24px;
-                        font-weight: 700;
-                        color: #764ba2;
-                    }
-                    .fr-info-grid {
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 12px;
-                        margin-bottom: 16px;
-                    }
-                    .fr-info-item {
-                        padding: 14px;
-                        border-radius: 12px;
-                        text-align: center;
-                    }
-                    .fr-info-item.kin { background: #eff6ff; }
-                    .fr-info-item.line { background: #f0fdf4; }
-                    .fr-info-item.gen { background: #fff7ed; }
-                    .fr-info-item.side { background: #fdf2f8; }
-                    .fr-info-label {
-                        font-size: 11px;
-                        color: #666;
-                        margin-bottom: 4px;
-                    }
-                    .fr-info-value {
-                        font-size: 14px;
-                        font-weight: 700;
-                    }
-                    .fr-info-item.kin .fr-info-value { color: #2563eb; }
-                    .fr-info-item.line .fr-info-value { color: #16a34a; }
-                    .fr-info-item.gen .fr-info-value { color: #ea580c; }
-                    .fr-info-item.side .fr-info-value { color: #db2777; }
-                    .fr-description {
-                        font-size: 14px;
-                        color: #666;
-                        text-align: center;
-                        line-height: 1.6;
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 10px;
-                    }
-                    .fr-tips {
-                        background: rgba(102, 126, 234, 0.1);
-                        border-radius: 12px;
-                        padding: 16px;
-                        margin-top: 20px;
-                    }
-                    .fr-tips h4 {
-                        font-size: 14px;
-                        color: #667eea;
-                        margin-bottom: 10px;
+                    .fr-glossary-title {
                         display: flex;
                         align-items: center;
-                        gap: 6px;
+                        gap: 8px;
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                        margin-bottom: 12px;
                     }
-                    .fr-tips ul {
+                    .fr-glossary-content {
                         font-size: 13px;
-                        color: #666;
+                        color: #555;
                         line-height: 1.8;
-                        padding-left: 16px;
                     }
-                    .fr-glossary {
-                        margin-top: 12px;
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 10px;
-                        font-size: 12px;
-                        color: #64748b;
-                        line-height: 1.6;
+                    .fr-glossary-content .term {
+                        font-weight: 600;
+                    }
+                    .fr-glossary-content .term.red { color: #ef4444; }
+                    .fr-glossary-content .term.blue { color: #3b82f6; }
+                    .fr-glossary-content .term.green { color: #22c55e; }
+                    .fr-glossary-content .term.purple { color: #a855f7; }
+                    /* 팁 섹션 */
+                    .fr-tips-section {
+                        background: #fff;
+                        border-radius: 16px;
+                        padding: 20px;
+                        margin-top: 16px;
+                        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                    }
+                    .fr-tips-title {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #1a1a2e;
+                        margin-bottom: 14px;
                     }
                     .fr-chon-table {
-                        margin-top: 16px;
-                    }
-                    .fr-chon-table h4 {
-                        font-size: 14px;
-                        color: #333;
-                        margin-bottom: 10px;
-                    }
-                    .fr-chon-grid {
                         display: grid;
                         grid-template-columns: repeat(2, 1fr);
-                        gap: 6px;
+                        gap: 8px;
+                        font-size: 13px;
+                        color: #555;
+                    }
+                    .fr-chon-table div {
+                        padding: 8px 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                    }
+                    /* 법률 정보 */
+                    .fr-law-section {
+                        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                        border-left: 4px solid #0ea5e9;
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-top: 16px;
+                    }
+                    .fr-law-title {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #0369a1;
+                        margin-bottom: 10px;
+                    }
+                    .fr-law-content {
+                        font-size: 13px;
+                        color: #334155;
+                        line-height: 1.7;
+                    }
+                    .fr-law-content ul {
+                        padding-left: 20px;
+                        margin: 8px 0;
+                    }
+                    .fr-law-note {
+                        background: #fff;
+                        padding: 10px 12px;
+                        border-radius: 8px;
+                        margin-top: 10px;
                         font-size: 12px;
-                        color: #666;
+                    }
+                    /* 용어 섹션 */
+                    .fr-terms-section {
+                        background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+                        border-left: 4px solid #a855f7;
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-top: 16px;
+                    }
+                    .fr-terms-title {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #7e22ce;
+                        margin-bottom: 10px;
+                    }
+                    .fr-terms-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                        gap: 8px;
+                        font-size: 12px;
+                        color: #334155;
+                    }
+                    .fr-terms-grid span.term-name {
+                        color: #a855f7;
+                        font-weight: 600;
                     }
                 </style>
                 <div class="fr-container">
-                    <div class="fr-header">
-                        <div class="fr-header-icon"><i class="fas fa-users"></i></div>
-                        <h2>촌수 호칭 계산기</h2>
-                        <p>나를 기준으로 가족 관계를 입력하세요 (8촌까지)</p>
+                    <div class="fr-title-header">
+                        <h1>촌수 계산기</h1>
+                        <p>가족 관계를 선택하여 촌수를 계산하세요</p>
                     </div>
-                    <div class="fr-card">
-                        <div class="fr-step">
-                            <span class="fr-step-num">1</span>
-                            <label>첫 번째 관계<span class="required">*필수</span></label>
+                    
+                    <!-- 나 카드 -->
+                    <div class="fr-me-card">
+                        <div>
+                            <span class="fr-me-tag">나</span>
+                            <div class="fr-path-display" id="frPathDisplay"></div>
                         </div>
-                        <select id="frRelation1" class="fr-select" onchange="frUpdateResult()">
-                            <option value="">-- 선택하세요 --</option>
-                            <optgroup label="👴 고조부모 (4촌 위)">
-                                <option value="고조할아버지">고조할아버지</option>
-                                <option value="고조할머니">고조할머니</option>
-                                <option value="외고조할아버지">외고조할아버지</option>
-                                <option value="외고조할머니">외고조할머니</option>
-                            </optgroup>
-                            <optgroup label="👴 증조부모 (3촌 위)">
-                                <option value="증조할아버지">증조할아버지</option>
-                                <option value="증조할머니">증조할머니</option>
-                                <option value="외증조할아버지">외증조할아버지</option>
-                                <option value="외증조할머니">외증조할머니</option>
-                            </optgroup>
-                            <optgroup label="👴 조부모 (2촌 위)">
-                                <option value="할아버지">할아버지 (친할아버지)</option>
-                                <option value="할머니">할머니 (친할머니)</option>
-                                <option value="외할아버지">외할아버지</option>
-                                <option value="외할머니">외할머니</option>
-                            </optgroup>
-                            <optgroup label="👨‍👩‍👧 부모 (1촌 위)">
-                                <option value="아버지">아버지</option>
-                                <option value="어머니">어머니</option>
-                            </optgroup>
-                            <optgroup label="👫 형제자매 (같은 세대)">
-                                <option value="형">형/오빠</option>
-                                <option value="누나">누나/언니</option>
-                                <option value="남동생">남동생</option>
-                                <option value="여동생">여동생</option>
-                            </optgroup>
-                            <optgroup label="👶 자녀 (아랫세대)">
-                                <option value="아들">아들</option>
-                                <option value="딸">딸</option>
-                            </optgroup>
-                            <optgroup label="💑 배우자">
-                                <option value="배우자">배우자</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="fr-step">
-                            <span class="fr-step-num optional">2</span>
-                            <label>두 번째 관계<span class="optional-text">(선택)</span></label>
+                        <button class="fr-reset-btn" onclick="frResetAll()">
+                            <i class="fas fa-redo"></i> 처음부터 다시
+                        </button>
+                    </div>
+                    
+                    <!-- 촌수 표시 카드 -->
+                    <div class="fr-chon-card">
+                        <div id="frChonNumber" class="fr-chon-number">-</div>
+                        <div class="fr-chon-label">촌</div>
+                    </div>
+                    
+                    <!-- 호칭 표시 -->
+                    <div class="fr-title-card">
+                        <div class="fr-title-label">호칭</div>
+                        <div id="frFinalTitle" class="fr-title-value">관계를 선택하세요</div>
+                    </div>
+                    
+                    <!-- 정보 그리드 -->
+                    <div class="fr-info-grid">
+                        <div class="fr-info-item">
+                            <div class="fr-info-label">친족 유형</div>
+                            <div id="frKinType" class="fr-info-value blue">-</div>
                         </div>
-                        <select id="frRelation2" class="fr-select" onchange="frUpdateResult()">
-                            <option value="">-- 선택 안함 --</option>
-                            <optgroup label="👫 형제자매">
-                                <option value="형">형/오빠</option>
-                                <option value="누나">누나/언니</option>
-                                <option value="남동생">남동생</option>
-                                <option value="여동생">여동생</option>
-                            </optgroup>
-                            <optgroup label="👶 자녀">
-                                <option value="아들">아들</option>
-                                <option value="딸">딸</option>
-                            </optgroup>
-                            <optgroup label="💑 배우자">
-                                <option value="배우자">배우자</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="fr-step">
-                            <span class="fr-step-num optional">3</span>
-                            <label>세 번째 관계<span class="optional-text">(선택)</span></label>
+                        <div class="fr-info-item">
+                            <div class="fr-info-label">계통</div>
+                            <div id="frLineType" class="fr-info-value green">-</div>
                         </div>
-                        <select id="frRelation3" class="fr-select" onchange="frUpdateResult()">
-                            <option value="">-- 선택 안함 --</option>
-                            <optgroup label="👫 형제자매">
-                                <option value="형">형/오빠</option>
-                                <option value="누나">누나/언니</option>
-                                <option value="남동생">남동생</option>
-                                <option value="여동생">여동생</option>
-                            </optgroup>
-                            <optgroup label="👶 자녀">
-                                <option value="아들">아들</option>
-                                <option value="딸">딸</option>
-                            </optgroup>
-                            <optgroup label="💑 배우자">
-                                <option value="배우자">배우자</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="fr-step">
-                            <span class="fr-step-num optional">4</span>
-                            <label>네 번째 관계<span class="optional-text">(선택)</span></label>
+                        <div class="fr-info-item">
+                            <div class="fr-info-label">존비속</div>
+                            <div id="frGenType" class="fr-info-value orange">-</div>
                         </div>
-                        <select id="frRelation4" class="fr-select" onchange="frUpdateResult()">
-                            <option value="">-- 선택 안함 --</option>
-                            <optgroup label="👫 형제자매">
-                                <option value="형">형/오빠</option>
-                                <option value="누나">누나/언니</option>
-                                <option value="남동생">남동생</option>
-                                <option value="여동생">여동생</option>
-                            </optgroup>
-                            <optgroup label="👶 자녀">
-                                <option value="아들">아들</option>
-                                <option value="딸">딸</option>
-                            </optgroup>
-                            <optgroup label="💑 배우자">
-                                <option value="배우자">배우자</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="fr-step">
-                            <span class="fr-step-num optional">5</span>
-                            <label>다섯 번째 관계<span class="optional-text">(선택)</span></label>
-                        </div>
-                        <select id="frRelation5" class="fr-select" onchange="frUpdateResult()">
-                            <option value="">-- 선택 안함 --</option>
-                            <optgroup label="👫 형제자매">
-                                <option value="형">형/오빠</option>
-                                <option value="누나">누나/언니</option>
-                                <option value="남동생">남동생</option>
-                                <option value="여동생">여동생</option>
-                            </optgroup>
-                            <optgroup label="👶 자녀">
-                                <option value="아들">아들</option>
-                                <option value="딸">딸</option>
-                            </optgroup>
-                            <optgroup label="💑 배우자">
-                                <option value="배우자">배우자</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="fr-step">
-                            <span class="fr-step-num optional">6</span>
-                            <label>여섯 번째 관계<span class="optional-text">(선택)</span></label>
-                        </div>
-                        <select id="frRelation6" class="fr-select" onchange="frUpdateResult()">
-                            <option value="">-- 선택 안함 --</option>
-                            <optgroup label="👫 형제자매">
-                                <option value="형">형/오빠</option>
-                                <option value="누나">누나/언니</option>
-                                <option value="남동생">남동생</option>
-                                <option value="여동생">여동생</option>
-                            </optgroup>
-                            <optgroup label="👶 자녀">
-                                <option value="아들">아들</option>
-                                <option value="딸">딸</option>
-                            </optgroup>
-                            <optgroup label="💑 배우자">
-                                <option value="배우자">배우자</option>
-                            </optgroup>
-                        </select>
-
-                        <div class="fr-btn-group">
-                            <button class="fr-btn fr-btn-calculate" onclick="frUpdateResult()"><i class="fas fa-search"></i> 촌수 계산하기</button>
-                            <button class="fr-btn fr-btn-reset" onclick="frResetAll()"><i class="fas fa-redo"></i> 다시 검색</button>
+                        <div class="fr-info-item">
+                            <div class="fr-info-label">부계/모계</div>
+                            <div id="frSideType" class="fr-info-value pink">-</div>
                         </div>
                     </div>
-
-                    <div class="fr-result" id="frResultCard">
-                        <div class="fr-card">
-                            <div id="frRelationPath" class="fr-result-path"></div>
-                            <div class="fr-result-main">
-                                <div id="frChonNumber" class="fr-chon-number">0</div>
-                                <div class="fr-chon-label">촌</div>
-                            </div>
-                            <div class="fr-title-box">
-                                <div class="fr-title-label">호칭</div>
-                                <div id="frFinalTitle" class="fr-title-value"></div>
-                            </div>
-                            <div class="fr-info-grid">
-                                <div class="fr-info-item kin">
-                                    <div class="fr-info-label">친족 유형</div>
-                                    <div id="frKinType" class="fr-info-value"></div>
-                                </div>
-                                <div class="fr-info-item line">
-                                    <div class="fr-info-label">계통</div>
-                                    <div id="frLineType" class="fr-info-value"></div>
-                                </div>
-                                <div class="fr-info-item gen">
-                                    <div class="fr-info-label">존비속</div>
-                                    <div id="frGenType" class="fr-info-value"></div>
-                                </div>
-                                <div class="fr-info-item side">
-                                    <div class="fr-info-label">부계/모계</div>
-                                    <div id="frSideType" class="fr-info-value"></div>
-                                </div>
-                            </div>
-                            <div id="frDescription" class="fr-description"></div>
-                            <div class="fr-glossary">
-                                <strong>📖 용어 설명</strong><br>
-                                <span style="color:#2563eb">혈족</span>: 피로 연결된 친족 / <span style="color:#2563eb">인척</span>: 결혼으로 맺어진 친족<br>
-                                <span style="color:#16a34a">직계</span>: 직접 이어진 조상·자손 / <span style="color:#16a34a">방계</span>: 형제에서 갈라진 친족<br>
-                                <span style="color:#ea580c">존속</span>: 윗세대 / <span style="color:#ea580c">비속</span>: 아랫세대 / <span style="color:#ea580c">동항렬</span>: 같은 세대
-                            </div>
+                    
+                    <!-- 안내 메시지 -->
+                    <div class="fr-guide-msg">
+                        위에서 관계를 선택하면 촌수가 계산됩니다.
+                    </div>
+                    
+                    <!-- 관계 선택: 윗대 -->
+                    <div class="fr-select-section">
+                        <div class="fr-section-title">
+                            <span class="emoji">🔼</span> 윗대 (조상)
+                        </div>
+                        <div class="fr-btn-row">
+                            <button class="fr-relation-btn fr-btn-orange" onclick="frAddRelation('아버지')">아버지</button>
+                            <button class="fr-relation-btn fr-btn-orange" onclick="frAddRelation('어머니')">어머니</button>
                         </div>
                     </div>
-
-                    <div class="fr-tips">
-                        <h4><i class="fas fa-lightbulb"></i> 사용 방법</h4>
-                        <ul>
-                            <li>1번은 필수로 선택해주세요</li>
-                            <li>2~6번은 관계를 더 구체화할 때 사용</li>
-                            <li>예: 증조할아버지 → 아들 → 아들 = 할아버지 (2촌)</li>
-                            <li>예: 고조할아버지 → 형 → 아들 → 아들 → 아들 = 6촌</li>
-                        </ul>
+                    
+                    <!-- 관계 선택: 아랫대 -->
+                    <div class="fr-select-section">
+                        <div class="fr-section-title">
+                            <span class="emoji">🔽</span> 아랫대 (자손)
+                        </div>
+                        <div class="fr-btn-row">
+                            <button class="fr-relation-btn fr-btn-green" onclick="frAddRelation('아들')">아들</button>
+                            <button class="fr-relation-btn fr-btn-purple" onclick="frAddRelation('딸')">딸</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 관계 선택: 같은대 -->
+                    <div class="fr-select-section">
+                        <div class="fr-section-title">
+                            <span class="emoji">➕</span> 같은대 (형제자매)
+                        </div>
+                        <div class="fr-btn-row">
+                            <button class="fr-relation-btn fr-btn-blue" onclick="frAddRelation('형')">형/오빠</button>
+                            <button class="fr-relation-btn fr-btn-blue" onclick="frAddRelation('남동생')">남동생</button>
+                        </div>
+                        <div class="fr-btn-row" style="margin-top: 10px;">
+                            <button class="fr-relation-btn fr-btn-pink" onclick="frAddRelation('누나')">누나/언니</button>
+                            <button class="fr-relation-btn fr-btn-pink" onclick="frAddRelation('여동생')">여동생</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 관계 선택: 배우자 -->
+                    <div class="fr-select-section">
+                        <div class="fr-section-title">
+                            <span class="emoji">💑</span> 배우자
+                        </div>
+                        <div class="fr-btn-row">
+                            <button class="fr-relation-btn fr-btn-teal" onclick="frAddRelation('남편')">남편</button>
+                            <button class="fr-relation-btn fr-btn-teal" onclick="frAddRelation('아내')">아내</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 용어 설명 -->
+                    <div class="fr-glossary">
+                        <div class="fr-glossary-title">
+                            📖 용어 설명
+                        </div>
+                        <div class="fr-glossary-content">
+                            <span class="term red">혈족</span>: 피로 연결된 친족 / <span class="term blue">인척</span>: 결혼으로 맺어진 친족<br>
+                            <span class="term green">직계</span>: 직접 이어진 조상·자손 / <span class="term purple">방계</span>: 형제에서 갈라진 친족
+                        </div>
+                    </div>
+                    
+                    <!-- 촌수 참고표 -->
+                    <div class="fr-tips-section">
+                        <div class="fr-tips-title">
+                            📊 촌수 참고표
+                        </div>
                         <div class="fr-chon-table">
-                            <h4>📊 촌수 참고표</h4>
-                            <div class="fr-chon-grid">
-                                <div>• 1촌: 부모, 자녀</div>
-                                <div>• 2촌: 조부모, 손자녀, 형제</div>
-                                <div>• 3촌: 증조부모, 삼촌, 조카</div>
-                                <div>• 4촌: 고조부모, 사촌</div>
-                                <div>• 5촌: 종숙, 5촌조카</div>
-                                <div>• 6촌: 육촌 (재종형제)</div>
-                                <div>• 7촌: 재종숙, 7촌조카</div>
-                                <div>• 8촌: 팔촌 (삼종형제)</div>
+                            <div>• 1촌: 부모, 자녀</div>
+                            <div>• 2촌: 조부모, 손자녀, 형제</div>
+                            <div>• 3촌: 증조부모, 삼촌, 조카</div>
+                            <div>• 4촌: 고조부모, 사촌</div>
+                            <div>• 5촌: 종숙, 5촌조카</div>
+                            <div>• 6촌: 육촌 (재종형제)</div>
+                            <div>• 7촌: 재종숙, 7촌조카</div>
+                            <div>• 8촌: 팔촌 (삼종형제)</div>
+                        </div>
+                        
+                        <!-- 법률 정보 -->
+                        <div class="fr-law-section">
+                            <div class="fr-law-title">
+                                <i class="fas fa-gavel"></i> 민법상 친족의 범위 (8촌 이내)
+                            </div>
+                            <div class="fr-law-content">
+                                <strong>📜 민법 제777조 (친족의 범위)</strong>
+                                <ul>
+                                    <li><strong>혈족</strong>: 8촌 이내의 혈족</li>
+                                    <li><strong>인척</strong>: 4촌 이내의 인척</li>
+                                    <li><strong>배우자</strong>: 배우자</li>
+                                </ul>
+                                <div class="fr-law-note">
+                                    <i class="fas fa-info-circle" style="color:#0ea5e9;"></i> 
+                                    <strong>법적 효력</strong>: 친족 범위 내에서 상속권, 부양의무, 친족상도례(친족 간 재산범죄 특례) 등이 적용됩니다.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 친족 용어 -->
+                        <div class="fr-terms-section">
+                            <div class="fr-terms-title">
+                                <i class="fas fa-book"></i> 친족 관련 용어
+                            </div>
+                            <div class="fr-terms-grid">
+                                <div><span class="term-name">종친(宗親)</span>: 같은 성씨·본관의 일족</div>
+                                <div><span class="term-name">동복(同腹)</span>: 같은 어머니에게서 난 형제</div>
+                                <div><span class="term-name">이복(異腹)</span>: 아버지만 같은 형제</div>
+                                <div><span class="term-name">이부(異父)</span>: 어머니만 같은 형제</div>
+                                <div><span class="term-name">적모(嫡母)</span>: 서자의 아버지 본처</div>
+                                <div><span class="term-name">생모(生母)</span>: 낳아준 어머니</div>
+                                <div><span class="term-name">외척(外戚)</span>: 어머니 쪽 친족</div>
+                                <div><span class="term-name">처가(妻家)</span>: 아내의 친정</div>
+                                <div><span class="term-name">시가(媤家)</span>: 남편의 집안</div>
+                                <div><span class="term-name">사돈(査頓)</span>: 혼인으로 맺어진 양가</div>
                             </div>
                         </div>
                     </div>
@@ -15357,75 +15527,65 @@
             "여동생": { genUp: 0, genDown: 0, isSibling: true, isSpouse: false, gender: "female", isElder: false },
             "아들": { genUp: 0, genDown: 1, isSibling: false, isSpouse: false, gender: "male" },
             "딸": { genUp: 0, genDown: 1, isSibling: false, isSpouse: false, gender: "female" },
-            "배우자": { genUp: 0, genDown: 0, isSibling: false, isSpouse: true, gender: "unknown" }
+            "배우자": { genUp: 0, genDown: 0, isSibling: false, isSpouse: true, gender: "unknown" },
+            "남편": { genUp: 0, genDown: 0, isSibling: false, isSpouse: true, gender: "male" },
+            "아내": { genUp: 0, genDown: 0, isSibling: false, isSpouse: true, gender: "female" }
         };
 
+        // 확장된 호칭 데이터베이스
         const frTitleDatabase = {
+            // 직계 1촌
             "아버지": { chon: 1, title: "아버지" },
             "어머니": { chon: 1, title: "어머니" },
-            "아버지-형": { chon: 3, title: "큰아버지 (백부)" },
-            "아버지-남동생": { chon: 3, title: "작은아버지 (숙부)" },
-            "아버지-누나": { chon: 3, title: "고모" },
-            "아버지-여동생": { chon: 3, title: "고모" },
-            "아버지-아들": { chon: 2, title: "형제 (나/형/남동생)" },
-            "아버지-딸": { chon: 2, title: "자매 (나/누나/여동생)" },
-            "아버지-배우자": { chon: 1, title: "어머니" },
-            "아버지-형-아들": { chon: 4, title: "사촌형/오빠 (종형)" },
-            "아버지-형-딸": { chon: 4, title: "사촌누나/언니 (종자매)" },
-            "아버지-남동생-아들": { chon: 4, title: "사촌동생 (종제)" },
-            "아버지-남동생-딸": { chon: 4, title: "사촌여동생 (종매)" },
-            "아버지-누나-아들": { chon: 4, title: "고종사촌 (남)" },
-            "아버지-누나-딸": { chon: 4, title: "고종사촌 (여)" },
-            "아버지-여동생-아들": { chon: 4, title: "고종사촌 (남)" },
-            "아버지-여동생-딸": { chon: 4, title: "고종사촌 (여)" },
-            "어머니-형": { chon: 3, title: "외삼촌" },
-            "어머니-남동생": { chon: 3, title: "외삼촌" },
-            "어머니-누나": { chon: 3, title: "이모" },
-            "어머니-여동생": { chon: 3, title: "이모" },
-            "어머니-아들": { chon: 2, title: "형제 (나/형/남동생)" },
-            "어머니-딸": { chon: 2, title: "자매 (나/누나/여동생)" },
-            "어머니-배우자": { chon: 1, title: "아버지" },
-            "어머니-형-아들": { chon: 4, title: "외사촌 (남)" },
-            "어머니-형-딸": { chon: 4, title: "외사촌 (여)" },
-            "어머니-남동생-아들": { chon: 4, title: "외사촌 (남)" },
-            "어머니-남동생-딸": { chon: 4, title: "외사촌 (여)" },
-            "어머니-누나-아들": { chon: 4, title: "이종사촌 (남)" },
-            "어머니-누나-딸": { chon: 4, title: "이종사촌 (여)" },
-            "어머니-여동생-아들": { chon: 4, title: "이종사촌 (남)" },
-            "어머니-여동생-딸": { chon: 4, title: "이종사촌 (여)" },
-            "고조할아버지": { chon: 4, title: "고조할아버지" },
-            "고조할머니": { chon: 4, title: "고조할머니" },
-            "외고조할아버지": { chon: 4, title: "외고조할아버지" },
-            "외고조할머니": { chon: 4, title: "외고조할머니" },
-            "증조할아버지": { chon: 3, title: "증조할아버지" },
-            "증조할머니": { chon: 3, title: "증조할머니" },
-            "외증조할아버지": { chon: 3, title: "외증조할아버지" },
-            "외증조할머니": { chon: 3, title: "외증조할머니" },
-            "할아버지": { chon: 2, title: "할아버지" },
-            "할머니": { chon: 2, title: "할머니" },
-            "외할아버지": { chon: 2, title: "외할아버지" },
-            "외할머니": { chon: 2, title: "외할머니" },
+            "아들": { chon: 1, title: "아들" },
+            "딸": { chon: 1, title: "딸" },
+            
+            // 직계 2촌 (조부모)
+            "아버지-아버지": { chon: 2, title: "할아버지 (친조부)" },
+            "아버지-어머니": { chon: 2, title: "할머니 (친조모)" },
+            "어머니-아버지": { chon: 2, title: "외할아버지" },
+            "어머니-어머니": { chon: 2, title: "외할머니" },
+            
+            // 직계 2촌 (손자녀)
+            "아들-아들": { chon: 2, title: "손자" },
+            "아들-딸": { chon: 2, title: "손녀" },
+            "딸-아들": { chon: 2, title: "외손자" },
+            "딸-딸": { chon: 2, title: "외손녀" },
+            
+            // 형제자매 2촌
             "형": { chon: 2, title: "형/오빠" },
             "누나": { chon: 2, title: "누나/언니" },
             "남동생": { chon: 2, title: "남동생" },
             "여동생": { chon: 2, title: "여동생" },
-            "아들": { chon: 1, title: "아들" },
-            "딸": { chon: 1, title: "딸" },
+            "아버지-아들": { chon: 2, title: "형제 (나/형/동생)" },
+            "아버지-딸": { chon: 2, title: "자매 (나/누나/동생)" },
+            "어머니-아들": { chon: 2, title: "형제 (나/형/동생)" },
+            "어머니-딸": { chon: 2, title: "자매 (나/누나/동생)" },
+            
+            // 배우자
+            "남편": { chon: 0, title: "남편 (배우자)" },
+            "아내": { chon: 0, title: "아내 (배우자)" },
             "배우자": { chon: 0, title: "배우자" },
-            "증조할아버지-아들": { chon: 2, title: "할아버지" },
-            "증조할아버지-딸": { chon: 2, title: "대고모" },
-            "증조할아버지-아들-아들": { chon: 1, title: "아버지/삼촌" },
-            "증조할아버지-아들-딸": { chon: 1, title: "고모" },
-            "할아버지-형": { chon: 4, title: "종조할아버지 (큰할아버지)" },
-            "할아버지-남동생": { chon: 4, title: "종조할아버지 (작은할아버지)" },
-            "할아버지-아들": { chon: 1, title: "아버지/삼촌" },
-            "할아버지-딸": { chon: 1, title: "고모" },
-            "할아버지-형-아들": { chon: 3, title: "당숙 (종숙부)" },
-            "할아버지-형-딸": { chon: 3, title: "당고모 (종고모)" },
-            "할아버지-형-아들-아들": { chon: 4, title: "6촌형 (재종형제)" },
-            "할아버지-형-아들-딸": { chon: 4, title: "6촌누나 (재종자매)" },
-            "외할아버지-아들": { chon: 1, title: "외삼촌" },
-            "외할아버지-딸": { chon: 1, title: "어머니/이모" },
+            
+            // 3촌 - 삼촌/고모/이모/외삼촌
+            "아버지-아버지-아들": { chon: 3, title: "삼촌 (큰아버지/작은아버지)" },
+            "아버지-아버지-딸": { chon: 3, title: "고모" },
+            "아버지-어머니-아들": { chon: 3, title: "삼촌 (외숙)" },
+            "아버지-어머니-딸": { chon: 3, title: "고모" },
+            "어머니-아버지-아들": { chon: 3, title: "외삼촌" },
+            "어머니-아버지-딸": { chon: 3, title: "이모" },
+            "어머니-어머니-아들": { chon: 3, title: "외삼촌" },
+            "어머니-어머니-딸": { chon: 3, title: "이모" },
+            "아버지-형": { chon: 3, title: "큰아버지 (백부)" },
+            "아버지-남동생": { chon: 3, title: "작은아버지 (숙부)" },
+            "아버지-누나": { chon: 3, title: "고모" },
+            "아버지-여동생": { chon: 3, title: "고모" },
+            "어머니-형": { chon: 3, title: "외삼촌" },
+            "어머니-남동생": { chon: 3, title: "외삼촌" },
+            "어머니-누나": { chon: 3, title: "이모" },
+            "어머니-여동생": { chon: 3, title: "이모" },
+            
+            // 3촌 - 조카
             "형-아들": { chon: 3, title: "조카 (남)" },
             "형-딸": { chon: 3, title: "조카 (여)" },
             "누나-아들": { chon: 3, title: "생질" },
@@ -15434,64 +15594,325 @@
             "남동생-딸": { chon: 3, title: "조카 (여)" },
             "여동생-아들": { chon: 3, title: "생질" },
             "여동생-딸": { chon: 3, title: "생질녀" },
-            "형-배우자": { chon: 2, title: "형수/올케" },
-            "누나-배우자": { chon: 2, title: "매형/형부" },
-            "아들-아들": { chon: 2, title: "손자" },
-            "아들-딸": { chon: 2, title: "손녀" },
-            "딸-아들": { chon: 2, title: "외손자" },
-            "딸-딸": { chon: 2, title: "외손녀" },
-            "아들-배우자": { chon: 1, title: "며느리" },
-            "딸-배우자": { chon: 1, title: "사위" },
+            
+            // 3촌 - 증조부모, 증손
+            "아버지-아버지-아버지": { chon: 3, title: "증조할아버지" },
+            "아버지-아버지-어머니": { chon: 3, title: "증조할머니" },
+            "어머니-아버지-아버지": { chon: 3, title: "외증조할아버지" },
+            "어머니-어머니-어머니": { chon: 3, title: "외증조할머니" },
             "아들-아들-아들": { chon: 3, title: "증손자" },
             "아들-아들-딸": { chon: 3, title: "증손녀" },
-            "배우자-형": { chon: 2, title: "시숙/처남" },
-            "배우자-누나": { chon: 2, title: "시누이/처형" },
-            "배우자-남동생": { chon: 2, title: "시동생/처남" },
-            "배우자-여동생": { chon: 2, title: "시누이/처제" },
-            "배우자-아들": { chon: 1, title: "아들" },
-            "배우자-딸": { chon: 1, title: "딸" }
+            
+            // 4촌 - 사촌
+            "아버지-형-아들": { chon: 4, title: "사촌형/오빠 (종형)" },
+            "아버지-형-딸": { chon: 4, title: "사촌누나/언니 (종자매)" },
+            "아버지-남동생-아들": { chon: 4, title: "사촌동생 (종제)" },
+            "아버지-남동생-딸": { chon: 4, title: "사촌여동생 (종매)" },
+            "아버지-누나-아들": { chon: 4, title: "고종사촌 (남)" },
+            "아버지-누나-딸": { chon: 4, title: "고종사촌 (여)" },
+            "아버지-여동생-아들": { chon: 4, title: "고종사촌 (남)" },
+            "아버지-여동생-딸": { chon: 4, title: "고종사촌 (여)" },
+            "어머니-형-아들": { chon: 4, title: "외사촌 (남)" },
+            "어머니-형-딸": { chon: 4, title: "외사촌 (여)" },
+            "어머니-남동생-아들": { chon: 4, title: "외사촌 (남)" },
+            "어머니-남동생-딸": { chon: 4, title: "외사촌 (여)" },
+            "어머니-누나-아들": { chon: 4, title: "이종사촌 (남)" },
+            "어머니-누나-딸": { chon: 4, title: "이종사촌 (여)" },
+            "어머니-여동생-아들": { chon: 4, title: "이종사촌 (남)" },
+            "어머니-여동생-딸": { chon: 4, title: "이종사촌 (여)" },
+            "아버지-아버지-아들-아들": { chon: 4, title: "사촌 (남)" },
+            "아버지-아버지-아들-딸": { chon: 4, title: "사촌 (여)" },
+            "아버지-아버지-딸-아들": { chon: 4, title: "고종사촌 (남)" },
+            "아버지-아버지-딸-딸": { chon: 4, title: "고종사촌 (여)" },
+            
+            // 4촌 - 고조부모
+            "아버지-아버지-아버지-아버지": { chon: 4, title: "고조할아버지" },
+            "아버지-아버지-아버지-어머니": { chon: 4, title: "고조할머니" },
+            
+            // 4촌 - 종조부모 (할아버지의 형제)
+            "아버지-아버지-형": { chon: 4, title: "종조할아버지 (큰할아버지)" },
+            "아버지-아버지-남동생": { chon: 4, title: "종조할아버지 (작은할아버지)" },
+            "아버지-아버지-누나": { chon: 4, title: "대고모" },
+            "아버지-아버지-여동생": { chon: 4, title: "대고모" },
+            
+            // 배우자 관계
+            "형-남편": { chon: 2, title: "형부/매형" },
+            "형-아내": { chon: 2, title: "형수/올케" },
+            "누나-남편": { chon: 2, title: "매형/형부" },
+            "누나-아내": { chon: 2, title: "형수" },
+            "남동생-아내": { chon: 2, title: "제수/올케" },
+            "여동생-남편": { chon: 2, title: "제부/매제" },
+            "아들-아내": { chon: 1, title: "며느리" },
+            "딸-남편": { chon: 1, title: "사위" },
+            "남편-아버지": { chon: 1, title: "시아버지" },
+            "남편-어머니": { chon: 1, title: "시어머니" },
+            "아내-아버지": { chon: 1, title: "장인" },
+            "아내-어머니": { chon: 1, title: "장모" },
+            "남편-형": { chon: 2, title: "시숙 (시아주버니)" },
+            "남편-남동생": { chon: 2, title: "시동생" },
+            "남편-누나": { chon: 2, title: "시누이 (형님)" },
+            "남편-여동생": { chon: 2, title: "시누이 (아가씨)" },
+            "아내-형": { chon: 2, title: "처남" },
+            "아내-남동생": { chon: 2, title: "처남" },
+            "아내-누나": { chon: 2, title: "처형" },
+            "아내-여동생": { chon: 2, title: "처제" },
+            
+            // 5촌
+            "아버지-아버지-형-아들": { chon: 5, title: "당숙 (종숙부)" },
+            "아버지-아버지-형-딸": { chon: 5, title: "당고모 (종고모)" },
+            "아버지-아버지-남동생-아들": { chon: 5, title: "당숙 (종숙부)" },
+            "아버지-아버지-남동생-딸": { chon: 5, title: "당고모 (종고모)" },
+            "아버지-형-아들-아들": { chon: 5, title: "5촌 조카 (당질)" },
+            "아버지-형-아들-딸": { chon: 5, title: "5촌 조카 (당질녀)" },
+            
+            // 6촌
+            "아버지-아버지-형-아들-아들": { chon: 6, title: "6촌형 (재종형)" },
+            "아버지-아버지-형-아들-딸": { chon: 6, title: "6촌누나 (재종자매)" },
+            "아버지-아버지-남동생-아들-아들": { chon: 6, title: "6촌동생 (재종제)" },
+            "아버지-아버지-남동생-아들-딸": { chon: 6, title: "6촌여동생 (재종매)" },
+            "아버지-아버지-아들-아들-아들": { chon: 6, title: "6촌 (재종형제)" },
+            
+            // 7촌
+            "아버지-아버지-아버지-형-아들-아들": { chon: 7, title: "재종숙" },
+            "아버지-아버지-형-아들-아들-아들": { chon: 7, title: "7촌 조카" },
+            
+            // 8촌
+            "아버지-아버지-아버지-형-아들-아들-아들": { chon: 8, title: "8촌 (삼종형)" },
+            "아버지-아버지-아버지-아들-아들-아들-아들": { chon: 8, title: "8촌 (삼종형제)" }
         };
 
-        function frCalculateChon(relations) {
+        // 관계 추가 함수
+        function frAddRelation(relation) {
+            if (frRelationPath.length >= 8) {
+                alert('최대 8단계까지 관계를 추가할 수 있습니다.');
+                return;
+            }
+            
+            // 첫 번째 관계에서 부계/모계 결정
+            if (frRelationPath.length === 0) {
+                if (relation === '어머니') {
+                    frCurrentSide = 'maternal';
+                } else {
+                    frCurrentSide = 'paternal';
+                }
+            }
+            
+            frRelationPath.push(relation);
+            frUpdateDisplay();
+        }
+
+        // 화면 업데이트
+        function frUpdateDisplay() {
+            // 경로 표시 업데이트
+            const pathDisplay = document.getElementById('frPathDisplay');
+            if (pathDisplay) {
+                if (frRelationPath.length === 0) {
+                    pathDisplay.innerHTML = '';
+                } else {
+                    let pathHtml = '';
+                    frRelationPath.forEach((rel, idx) => {
+                        if (idx > 0) pathHtml += '<span class="fr-path-arrow">→</span>';
+                        pathHtml += `<span class="fr-path-item">${rel}</span>`;
+                    });
+                    pathDisplay.innerHTML = pathHtml;
+                }
+            }
+            
+            // 촌수 및 호칭 계산
+            if (frRelationPath.length === 0) {
+                document.getElementById('frChonNumber').textContent = '-';
+                document.getElementById('frFinalTitle').textContent = '관계를 선택하세요';
+                document.getElementById('frKinType').textContent = '-';
+                document.getElementById('frLineType').textContent = '-';
+                document.getElementById('frGenType').textContent = '-';
+                document.getElementById('frSideType').textContent = '-';
+                return;
+            }
+            
+            const result = frCalculateChonNew(frRelationPath);
+            const analysis = frAnalyzeKinTypeNew(frRelationPath);
+            
+            document.getElementById('frChonNumber').textContent = result.chon;
+            document.getElementById('frFinalTitle').textContent = result.title;
+            document.getElementById('frKinType').textContent = analysis.kinType;
+            document.getElementById('frLineType').textContent = analysis.lineType;
+            document.getElementById('frGenType').textContent = analysis.genType;
+            document.getElementById('frSideType').textContent = analysis.sideType;
+        }
+
+        // 촌수 계산 (새 버전)
+        function frCalculateChonNew(relations) {
             if (relations.length === 0) return { chon: 0, title: "본인" };
+            
             const key = relations.join("-");
             if (frTitleDatabase[key]) return frTitleDatabase[key];
             
+            // 데이터베이스에 없으면 계산
             let totalUp = 0, totalDown = 0, siblingCount = 0;
+            let hasSpouse = false;
+            
             for (const rel of relations) {
                 const info = frRelationInfo[rel];
                 if (!info) continue;
-                if (info.isSpouse) continue;
-                if (info.isSibling) { siblingCount++; totalUp += 1; totalDown += 1; }
-                else { totalUp += info.genUp; totalDown += info.genDown; }
+                
+                if (info.isSpouse) {
+                    hasSpouse = true;
+                    continue;
+                }
+                
+                if (info.isSibling) {
+                    siblingCount++;
+                    totalUp += 1;
+                    totalDown += 1;
+                } else {
+                    totalUp += info.genUp;
+                    totalDown += info.genDown;
+                }
             }
+            
             const chon = totalUp + totalDown;
-            return { chon, title: frGenerateTitle(relations, chon) };
+            const title = frGenerateTitleNew(relations, chon, hasSpouse);
+            
+            return { chon, title };
         }
 
-        function frAnalyzeKinType(relations) {
-            if (relations.length === 0) return { kinType: "본인", lineType: "-", genType: "-", sideType: "-" };
-            let hasSpouse = false, totalUp = 0, totalDown = 0, siblingCount = 0, side = "부계 (친가)";
-            for (let i = 0; i < relations.length; i++) {
-                const rel = relations[i], info = frRelationInfo[rel];
-                if (!info) continue;
-                if (info.isSpouse) hasSpouse = true;
-                if (i === 0 && info.side) side = info.side === "maternal" ? "모계 (외가)" : "부계 (친가)";
-                if (info.isSibling) siblingCount++;
-                else if (!info.isSpouse) { totalUp += info.genUp; totalDown += info.genDown; }
+        // 호칭 생성 (새 버전)
+        function frGenerateTitleNew(relations, chon, hasSpouse) {
+            if (chon === 0) return hasSpouse ? "배우자" : "본인";
+            
+            const lastRel = relations[relations.length - 1];
+            const lastInfo = frRelationInfo[lastRel];
+            
+            // 기본 촌수 기반 호칭
+            const chonTitles = {
+                1: lastInfo && lastInfo.genUp ? "부모" : "자녀",
+                2: "2촌 관계",
+                3: "3촌 관계",
+                4: "4촌 관계",
+                5: "5촌 관계",
+                6: "6촌 (재종형제)",
+                7: "7촌 관계",
+                8: "8촌 (삼종형제)"
+            };
+            
+            if (chon > 8) return `${chon}촌 (친족 범위 외)`;
+            
+            return chonTitles[chon] || `${chon}촌 관계`;
+        }
+
+        // 친족 분석 (새 버전)
+        function frAnalyzeKinTypeNew(relations) {
+            if (relations.length === 0) {
+                return { kinType: "본인", lineType: "-", genType: "-", sideType: "-" };
             }
-            let kinType = hasSpouse ? (relations.length === 1 && relations[0] === "배우자" ? "배우자" : "인척 (姻戚)") : "혈족 (血族)";
-            let lineType = (siblingCount > 0 || (totalUp > 0 && totalDown > 0)) ? "방계 (傍系)" : "직계 (直系)";
+            
+            let hasSpouse = false;
+            let totalUp = 0, totalDown = 0, siblingCount = 0;
+            let side = "부계";
+            
+            for (let i = 0; i < relations.length; i++) {
+                const rel = relations[i];
+                const info = frRelationInfo[rel];
+                if (!info) continue;
+                
+                if (info.isSpouse) {
+                    hasSpouse = true;
+                    continue;
+                }
+                
+                // 첫 관계에서 부계/모계 결정
+                if (i === 0 && info.side) {
+                    side = info.side === "maternal" ? "모계" : "부계";
+                }
+                
+                if (info.isSibling) {
+                    siblingCount++;
+                } else {
+                    totalUp += info.genUp;
+                    totalDown += info.genDown;
+                }
+            }
+            
+            // 친족 유형
+            let kinType;
+            if (hasSpouse && relations.length === 1) {
+                kinType = "배우자";
+            } else if (hasSpouse) {
+                kinType = "인척";
+            } else {
+                kinType = "혈족";
+            }
+            
+            // 계통 (직계/방계)
+            let lineType;
+            if (kinType === "배우자") {
+                lineType = "-";
+            } else if (siblingCount > 0 || (totalUp > 0 && totalDown > 0)) {
+                lineType = "방계";
+            } else {
+                lineType = "직계";
+            }
+            
+            // 존비속
             const netGen = totalUp - totalDown;
-            let genType = netGen > 0 ? "존속 (尊屬)" : netGen < 0 ? "비속 (卑屬)" : "동항렬 (同行列)";
-            if (kinType === "배우자") { lineType = "-"; genType = "배우자"; side = "-"; }
-            return { kinType, lineType, genType, sideType: side };
+            let genType;
+            if (kinType === "배우자") {
+                genType = "배우자";
+            } else if (netGen > 0) {
+                genType = "존속";
+            } else if (netGen < 0) {
+                genType = "비속";
+            } else {
+                genType = "동항렬";
+            }
+            
+            // 부계/모계
+            let sideType = kinType === "배우자" ? "-" : side;
+            
+            return { kinType, lineType, genType, sideType };
+        }
+
+        // 리셋
+        function frResetAll() {
+            frRelationPath = [];
+            frCurrentSide = 'paternal';
+            frUpdateDisplay();
+        }
+
+        function initFamilyRelationCalculator() {
+            frRelationPath = [];
+            frCurrentSide = 'paternal';
+        }
+
+        // ===== 기존 함수들 (호환성 유지) =====
+        function frUpdateResult() {
+            // 기존 select 방식과의 호환성을 위해 유지
+            const relations = [];
+            for (let i = 1; i <= 4; i++) {
+                const selectEl = document.getElementById(`frRelation${i}`);
+                if (selectEl) {
+                    const val = selectEl.value;
+                    if (val) relations.push(val);
+                }
+            }
+            if (relations.length > 0) {
+                frRelationPath = relations;
+                frUpdateDisplay();
+            }
+        }
+
+        // 기존 frCalculateChon 함수 (호환성)
+        function frCalculateChon(relations) {
+            return frCalculateChonNew(relations);
+        }
+
+        // 기존 frAnalyzeKinType 함수 (호환성)
+        function frAnalyzeKinType(relations) {
+            return frAnalyzeKinTypeNew(relations);
         }
 
         function frGenerateTitle(relations, chon) {
-            if (chon === 0) return "본인/배우자";
-            const chonNames = { 1: "직계 1촌", 2: "2촌", 3: "3촌", 4: "4촌", 5: "5촌", 6: "6촌", 7: "7촌", 8: "8촌" };
-            return chonNames[chon] || `${chon}촌 관계`;
+            return frGenerateTitleNew(relations, chon, false);
         }
 
         function frGetDescription(chon) {
@@ -15507,36 +15928,6 @@
                 8: "8촌(팔촌)은 같은 고조부모를 공유하는 삼종형제 관계입니다."
             };
             return descriptions[chon] || `${chon}촌 관계입니다.`;
-        }
-
-        function frUpdateResult() {
-            const relations = [];
-            for (let i = 1; i <= 6; i++) {
-                const val = document.getElementById(`frRelation${i}`).value;
-                if (val) relations.push(val);
-            }
-            const resultCard = document.getElementById('frResultCard');
-            if (relations.length === 0) { resultCard.classList.remove('active'); return; }
-            resultCard.classList.add('active');
-            document.getElementById('frRelationPath').textContent = "나 → " + relations.join(" → ");
-            const result = frCalculateChon(relations);
-            document.getElementById('frChonNumber').textContent = result.chon;
-            document.getElementById('frFinalTitle').textContent = result.title;
-            document.getElementById('frDescription').textContent = frGetDescription(result.chon);
-            const kinAnalysis = frAnalyzeKinType(relations);
-            document.getElementById('frKinType').textContent = kinAnalysis.kinType;
-            document.getElementById('frLineType').textContent = kinAnalysis.lineType;
-            document.getElementById('frGenType').textContent = kinAnalysis.genType;
-            document.getElementById('frSideType').textContent = kinAnalysis.sideType;
-        }
-
-        function frResetAll() {
-            for (let i = 1; i <= 6; i++) document.getElementById(`frRelation${i}`).value = "";
-            document.getElementById('frResultCard').classList.remove('active');
-        }
-
-        function initFamilyRelationCalculator() {
-            // 초기화 완료
         }
 
         // ===== 신발치수 계산기 =====
