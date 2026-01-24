@@ -9819,55 +9819,460 @@
 
         function getWorldTimeCalculator() {
             return `
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
-                        <div style="font-size: 16px; margin-bottom: 10px;">🇰🇷 서울</div>
-                        <div id="timeSeoul" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                <style>
+                    .world-time-container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+                    }
+                    .seoul-time-box {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        padding: 30px 20px;
+                        border-radius: 20px;
+                        color: white;
+                        text-align: center;
+                        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+                    }
+                    .seoul-time-label {
+                        font-size: 18px;
+                        margin-bottom: 15px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                    }
+                    .seoul-time-display {
+                        font-size: 56px;
+                        font-weight: 700;
+                        font-family: 'Courier New', monospace;
+                        letter-spacing: 4px;
+                        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    }
+                    .seoul-date-display {
+                        font-size: 18px;
+                        margin-top: 12px;
+                        opacity: 0.9;
+                    }
+                    .world-time-search-section {
+                        background: white;
+                        padding: 25px;
+                        border-radius: 20px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    }
+                    .world-time-search-container {
+                        position: relative;
+                        display: flex;
+                        gap: 10px;
+                    }
+                    .world-time-search-input {
+                        flex: 1;
+                        padding: 16px 20px;
+                        padding-right: 50px;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 15px;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                        outline: none;
+                    }
+                    .world-time-search-input:focus {
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    }
+                    .world-time-search-input::placeholder {
+                        color: #a0aec0;
+                    }
+                    .world-time-search-icon {
+                        position: absolute;
+                        right: 90px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #667eea;
+                        font-size: 18px;
+                    }
+                    .world-time-clear-btn {
+                        padding: 16px 20px;
+                        background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 15px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        display: none;
+                    }
+                    .world-time-clear-btn.show {
+                        display: block;
+                    }
+                    .world-time-clear-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+                    }
+                    .world-time-hint {
+                        margin-top: 15px;
+                        padding: 12px 15px;
+                        background: linear-gradient(135deg, #fef5e7 0%, #fef9c3 100%);
+                        border-radius: 10px;
+                        font-size: 14px;
+                        color: #92400e;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        text-align: center;
+                        justify-content: center;
+                    }
+                    .world-time-results {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                        gap: 15px;
+                        margin-top: 20px;
+                    }
+                    .city-time-card {
+                        background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+                        padding: 20px;
+                        border-radius: 15px;
+                        border: 1px solid #e2e8f0;
+                        transition: all 0.3s ease;
+                    }
+                    .city-time-card:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                    }
+                    .city-time-header {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        margin-bottom: 12px;
+                    }
+                    .city-flag {
+                        font-size: 28px;
+                    }
+                    .city-name {
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: #2d3748;
+                    }
+                    .city-country {
+                        font-size: 12px;
+                        color: #718096;
+                    }
+                    .city-time-display {
+                        font-size: 32px;
+                        font-weight: 700;
+                        color: #667eea;
+                        font-family: 'Courier New', monospace;
+                        letter-spacing: 2px;
+                    }
+                    .city-date-display {
+                        font-size: 14px;
+                        color: #718096;
+                        margin-top: 8px;
+                    }
+                    .city-time-diff {
+                        display: inline-block;
+                        margin-top: 10px;
+                        padding: 5px 12px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border-radius: 20px;
+                        font-size: 12px;
+                        font-weight: 600;
+                    }
+                    .city-time-diff.behind {
+                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    }
+                    .city-time-diff.same {
+                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    }
+                    .world-time-no-results {
+                        text-align: center;
+                        padding: 40px 20px;
+                        color: #718096;
+                        font-size: 16px;
+                    }
+                    .world-time-no-results i {
+                        font-size: 48px;
+                        color: #cbd5e0;
+                        margin-bottom: 15px;
+                        display: block;
+                    }
+                    @media (max-width: 768px) {
+                        .seoul-time-display {
+                            font-size: 42px;
+                        }
+                        .world-time-results {
+                            grid-template-columns: 1fr;
+                        }
+                        .world-time-search-icon {
+                            right: 20px;
+                        }
+                        .world-time-search-container {
+                            flex-direction: column;
+                        }
+                        .world-time-clear-btn {
+                            width: 100%;
+                        }
+                    }
+                </style>
+                <div class="world-time-container">
+                    <div class="seoul-time-box">
+                        <div class="seoul-time-label">🇰🇷 서울 현재 시간</div>
+                        <div class="seoul-time-display" id="seoulTimeDisplay">--:--:--</div>
+                        <div class="seoul-date-display" id="seoulDateDisplay">----년 --월 --일 (-)</div>
                     </div>
-                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
-                        <div style="font-size: 16px; margin-bottom: 10px;">🇺🇸 뉴욕</div>
-                        <div id="timeNewYork" style="font-size: 28px; font-weight: 600;">--:--:--</div>
-                    </div>
-                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
-                        <div style="font-size: 16px; margin-bottom: 10px;">🇬🇧 런던</div>
-                        <div id="timeLondon" style="font-size: 28px; font-weight: 600;">--:--:--</div>
-                    </div>
-                    <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
-                        <div style="font-size: 16px; margin-bottom: 10px;">🇯🇵 도쿄</div>
-                        <div id="timeTokyo" style="font-size: 28px; font-weight: 600;">--:--:--</div>
-                    </div>
-                    <div style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 20px; border-radius: 15px; color: white; text-align: center;">
-                        <div style="font-size: 16px; margin-bottom: 10px;">🇨🇳 베이징</div>
-                        <div id="timeBeijing" style="font-size: 28px; font-weight: 600;">--:--:--</div>
-                    </div>
-                    <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 20px; border-radius: 15px; color: #333; text-align: center;">
-                        <div style="font-size: 16px; margin-bottom: 10px;">🇦🇺 시드니</div>
-                        <div id="timeSydney" style="font-size: 28px; font-weight: 600;">--:--:--</div>
+                    
+                    <div class="world-time-search-section">
+                        <div class="world-time-search-container">
+                            <input type="text" class="world-time-search-input" id="worldTimeSearchInput" 
+                                   placeholder="국가 또는 도시를 검색하세요" 
+                                   oninput="searchWorldTime(this.value)">
+                            <i class="fas fa-search world-time-search-icon"></i>
+                            <button class="world-time-clear-btn" id="worldTimeClearBtn" onclick="clearWorldTimeSearch()">
+                                <i class="fas fa-times"></i> 지우기
+                            </button>
+                        </div>
+                        <div class="world-time-hint">
+                            💡 국가를 검색하면 해당 국가의 모든 도시가, 도시를 검색하면 해당 도시의 시간이 표시됩니다
+                        </div>
+                        <div class="world-time-results" id="worldTimeResults"></div>
                     </div>
                 </div>
             `;
         }
 
+        // 세계 도시 데이터 (55개 도시)
+        const worldCities = [
+            // 한국 (2개)
+            { city: '서울', cityEn: 'Seoul', country: '대한민국', countryEn: 'South Korea', flag: '🇰🇷', timezone: 'Asia/Seoul', offset: 9 },
+            { city: '부산', cityEn: 'Busan', country: '대한민국', countryEn: 'South Korea', flag: '🇰🇷', timezone: 'Asia/Seoul', offset: 9 },
+            // 일본 (2개)
+            { city: '도쿄', cityEn: 'Tokyo', country: '일본', countryEn: 'Japan', flag: '🇯🇵', timezone: 'Asia/Tokyo', offset: 9 },
+            { city: '오사카', cityEn: 'Osaka', country: '일본', countryEn: 'Japan', flag: '🇯🇵', timezone: 'Asia/Tokyo', offset: 9 },
+            // 중국 (3개)
+            { city: '베이징', cityEn: 'Beijing', country: '중국', countryEn: 'China', flag: '🇨🇳', timezone: 'Asia/Shanghai', offset: 8 },
+            { city: '상하이', cityEn: 'Shanghai', country: '중국', countryEn: 'China', flag: '🇨🇳', timezone: 'Asia/Shanghai', offset: 8 },
+            { city: '홍콩', cityEn: 'Hong Kong', country: '중국', countryEn: 'China', flag: '🇭🇰', timezone: 'Asia/Hong_Kong', offset: 8 },
+            // 미국 (8개)
+            { city: '뉴욕', cityEn: 'New York', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/New_York', offset: -5 },
+            { city: '워싱턴DC', cityEn: 'Washington DC', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/New_York', offset: -5 },
+            { city: '시카고', cityEn: 'Chicago', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/Chicago', offset: -6 },
+            { city: '덴버', cityEn: 'Denver', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/Denver', offset: -7 },
+            { city: '로스앤젤레스', cityEn: 'Los Angeles', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/Los_Angeles', offset: -8 },
+            { city: '샌프란시스코', cityEn: 'San Francisco', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/Los_Angeles', offset: -8 },
+            { city: '시애틀', cityEn: 'Seattle', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'America/Los_Angeles', offset: -8 },
+            { city: '하와이', cityEn: 'Hawaii', country: '미국', countryEn: 'USA', flag: '🇺🇸', timezone: 'Pacific/Honolulu', offset: -10 },
+            // 영국 (2개)
+            { city: '런던', cityEn: 'London', country: '영국', countryEn: 'UK', flag: '🇬🇧', timezone: 'Europe/London', offset: 0 },
+            { city: '맨체스터', cityEn: 'Manchester', country: '영국', countryEn: 'UK', flag: '🇬🇧', timezone: 'Europe/London', offset: 0 },
+            // 프랑스 (2개)
+            { city: '파리', cityEn: 'Paris', country: '프랑스', countryEn: 'France', flag: '🇫🇷', timezone: 'Europe/Paris', offset: 1 },
+            { city: '마르세유', cityEn: 'Marseille', country: '프랑스', countryEn: 'France', flag: '🇫🇷', timezone: 'Europe/Paris', offset: 1 },
+            // 독일 (2개)
+            { city: '베를린', cityEn: 'Berlin', country: '독일', countryEn: 'Germany', flag: '🇩🇪', timezone: 'Europe/Berlin', offset: 1 },
+            { city: '뮌헨', cityEn: 'Munich', country: '독일', countryEn: 'Germany', flag: '🇩🇪', timezone: 'Europe/Berlin', offset: 1 },
+            // 이탈리아 (2개)
+            { city: '로마', cityEn: 'Rome', country: '이탈리아', countryEn: 'Italy', flag: '🇮🇹', timezone: 'Europe/Rome', offset: 1 },
+            { city: '밀라노', cityEn: 'Milan', country: '이탈리아', countryEn: 'Italy', flag: '🇮🇹', timezone: 'Europe/Rome', offset: 1 },
+            // 스페인 (2개)
+            { city: '마드리드', cityEn: 'Madrid', country: '스페인', countryEn: 'Spain', flag: '🇪🇸', timezone: 'Europe/Madrid', offset: 1 },
+            { city: '바르셀로나', cityEn: 'Barcelona', country: '스페인', countryEn: 'Spain', flag: '🇪🇸', timezone: 'Europe/Madrid', offset: 1 },
+            // 동남아 (9개)
+            { city: '싱가포르', cityEn: 'Singapore', country: '싱가포르', countryEn: 'Singapore', flag: '🇸🇬', timezone: 'Asia/Singapore', offset: 8 },
+            { city: '방콕', cityEn: 'Bangkok', country: '태국', countryEn: 'Thailand', flag: '🇹🇭', timezone: 'Asia/Bangkok', offset: 7 },
+            { city: '쿠알라룸푸르', cityEn: 'Kuala Lumpur', country: '말레이시아', countryEn: 'Malaysia', flag: '🇲🇾', timezone: 'Asia/Kuala_Lumpur', offset: 8 },
+            { city: '자카르타', cityEn: 'Jakarta', country: '인도네시아', countryEn: 'Indonesia', flag: '🇮🇩', timezone: 'Asia/Jakarta', offset: 7 },
+            { city: '마닐라', cityEn: 'Manila', country: '필리핀', countryEn: 'Philippines', flag: '🇵🇭', timezone: 'Asia/Manila', offset: 8 },
+            { city: '하노이', cityEn: 'Hanoi', country: '베트남', countryEn: 'Vietnam', flag: '🇻🇳', timezone: 'Asia/Ho_Chi_Minh', offset: 7 },
+            { city: '호치민', cityEn: 'Ho Chi Minh', country: '베트남', countryEn: 'Vietnam', flag: '🇻🇳', timezone: 'Asia/Ho_Chi_Minh', offset: 7 },
+            { city: '발리', cityEn: 'Bali', country: '인도네시아', countryEn: 'Indonesia', flag: '🇮🇩', timezone: 'Asia/Makassar', offset: 8 },
+            { city: '프놈펜', cityEn: 'Phnom Penh', country: '캄보디아', countryEn: 'Cambodia', flag: '🇰🇭', timezone: 'Asia/Phnom_Penh', offset: 7 },
+            // 인도 (2개)
+            { city: '뉴델리', cityEn: 'New Delhi', country: '인도', countryEn: 'India', flag: '🇮🇳', timezone: 'Asia/Kolkata', offset: 5.5 },
+            { city: '뭄바이', cityEn: 'Mumbai', country: '인도', countryEn: 'India', flag: '🇮🇳', timezone: 'Asia/Kolkata', offset: 5.5 },
+            // 호주 (2개)
+            { city: '시드니', cityEn: 'Sydney', country: '호주', countryEn: 'Australia', flag: '🇦🇺', timezone: 'Australia/Sydney', offset: 11 },
+            { city: '멜버른', cityEn: 'Melbourne', country: '호주', countryEn: 'Australia', flag: '🇦🇺', timezone: 'Australia/Melbourne', offset: 11 },
+            // 캐나다 (2개)
+            { city: '토론토', cityEn: 'Toronto', country: '캐나다', countryEn: 'Canada', flag: '🇨🇦', timezone: 'America/Toronto', offset: -5 },
+            { city: '밴쿠버', cityEn: 'Vancouver', country: '캐나다', countryEn: 'Canada', flag: '🇨🇦', timezone: 'America/Vancouver', offset: -8 },
+            // 중남미 (3개)
+            { city: '멕시코시티', cityEn: 'Mexico City', country: '멕시코', countryEn: 'Mexico', flag: '🇲🇽', timezone: 'America/Mexico_City', offset: -6 },
+            { city: '상파울루', cityEn: 'Sao Paulo', country: '브라질', countryEn: 'Brazil', flag: '🇧🇷', timezone: 'America/Sao_Paulo', offset: -3 },
+            { city: '부에노스아이레스', cityEn: 'Buenos Aires', country: '아르헨티나', countryEn: 'Argentina', flag: '🇦🇷', timezone: 'America/Argentina/Buenos_Aires', offset: -3 },
+            // 중동 (3개)
+            { city: '두바이', cityEn: 'Dubai', country: 'UAE', countryEn: 'UAE', flag: '🇦🇪', timezone: 'Asia/Dubai', offset: 4 },
+            { city: '이스탄불', cityEn: 'Istanbul', country: '터키', countryEn: 'Turkey', flag: '🇹🇷', timezone: 'Europe/Istanbul', offset: 3 },
+            { city: '텔아비브', cityEn: 'Tel Aviv', country: '이스라엘', countryEn: 'Israel', flag: '🇮🇱', timezone: 'Asia/Jerusalem', offset: 2 },
+            // 아프리카 (2개)
+            { city: '카이로', cityEn: 'Cairo', country: '이집트', countryEn: 'Egypt', flag: '🇪🇬', timezone: 'Africa/Cairo', offset: 2 },
+            { city: '요하네스버그', cityEn: 'Johannesburg', country: '남아프리카', countryEn: 'South Africa', flag: '🇿🇦', timezone: 'Africa/Johannesburg', offset: 2 },
+            // 기타 유럽 (7개)
+            { city: '암스테르담', cityEn: 'Amsterdam', country: '네덜란드', countryEn: 'Netherlands', flag: '🇳🇱', timezone: 'Europe/Amsterdam', offset: 1 },
+            { city: '브뤼셀', cityEn: 'Brussels', country: '벨기에', countryEn: 'Belgium', flag: '🇧🇪', timezone: 'Europe/Brussels', offset: 1 },
+            { city: '취리히', cityEn: 'Zurich', country: '스위스', countryEn: 'Switzerland', flag: '🇨🇭', timezone: 'Europe/Zurich', offset: 1 },
+            { city: '비엔나', cityEn: 'Vienna', country: '오스트리아', countryEn: 'Austria', flag: '🇦🇹', timezone: 'Europe/Vienna', offset: 1 },
+            { city: '프라하', cityEn: 'Prague', country: '체코', countryEn: 'Czech', flag: '🇨🇿', timezone: 'Europe/Prague', offset: 1 },
+            { city: '모스크바', cityEn: 'Moscow', country: '러시아', countryEn: 'Russia', flag: '🇷🇺', timezone: 'Europe/Moscow', offset: 3 },
+            { city: '스톡홀름', cityEn: 'Stockholm', country: '스웨덴', countryEn: 'Sweden', flag: '🇸🇪', timezone: 'Europe/Stockholm', offset: 1 }
+        ];
+
         let worldTimeInterval;
+        let currentSearchResults = [];
 
         function initWorldTime() {
-            updateWorldTime();
-            worldTimeInterval = setInterval(updateWorldTime, 1000);
+            updateSeoulTime();
+            worldTimeInterval = setInterval(() => {
+                updateSeoulTime();
+                if (currentSearchResults.length > 0) {
+                    updateSearchResultTimes();
+                }
+            }, 1000);
         }
 
-        function updateWorldTime() {
+        function updateSeoulTime() {
+            const now = new Date();
+            const seoulTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+            
+            const hours = String(seoulTime.getHours()).padStart(2, '0');
+            const minutes = String(seoulTime.getMinutes()).padStart(2, '0');
+            const seconds = String(seoulTime.getSeconds()).padStart(2, '0');
+            
+            const seoulTimeDisplay = document.getElementById('seoulTimeDisplay');
+            const seoulDateDisplay = document.getElementById('seoulDateDisplay');
+            
+            if (seoulTimeDisplay) {
+                seoulTimeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+            
+            if (seoulDateDisplay) {
+                const year = seoulTime.getFullYear();
+                const month = String(seoulTime.getMonth() + 1).padStart(2, '0');
+                const day = String(seoulTime.getDate()).padStart(2, '0');
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                const dayName = dayNames[seoulTime.getDay()];
+                seoulDateDisplay.textContent = `${year}년 ${month}월 ${day}일 (${dayName})`;
+            }
+        }
+
+        function searchWorldTime(query) {
+            const clearBtn = document.getElementById('worldTimeClearBtn');
+            const resultsContainer = document.getElementById('worldTimeResults');
+            
+            if (!query.trim()) {
+                clearBtn.classList.remove('show');
+                resultsContainer.innerHTML = '';
+                currentSearchResults = [];
+                return;
+            }
+            
+            clearBtn.classList.add('show');
+            
+            const searchTerm = query.toLowerCase().trim();
+            
+            // 검색 (도시명, 국가명 - 한글/영문 모두 지원)
+            currentSearchResults = worldCities.filter(city => {
+                return city.city.toLowerCase().includes(searchTerm) ||
+                       city.cityEn.toLowerCase().includes(searchTerm) ||
+                       city.country.toLowerCase().includes(searchTerm) ||
+                       city.countryEn.toLowerCase().includes(searchTerm);
+            });
+            
+            renderSearchResults();
+        }
+
+        function renderSearchResults() {
+            const resultsContainer = document.getElementById('worldTimeResults');
+            
+            if (currentSearchResults.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="world-time-no-results">
+                        <i class="fas fa-search"></i>
+                        검색 결과가 없습니다.<br>다른 국가나 도시를 검색해보세요.
+                    </div>
+                `;
+                return;
+            }
+            
+            const now = new Date();
+            const seoulOffset = 9;
+            
+            resultsContainer.innerHTML = currentSearchResults.map((city, index) => {
+                const cityTime = new Date(now.toLocaleString('en-US', { timeZone: city.timezone }));
+                const hours = String(cityTime.getHours()).padStart(2, '0');
+                const minutes = String(cityTime.getMinutes()).padStart(2, '0');
+                const seconds = String(cityTime.getSeconds()).padStart(2, '0');
+                
+                const year = cityTime.getFullYear();
+                const month = String(cityTime.getMonth() + 1).padStart(2, '0');
+                const day = String(cityTime.getDate()).padStart(2, '0');
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                const dayName = dayNames[cityTime.getDay()];
+                
+                // 서울과의 시차 계산
+                const diff = city.offset - seoulOffset;
+                let diffText = '';
+                let diffClass = '';
+                
+                if (diff === 0) {
+                    diffText = '서울과 같은 시간';
+                    diffClass = 'same';
+                } else if (diff > 0) {
+                    diffText = `서울보다 ${diff}시간 빠름`;
+                    diffClass = '';
+                } else {
+                    diffText = `서울보다 ${Math.abs(diff)}시간 느림`;
+                    diffClass = 'behind';
+                }
+                
+                return `
+                    <div class="city-time-card" data-city-index="${index}">
+                        <div class="city-time-header">
+                            <span class="city-flag">${city.flag}</span>
+                            <div>
+                                <div class="city-name">${city.city}</div>
+                                <div class="city-country">${city.country}</div>
+                            </div>
+                        </div>
+                        <div class="city-time-display" id="cityTime_${index}">${hours}:${minutes}:${seconds}</div>
+                        <div class="city-date-display" id="cityDate_${index}">${year}년 ${month}월 ${day}일 (${dayName})</div>
+                        <span class="city-time-diff ${diffClass}">${diffText}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSearchResultTimes() {
             const now = new Date();
             
-            const formatTime = (date) => {
-                return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            };
+            currentSearchResults.forEach((city, index) => {
+                const cityTime = new Date(now.toLocaleString('en-US', { timeZone: city.timezone }));
+                const hours = String(cityTime.getHours()).padStart(2, '0');
+                const minutes = String(cityTime.getMinutes()).padStart(2, '0');
+                const seconds = String(cityTime.getSeconds()).padStart(2, '0');
+                
+                const year = cityTime.getFullYear();
+                const month = String(cityTime.getMonth() + 1).padStart(2, '0');
+                const day = String(cityTime.getDate()).padStart(2, '0');
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                const dayName = dayNames[cityTime.getDay()];
+                
+                const timeEl = document.getElementById(`cityTime_${index}`);
+                const dateEl = document.getElementById(`cityDate_${index}`);
+                
+                if (timeEl) timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+                if (dateEl) dateEl.textContent = `${year}년 ${month}월 ${day}일 (${dayName})`;
+            });
+        }
+
+        function clearWorldTimeSearch() {
+            const searchInput = document.getElementById('worldTimeSearchInput');
+            const clearBtn = document.getElementById('worldTimeClearBtn');
+            const resultsContainer = document.getElementById('worldTimeResults');
             
-            document.getElementById('timeSeoul').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' })));
-            document.getElementById('timeNewYork').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })));
-            document.getElementById('timeLondon').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Europe/London' })));
-            document.getElementById('timeTokyo').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })));
-            document.getElementById('timeBeijing').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })));
-            document.getElementById('timeSydney').textContent = formatTime(new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' })));
+            if (searchInput) searchInput.value = '';
+            if (clearBtn) clearBtn.classList.remove('show');
+            if (resultsContainer) resultsContainer.innerHTML = '';
+            currentSearchResults = [];
         }
 
         function getCapitalGainsTaxCalculator() {
